@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import { TrendingUp, Zap, Shield } from 'lucide-react'
 import { AnimatedCounter } from '@/components/animated-counter'
 import { MarketSection } from '@/components/market/market-section'
+import { MarketMoversSection } from '@/components/market/market-movers-section'
 import { InventorySection } from '@/components/inventory/inventory-section'
 
 export default function Home() {
@@ -245,6 +246,9 @@ export default function Home() {
 
           {/* Live Market Section */}
           <MarketSection />
+
+          {/* Market Movers Section */}
+          <MarketMoversSection />
 
           {/* Inventory Section */}
           <InventorySection />
