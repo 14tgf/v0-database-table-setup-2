@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 
 export interface StockData {
   symbol: string;
+  name: string;
+  logo: string;
   price: number;
   change: number;
   changePercent: number;

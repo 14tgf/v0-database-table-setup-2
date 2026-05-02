@@ -11,8 +11,16 @@ interface FinnhubQuote {
   t: number; // unix timestamp
 }
 
+interface FinnhubProfile {
+  name: string;
+  logo: string;
+  ticker: string;
+}
+
 interface StockData {
   symbol: string;
+  name: string;
+  logo: string;
   price: number;
   change: number;
   changePercent: number;
@@ -27,7 +35,36 @@ const SYMBOLS = ['TSLA', 'AAPL', 'NVDA', 'MSFT', 'AMZN', 'GOOGL'];
 
 // Cache to store recent data and prevent excessive API calls
 const cache: Map<string, { data: StockData; timestamp: number }> = new Map();
+const profileCache: Map<string, { data: FinnhubProfile; timestamp: number }> = new Map();
 const CACHE_DURATION = 5000; // 5 seconds
+const PROFILE_CACHE_DURATION = 86400000; // 24 hours for company profiles
+
+async function fetchCompanyProfile(symbol: string): Promise<FinnhubProfile | null> {
+  try {
+    // Check profile cache first
+    const cached = profileCache.get(symbol);
+    if (cached && Date.now() - cached.timestamp < PROFILE_CACHE_DURATION) {
+      return cached.data;
+    }
+
+    const response = await fetch(
+      `https://finnhub.io/api/v1/stock/profile2?symbol=${symbol}&token=${FINNHUB_API_KEY}`,
+      { cache: 'no-store' }
+    );
+
+    if (!response.ok) {
+      console.error(`[v0] Company profile API error for ${symbol}:`, response.status);
+      return null;
+    }
+
+    const profile: FinnhubProfile = await response.json();
+    profileCache.set(symbol, { data: profile, timestamp: Date.now() });
+    return profile;
+  } catch (error) {
+    console.error(`[v0] Error fetching profile for ${symbol}:`, error);
+    return null;
+  }
+}
 
 async function fetchStockData(symbol: string): Promise<StockData | null> {
   try {
@@ -49,11 +86,16 @@ async function fetchStockData(symbol: string): Promise<StockData | null> {
 
     const quote: FinnhubQuote = await response.json();
 
+    // Fetch company profile for name and logo
+    const profile = await fetchCompanyProfile(symbol);
+
     const change = quote.c - quote.pc;
     const changePercent = (change / quote.pc) * 100;
 
     const data: StockData = {
       symbol,
+      name: profile?.name || symbol,
+      logo: profile?.logo || '',
       price: parseFloat(quote.c.toFixed(2)),
       change: parseFloat(change.toFixed(2)),
       changePercent: parseFloat(changePercent.toFixed(2)),

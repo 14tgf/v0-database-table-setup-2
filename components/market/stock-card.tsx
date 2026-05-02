@@ -2,24 +2,15 @@
 
 import { motion } from 'framer-motion';
 import { StockData } from '@/hooks/use-market-data';
+import { CompanyLogo } from './company-logo';
 
 interface StockCardProps {
   stock: StockData;
   index: number;
 }
 
-const STOCK_LOGOS: Record<string, string> = {
-  TSLA: '🚗',
-  AAPL: '🍎',
-  NVDA: '🎮',
-  MSFT: '💻',
-  AMZN: '📦',
-  GOOGL: '🔍',
-};
-
 export function StockCard({ stock, index }: StockCardProps) {
   const isPositive = stock.change >= 0;
-  const logo = STOCK_LOGOS[stock.symbol] || '📈';
 
   return (
     <motion.div
@@ -34,10 +25,10 @@ export function StockCard({ stock, index }: StockCardProps) {
       {/* Header */}
       <div className="mb-3 flex items-start justify-between">
         <div className="flex items-center gap-2">
-          <span className="text-2xl">{logo}</span>
+          <CompanyLogo logo={stock.logo} name={stock.name} symbol={stock.symbol} />
           <div>
             <p className="text-sm font-semibold text-white">{stock.symbol}</p>
-            <p className="text-xs text-white/50">Stock</p>
+            <p className="text-xs text-white/50">{stock.name}</p>
           </div>
         </div>
         <motion.div
