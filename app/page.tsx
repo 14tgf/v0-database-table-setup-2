@@ -85,12 +85,12 @@ export default function Home() {
       </header>
 
       {/* Hero Content */}
-      <div className="relative z-10 px-6 py-20">
+      <div className="relative z-10 px-6 py-12">
         <div className="max-w-7xl mx-auto">
           {/* Main Hero Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center mb-20">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-12">
             {/* Left Content */}
-            <div className="space-y-8">
+            <div className="space-y-6">
               <div
                 className={`space-y-4 transition-all duration-1000 ${
                   isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-12'
@@ -101,13 +101,13 @@ export default function Home() {
                   <Zap className="w-4 h-4 text-accent" />
                   <span className="text-xs font-semibold text-accent tracking-widest">POWERED BY TESLA ECOSYSTEM</span>
                 </div>
-                <h1 className="text-6xl lg:text-7xl font-bold leading-tight text-foreground">
+                <h1 className="text-5xl lg:text-6xl font-bold leading-tight text-foreground">
                   Trade Tesla <span className="text-accent">Tomorrow</span>
                 </h1>
               </div>
 
               <p
-                className={`text-lg text-muted-foreground max-w-lg leading-relaxed transition-all duration-1000 ${
+                className={`text-base text-muted-foreground max-w-lg leading-relaxed transition-all duration-1000 ${
                   isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
                 }`}
                 style={{ transitionDelay: '500ms' }}
@@ -117,7 +117,7 @@ export default function Home() {
 
               {/* Stats */}
               <div
-                className={`grid grid-cols-3 gap-6 transition-all duration-1000 ${
+                className={`grid grid-cols-3 gap-4 transition-all duration-1000 ${
                   isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
                 }`}
                 style={{ transitionDelay: '700ms' }}
@@ -261,15 +261,6 @@ export default function Home() {
 
           {/* Premium CTA Section */}
           <PremiumCtaSection />
-
-          {/* Future: Services Section Placeholder */}
-          <div className="py-16 text-center">
-            <div className="inline-block px-4 py-2 bg-secondary border border-accent/30 rounded-full mb-4">
-              <span className="text-xs font-semibold text-accent tracking-widest">COMING SOON</span>
-            </div>
-            <h2 className="text-3xl md:text-4xl font-bold text-white/50">Premium Services</h2>
-            <p className="text-white/40 mt-2 text-lg">Advanced financing, insurance, and concierge services</p>
-          </div>
         </div>
       </div>
 
