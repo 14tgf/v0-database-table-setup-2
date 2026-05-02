@@ -1,6 +1,7 @@
 'use client'
 
 import Image from 'next/image'
+import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { TrendingUp, Zap, Shield } from 'lucide-react'
 import { AnimatedCounter } from '@/components/animated-counter'
@@ -148,12 +149,18 @@ export default function Home() {
                 }`}
                 style={{ transitionDelay: '900ms' }}
               >
-                <button className="px-6 py-2 bg-accent text-accent-foreground font-semibold rounded-lg hover:shadow-lg hover:shadow-accent/50 transition-all duration-300 transform hover:scale-105 text-sm">
+                <Link
+                  href="/auth"
+                  className="px-6 py-2 bg-accent text-accent-foreground font-semibold rounded-lg hover:shadow-lg hover:shadow-accent/50 transition-all duration-300 transform hover:scale-105 text-sm text-center"
+                >
                   Start Trading
-                </button>
-                <button className="px-6 py-2 border border-accent text-accent font-semibold rounded-lg hover:bg-accent/10 transition-all duration-300 text-sm">
+                </Link>
+                <Link
+                  href="/auth"
+                  className="px-6 py-2 border border-accent text-accent font-semibold rounded-lg hover:bg-accent/10 transition-all duration-300 text-sm text-center"
+                >
                   Learn More
-                </button>
+                </Link>
               </div>
 
               {/* Trust Features */}
