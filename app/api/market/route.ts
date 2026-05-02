@@ -31,7 +31,7 @@ interface StockData {
 }
 
 const FINNHUB_API_KEY = process.env.FINNHUB_API_KEY;
-const SYMBOLS = ['TSLA', 'AAPL', 'NVDA', 'MSFT', 'AMZN', 'GOOGL'];
+const SYMBOLS = ['TSLA', 'AAPL', 'NVDA', 'MSFT', 'AMZN', 'GOOGL', 'META', 'NFLX', 'UBER', 'AMD'];
 
 // Cache to store recent data and prevent excessive API calls
 const cache: Map<string, { data: StockData; timestamp: number }> = new Map();

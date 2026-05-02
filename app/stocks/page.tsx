@@ -5,37 +5,13 @@ import Link from 'next/link';
 import { Bell, Sun, TrendingUp, TrendingDown, Activity } from 'lucide-react';
 import { useMarketData } from '@/hooks/use-market-data';
 
-const FEATURED_STOCKS = [
-  {
-    symbol: 'AAPL',
-    name: 'Apple Inc.',
-    price: 229.35,
-    change: 9.32,
-    changePercent: 4.24,
-    sector: 'Technology'
-  },
-  {
-    symbol: 'MSFT',
-    name: 'Microsoft Corporation',
-    price: 522.04,
-    change: 1.20,
-    changePercent: 0.23,
-    sector: 'Technology'
-  },
-  {
-    symbol: 'GOOGL',
-    name: 'Alphabet Inc.',
-    price: 201.42,
-    change: 4.90,
-    changePercent: 2.49,
-    sector: 'Media'
-  }
-];
-
 export default function StocksPage() {
   const { stocks, loading } = useMarketData();
   
-  // Get top 10 stocks for the all stocks section
+  // Get featured stocks (first 3)
+  const featuredStocks = stocks.slice(0, 3);
+  
+  // Get all 10 stocks
   const allStocks = stocks.slice(0, 10);
   
   // Calculate statistics
@@ -107,31 +83,31 @@ export default function StocksPage() {
           {/* Top Gainers */}
           <div className="rounded-xl border border-white/10 bg-gradient-to-br from-green-900/20 via-red-800/20 to-background/50 p-4 backdrop-blur-xl">
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-white font-semibold">Top Gainers</h3>
+              <h3 className="text-white font-semibold text-sm">Top Gainers</h3>
               <TrendingUp className="w-4 h-4 text-green-400" />
             </div>
             <p className="text-2xl font-bold text-green-400">{topGainerChange.toFixed(2)}%</p>
-            <p className="text-xs text-white/50 mt-2">Click to view all</p>
+            <p className="text-xs text-white/50 mt-2">Best performance</p>
           </div>
 
           {/* Top Losers */}
           <div className="rounded-xl border border-white/10 bg-gradient-to-br from-red-900/20 via-red-800/20 to-background/50 p-4 backdrop-blur-xl">
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-white font-semibold">Top Losers</h3>
+              <h3 className="text-white font-semibold text-sm">Top Losers</h3>
               <TrendingDown className="w-4 h-4 text-red-400" />
             </div>
             <p className="text-2xl font-bold text-red-400">{topLoserChange.toFixed(2)}%</p>
-            <p className="text-xs text-white/50 mt-2">Click to view all</p>
+            <p className="text-xs text-white/50 mt-2">Worst performance</p>
           </div>
 
           {/* Most Active */}
           <div className="rounded-xl border border-white/10 bg-gradient-to-br from-red-900/20 via-red-800/20 to-background/50 p-4 backdrop-blur-xl">
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-white font-semibold">Most Active</h3>
+              <h3 className="text-white font-semibold text-sm">Market Status</h3>
               <Activity className="w-4 h-4 text-accent" />
             </div>
-            <p className="text-2xl font-bold text-white">130.1M</p>
-            <p className="text-xs text-white/50 mt-2">Click to view all</p>
+            <p className="text-2xl font-bold text-white">{allStocks.length}</p>
+            <p className="text-xs text-white/50 mt-2">Stocks tracked</p>
           </div>
         </div>
 
@@ -140,36 +116,59 @@ export default function StocksPage() {
           <h2 className="text-xl font-bold text-white mb-1">Featured Stocks</h2>
           <p className="text-white/70 text-sm mb-4">Handpicked stocks for your portfolio</p>
 
-          <div className="space-y-3">
-            {FEATURED_STOCKS.map((stock) => {
-              const isPositive = stock.change >= 0;
-              return (
-                <div key={stock.symbol} className="rounded-lg bg-red-800/30 border border-white/10 p-4 hover:bg-red-800/40 transition-all">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-1">
-                        <h3 className="text-lg font-bold text-white">{stock.symbol}</h3>
-                        <p className="text-white/50 text-sm">{stock.name}</p>
+          {loading ? (
+            <div className="space-y-3">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="rounded-lg bg-red-800/30 h-16 animate-pulse" />
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {featuredStocks.map((stock) => {
+                const isPositive = stock.change >= 0;
+                return (
+                  <div key={stock.symbol} className="rounded-lg bg-red-800/30 border border-white/10 p-4 hover:bg-red-800/40 transition-all">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3 flex-1">
+                        {stock.logo ? (
+                          <Image
+                            src={stock.logo}
+                            alt={stock.name}
+                            width={40}
+                            height={40}
+                            className="w-10 h-10 rounded bg-white/10 flex-shrink-0 object-contain p-1"
+                            unoptimized
+                          />
+                        ) : (
+                          <div className="w-10 h-10 rounded bg-white/10 flex items-center justify-center flex-shrink-0">
+                            <span className="text-white text-xs font-bold">{stock.symbol[0]}</span>
+                          </div>
+                        )}
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h3 className="text-base font-bold text-white">{stock.symbol}</h3>
+                            <p className="text-white/50 text-xs">{stock.name}</p>
+                          </div>
+                        </div>
                       </div>
-                      <p className="text-sm text-white/70">{stock.sector}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-lg font-bold text-white">${stock.price.toFixed(2)}</p>
-                      <p className={`text-sm font-semibold ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
-                        {isPositive ? '+' : ''}{stock.change.toFixed(2)} ({stock.changePercent.toFixed(2)}%)
-                      </p>
+                      <div className="text-right">
+                        <p className="text-base font-bold text-white">${stock.price.toFixed(2)}</p>
+                        <p className={`text-sm font-semibold ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
+                          {isPositive ? '+' : ''}{stock.change.toFixed(2)} ({stock.changePercent.toFixed(2)}%)
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* All Stocks Table */}
         <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-red-900/40 via-red-800/30 to-background/50 p-6 backdrop-blur-xl overflow-hidden">
           <h2 className="text-xl font-bold text-white mb-1">All Stocks</h2>
-          <p className="text-white/70 text-sm mb-4">{stocks.length} stocks available</p>
+          <p className="text-white/70 text-sm mb-4">{allStocks.length} stocks available</p>
 
           {/* Table Header */}
           <div className="grid grid-cols-3 gap-4 mb-2 px-4 py-2 text-xs font-semibold text-white/60 uppercase">
@@ -194,9 +193,20 @@ export default function StocksPage() {
                     index % 2 === 0 ? 'bg-red-800/20' : ''
                   }`}>
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded bg-black flex items-center justify-center flex-shrink-0">
-                        <span className="text-white text-xs font-bold">{stock.symbol[0]}</span>
-                      </div>
+                      {stock.logo ? (
+                        <Image
+                          src={stock.logo}
+                          alt={stock.symbol}
+                          width={32}
+                          height={32}
+                          className="w-8 h-8 rounded bg-white/10 flex-shrink-0 object-contain"
+                          unoptimized
+                        />
+                      ) : (
+                        <div className="w-8 h-8 rounded bg-black flex items-center justify-center flex-shrink-0">
+                          <span className="text-white text-xs font-bold">{stock.symbol[0]}</span>
+                        </div>
+                      )}
                       <div>
                         <p className="text-sm font-semibold text-white">{stock.symbol}</p>
                         <p className="text-xs text-white/50">{stock.name}</p>
