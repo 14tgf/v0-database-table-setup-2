@@ -1,0 +1,33 @@
+'use client';
+
+import { Wallet, TrendingUp, BarChart3, PieChart, Settings } from 'lucide-react';
+import Link from 'next/link';
+
+export function DashboardNav() {
+  const navItems = [
+    { icon: Wallet, label: 'Wallet', href: '/dashboard' },
+    { icon: TrendingUp, label: 'Invest', href: '/dashboard/invest' },
+    { icon: BarChart3, label: 'Stocks', href: '/dashboard/stocks' },
+    { icon: PieChart, label: 'Portfolio', href: '/dashboard/portfolio' },
+    { icon: Settings, label: 'Settings', href: '/dashboard/settings' },
+  ];
+
+  return (
+    <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/10 bg-gradient-to-t from-background/95 to-background/80 backdrop-blur-xl">
+      <div className="max-w-md mx-auto px-4 py-3">
+        <div className="flex items-center justify-around">
+          {navItems.map(({ icon: Icon, label, href }) => (
+            <Link
+              key={label}
+              href={href}
+              className="flex flex-col items-center justify-center gap-1 py-2 px-3 rounded-lg text-white/60 hover:text-accent hover:bg-white/5 transition-all duration-300 group"
+            >
+              <Icon className="w-6 h-6 group-hover:text-accent transition-colors" />
+              <span className="text-xs font-medium">{label}</span>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
