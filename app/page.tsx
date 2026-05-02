@@ -4,6 +4,7 @@ import Image from 'next/image'
 import { useEffect, useState } from 'react'
 import { TrendingUp, Zap, Shield } from 'lucide-react'
 import { AnimatedCounter } from '@/components/animated-counter'
+import { MarketSection } from '@/components/market/market-section'
 
 export default function Home() {
   const [isLoaded, setIsLoaded] = useState(false)
@@ -240,6 +241,9 @@ export default function Home() {
               </div>
             ))}
           </div>
+
+          {/* Live Market Section */}
+          <MarketSection />
         </div>
       </div>
 

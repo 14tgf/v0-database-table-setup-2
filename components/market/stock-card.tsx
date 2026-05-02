@@ -1,0 +1,81 @@
+'use client';
+
+import { motion } from 'framer-motion';
+import { StockData } from '@/hooks/use-market-data';
+
+interface StockCardProps {
+  stock: StockData;
+  index: number;
+}
+
+const STOCK_LOGOS: Record<string, string> = {
+  TSLA: '🚗',
+  AAPL: '🍎',
+  NVDA: '🎮',
+  MSFT: '💻',
+  AMZN: '📦',
+  GOOGL: '🔍',
+};
+
+export function StockCard({ stock, index }: StockCardProps) {
+  const isPositive = stock.change >= 0;
+  const logo = STOCK_LOGOS[stock.symbol] || '📈';
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.05 }}
+      className="group relative overflow-hidden rounded-xl border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] p-4 backdrop-blur-xl transition-all hover:border-white/20 hover:bg-gradient-to-br hover:from-white/10 hover:to-white/5"
+    >
+      {/* Background glow effect */}
+      <div className="absolute inset-0 -z-10 bg-gradient-to-br from-blue-500/0 via-transparent to-purple-500/0 opacity-0 transition-opacity group-hover:opacity-20" />
+
+      {/* Header */}
+      <div className="mb-3 flex items-start justify-between">
+        <div className="flex items-center gap-2">
+          <span className="text-2xl">{logo}</span>
+          <div>
+            <p className="text-sm font-semibold text-white">{stock.symbol}</p>
+            <p className="text-xs text-white/50">Stock</p>
+          </div>
+        </div>
+        <motion.div
+          animate={{ scale: isPositive ? [1, 1.05, 1] : 1 }}
+          transition={{ repeat: isPositive ? Infinity : 0, duration: 2 }}
+          className={`text-xs font-bold px-2 py-1 rounded-full ${
+            isPositive
+              ? 'bg-green-500/20 text-green-400'
+              : 'bg-red-500/20 text-red-400'
+          }`}
+        >
+          {isPositive ? '↑' : '↓'} {Math.abs(stock.changePercent).toFixed(2)}%
+        </motion.div>
+      </div>
+
+      {/* Price */}
+      <div className="mb-3">
+        <p className="text-2xl font-bold text-white">${stock.price.toFixed(2)}</p>
+        <p
+          className={`text-sm font-medium ${
+            isPositive ? 'text-green-400' : 'text-red-400'
+          }`}
+        >
+          {isPositive ? '+' : ''}{stock.change.toFixed(2)}
+        </p>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 gap-2 text-xs">
+        <div className="rounded-lg bg-white/5 p-2">
+          <p className="text-white/50">High</p>
+          <p className="font-semibold text-white">${stock.high.toFixed(2)}</p>
+        </div>
+        <div className="rounded-lg bg-white/5 p-2">
+          <p className="text-white/50">Low</p>
+          <p className="font-semibold text-white">${stock.low.toFixed(2)}</p>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
