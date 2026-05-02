@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import {
@@ -17,8 +18,10 @@ import { RecentOrders } from '@/components/dashboard/recent-orders';
 import { MarketOverview } from '@/components/dashboard/market-overview';
 import { StockPerformance } from '@/components/dashboard/stock-performance';
 import { DashboardNav } from '@/components/dashboard/dashboard-nav';
+import { SidebarMenu } from '@/components/dashboard/sidebar-menu';
 
 export default function DashboardPage() {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const statCards = [
     {
       title: 'Portfolio Value',
@@ -92,7 +95,10 @@ export default function DashboardPage() {
                 className="w-8 h-8"
               />
             </div>
-            <button className="p-1.5 rounded-lg hover:bg-white/10 transition-colors">
+            <button 
+              onClick={() => setSidebarOpen(true)}
+              className="p-1.5 rounded-lg hover:bg-white/10 transition-colors"
+            >
               <svg className="w-5 h-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
               </svg>
@@ -143,6 +149,14 @@ export default function DashboardPage() {
 
       {/* Sticky Navigation */}
       <DashboardNav />
+
+      {/* Sidebar Menu */}
+      <SidebarMenu 
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        userName="Carl"
+        userEmail="cedoe70@gmail.com"
+      />
     </div>
   );
 }
