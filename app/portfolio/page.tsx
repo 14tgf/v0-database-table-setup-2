@@ -1,87 +1,73 @@
 'use client';
 
+import { useState, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Bell, Sun, TrendingUp, TrendingDown, MoreVertical, Plus } from 'lucide-react';
+import { useMarketData } from '@/hooks/use-market-data';
 
 interface PortfolioHolding {
-  id: string;
   symbol: string;
   name: string;
-  logo?: string;
+  logo: string;
   shares: number;
   buyPrice: number;
-  currentPrice: number;
-  totalValue: number;
-  gain: number;
-  gainPercent: number;
 }
 
 export default function PortfolioPage() {
-  // Sample portfolio data
-  const holdings: PortfolioHolding[] = [
-    {
-      id: '1',
-      symbol: 'AAPL',
-      name: 'Apple Inc.',
-      shares: 50,
-      buyPrice: 180.25,
-      currentPrice: 229.35,
-      totalValue: 11467.50,
-      gain: 2457.50,
-      gainPercent: 27.28
-    },
-    {
-      id: '2',
-      symbol: 'MSFT',
-      name: 'Microsoft Corporation',
-      shares: 30,
-      buyPrice: 445.00,
-      currentPrice: 522.04,
-      totalValue: 15661.20,
-      gain: 2311.20,
-      gainPercent: 17.35
-    },
-    {
-      id: '3',
-      symbol: 'GOOGL',
-      name: 'Alphabet Inc.',
-      shares: 25,
-      buyPrice: 165.50,
-      currentPrice: 201.42,
-      totalValue: 5035.50,
-      gain: 895.50,
-      gainPercent: 21.72
-    },
-    {
-      id: '4',
-      symbol: 'TSLA',
-      name: 'Tesla Inc.',
-      shares: 15,
-      buyPrice: 250.00,
-      currentPrice: 285.45,
-      totalValue: 4281.75,
-      gain: 530.25,
-      gainPercent: 14.18
-    },
-    {
-      id: '5',
-      symbol: 'NVDA',
-      name: 'NVIDIA Corporation',
-      shares: 20,
-      buyPrice: 420.00,
-      currentPrice: 875.30,
-      totalValue: 17506.00,
-      gain: 9106.00,
-      gainPercent: 108.48
-    }
-  ];
+  const { stocks, loading } = useMarketData();
+
+  // Portfolio holdings - using real stock data from API
+  const portfolioSymbols = ['AAPL', 'MSFT', 'GOOGL', 'TSLA', 'NVDA'];
+  
+  // Map real stock data to portfolio holdings
+  const holdings = useMemo(() => {
+    return portfolioSymbols
+      .map((symbol) => {
+        const stock = stocks.find(s => s.symbol === symbol);
+        if (!stock) return null;
+
+        // Simulate holding data based on stock data
+        const shares = [50, 30, 25, 15, 20][portfolioSymbols.indexOf(symbol)];
+        const buyPrices = [180.25, 445.0, 165.5, 250.0, 420.0];
+        const buyPrice = buyPrices[portfolioSymbols.indexOf(symbol)];
+        const currentPrice = stock.price;
+        const totalValue = shares * currentPrice;
+        const gain = totalValue - (shares * buyPrice);
+        const gainPercent = (gain / (shares * buyPrice)) * 100;
+
+        return {
+          symbol: stock.symbol,
+          name: stock.name,
+          logo: stock.logo,
+          shares,
+          buyPrice,
+          currentPrice,
+          totalValue,
+          gain,
+          gainPercent
+        };
+      })
+      .filter((h) => h !== null) as PortfolioHolding[];
+  }, [stocks]);
 
   // Calculate totals
-  const totalInvested = holdings.reduce((sum, h) => sum + (h.shares * h.buyPrice), 0);
-  const totalValue = holdings.reduce((sum, h) => sum + h.totalValue, 0);
-  const totalGain = holdings.reduce((sum, h) => sum + h.gain, 0);
-  const totalGainPercent = ((totalGain / totalInvested) * 100);
+  const totalInvested = useMemo(() => {
+    return holdings.reduce((sum, h) => sum + (h.shares * h.buyPrice), 0);
+  }, [holdings]);
+
+  const totalValue = useMemo(() => {
+    return holdings.reduce((sum, h) => sum + h.totalValue, 0);
+  }, [holdings]);
+
+  const totalGain = useMemo(() => {
+    return holdings.reduce((sum, h) => sum + h.gain, 0);
+  }, [holdings]);
+
+  const totalGainPercent = useMemo(() => {
+    return totalInvested > 0 ? (totalGain / totalInvested) * 100 : 0;
+  }, [totalGain, totalInvested]);
+
   const gainersCount = holdings.filter(h => h.gain > 0).length;
   const losersCount = holdings.filter(h => h.gain < 0).length;
 
@@ -201,70 +187,91 @@ export default function PortfolioPage() {
         <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-red-900/40 via-red-800/30 to-background/50 p-6 backdrop-blur-xl overflow-hidden">
           <h2 className="text-xl font-bold text-white mb-4">Holdings ({holdings.length})</h2>
 
-          {/* Table Header */}
-          <div className="grid grid-cols-5 gap-4 mb-2 px-4 py-2 text-xs font-semibold text-white/60 uppercase">
-            <div>Stock</div>
-            <div className="text-right">Shares</div>
-            <div className="text-right">Current Price</div>
-            <div className="text-right">Total Value</div>
-            <div className="text-right">Gain/Loss</div>
-          </div>
+          {loading ? (
+            <div className="space-y-2">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="rounded-lg bg-white/5 h-16 animate-pulse" />
+              ))}
+            </div>
+          ) : (
+            <>
+              {/* Table Header */}
+              <div className="grid grid-cols-5 gap-4 mb-2 px-4 py-2 text-xs font-semibold text-white/60 uppercase">
+                <div>Stock</div>
+                <div className="text-right">Shares</div>
+                <div className="text-right">Current Price</div>
+                <div className="text-right">Total Value</div>
+                <div className="text-right">Gain/Loss</div>
+              </div>
 
-          {/* Table Body */}
-          <div className="space-y-1">
-            {holdings.map((holding, index) => {
-              const isPositive = holding.gain >= 0;
-              return (
-                <div
-                  key={holding.id}
-                  className={`grid grid-cols-5 gap-4 px-4 py-4 rounded-lg hover:bg-white/5 transition-all cursor-pointer group glow-cyan-hover ${
-                    index % 2 === 0 ? 'bg-red-800/20' : ''
-                  }`}
-                >
-                  {/* Stock Info */}
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded bg-black flex items-center justify-center flex-shrink-0">
-                      <span className="text-white text-xs font-bold">{holding.symbol[0]}</span>
+              {/* Table Body */}
+              <div className="space-y-1">
+                {holdings.map((holding, index) => {
+                  const isPositive = holding.gain >= 0;
+                  return (
+                    <div
+                      key={holding.symbol}
+                      className={`grid grid-cols-5 gap-4 px-4 py-4 rounded-lg hover:bg-white/5 transition-all cursor-pointer group glow-cyan-hover ${
+                        index % 2 === 0 ? 'bg-red-800/20' : ''
+                      }`}
+                    >
+                      {/* Stock Info */}
+                      <div className="flex items-center gap-3">
+                        {holding.logo ? (
+                          <Image
+                            src={holding.logo}
+                            alt={holding.symbol}
+                            width={40}
+                            height={40}
+                            className="w-10 h-10 rounded bg-white/10 flex-shrink-0 object-contain"
+                            unoptimized
+                          />
+                        ) : (
+                          <div className="w-10 h-10 rounded bg-black flex items-center justify-center flex-shrink-0">
+                            <span className="text-white text-xs font-bold">{holding.symbol[0]}</span>
+                          </div>
+                        )}
+                        <div>
+                          <p className="text-sm font-semibold text-white">{holding.symbol}</p>
+                          <p className="text-xs text-white/50">{holding.name}</p>
+                        </div>
+                      </div>
+
+                      {/* Shares */}
+                      <div className="text-right flex items-center justify-end">
+                        <p className="text-sm font-semibold text-white">{holding.shares}</p>
+                      </div>
+
+                      {/* Current Price */}
+                      <div className="text-right flex items-center justify-end">
+                        <p className="text-sm font-semibold text-white">${holding.currentPrice.toFixed(2)}</p>
+                      </div>
+
+                      {/* Total Value */}
+                      <div className="text-right flex items-center justify-end">
+                        <p className="text-sm font-semibold text-white">${holding.totalValue.toFixed(2)}</p>
+                      </div>
+
+                      {/* Gain/Loss */}
+                      <div className="text-right flex items-center justify-end gap-2">
+                        <div>
+                          <p className={`text-sm font-semibold ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
+                            {isPositive ? '+' : ''}{holding.gainPercent.toFixed(2)}%
+                          </p>
+                          <p className={`text-xs ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
+                            {isPositive ? '+' : ''}${Math.abs(holding.gain).toFixed(2)}
+                          </p>
+                        </div>
+                        <button className="p-1 rounded hover:bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <MoreVertical className="w-4 h-4 text-white/60" />
+                        </button>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm font-semibold text-white">{holding.symbol}</p>
-                      <p className="text-xs text-white/50">{holding.name}</p>
-                    </div>
-                  </div>
-
-                  {/* Shares */}
-                  <div className="text-right flex items-center justify-end">
-                    <p className="text-sm font-semibold text-white">{holding.shares}</p>
-                  </div>
-
-                  {/* Current Price */}
-                  <div className="text-right flex items-center justify-end">
-                    <p className="text-sm font-semibold text-white">${holding.currentPrice.toFixed(2)}</p>
-                  </div>
-
-                  {/* Total Value */}
-                  <div className="text-right flex items-center justify-end">
-                    <p className="text-sm font-semibold text-white">${holding.totalValue.toFixed(2)}</p>
-                  </div>
-
-                  {/* Gain/Loss */}
-                  <div className="text-right flex items-center justify-end gap-2">
-                    <div>
-                      <p className={`text-sm font-semibold ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
-                        {isPositive ? '+' : ''}{holding.gainPercent.toFixed(2)}%
-                      </p>
-                      <p className={`text-xs ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
-                        {isPositive ? '+' : ''}${Math.abs(holding.gain).toFixed(2)}
-                      </p>
-                    </div>
-                    <button className="p-1 rounded hover:bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <MoreVertical className="w-4 h-4 text-white/60" />
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+                  );
+                })}
+              </div>
+            </>
+          )}
         </div>
       </main>
     </div>
