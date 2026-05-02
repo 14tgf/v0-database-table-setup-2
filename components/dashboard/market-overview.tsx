@@ -1,41 +1,14 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import Image from 'next/image';
 import { CompanyLogo } from '@/components/market/company-logo';
-
-interface StockItem {
-  symbol: string;
-  name: string;
-  price: number;
-  change: number;
-  logo: string;
-}
+import { useMarketData } from '@/hooks/use-market-data';
 
 export function MarketOverview() {
-  const stocks: StockItem[] = [
-    {
-      symbol: 'AAPL',
-      name: 'Apple Inc.',
-      price: 229.35,
-      change: 4.24,
-      logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Apple_logo_black.svg/1024px-Apple_logo_black.svg.png',
-    },
-    {
-      symbol: 'NFLX',
-      name: 'Netflix Inc.',
-      price: 1211.64,
-      change: 2.65,
-      logo: 'https://upload.wikimedia.org/wikipedia/commons/0/08/Netflix_2015_logo.svg',
-    },
-    {
-      symbol: 'GOOGL',
-      name: 'Alphabet Inc.',
-      price: 201.42,
-      change: 2.49,
-      logo: 'https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg',
-    },
-  ];
+  const { stocks, loading, error } = useMarketData();
+
+  // Get first 3 stocks for dashboard overview
+  const displayStocks = stocks.slice(0, 3);
 
   return (
     <motion.div
@@ -56,35 +29,53 @@ export function MarketOverview() {
           </a>
         </div>
 
-        {/* Stock Items */}
-        <div className="space-y-2">
-          {stocks.map((stock) => (
-            <div
-              key={stock.symbol}
-              className="rounded-lg border border-white/10 bg-white/5 p-4 hover:bg-white/10 hover:border-accent/50 transition-all duration-300"
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="flex-shrink-0">
-                    <CompanyLogo
-                      logo={stock.logo}
-                      name={stock.name}
-                      symbol={stock.symbol}
-                    />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-white">{stock.name}</p>
-                    <p className="text-xs text-white/50">{stock.symbol}</p>
+        {/* Loading State */}
+        {loading ? (
+          <div className="space-y-2">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="rounded-lg border border-white/10 bg-white/5 p-4 animate-pulse h-16" />
+            ))}
+          </div>
+        ) : error ? (
+          <div className="text-center py-8">
+            <p className="text-red-400 text-sm">{error}</p>
+          </div>
+        ) : (
+          /* Stock Items */
+          <div className="space-y-2">
+            {displayStocks.map((stock) => {
+              const isPositive = stock.change >= 0;
+              return (
+                <div
+                  key={stock.symbol}
+                  className="rounded-lg border border-white/10 bg-white/5 p-4 hover:bg-white/10 hover:border-accent/50 transition-all duration-300"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="flex-shrink-0">
+                        <CompanyLogo
+                          logo={stock.logo}
+                          name={stock.name}
+                          symbol={stock.symbol}
+                        />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-white">{stock.name}</p>
+                        <p className="text-xs text-white/50">{stock.symbol}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-semibold text-white">${stock.price.toFixed(2)}</p>
+                      <p className={`text-xs font-semibold ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
+                        {isPositive ? '+' : ''}{stock.changePercent.toFixed(2)}%
+                      </p>
+                    </div>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm font-semibold text-white">${stock.price.toFixed(2)}</p>
-                  <p className="text-xs text-green-400">+{stock.change.toFixed(2)}%</p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </motion.div>
   );
