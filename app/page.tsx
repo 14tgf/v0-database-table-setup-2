@@ -2,6 +2,7 @@
 
 import Image from 'next/image'
 import { useEffect, useState } from 'react'
+import { TrendingUp, Zap, Shield } from 'lucide-react'
 
 export default function Home() {
   const [isLoaded, setIsLoaded] = useState(false)
@@ -11,129 +12,217 @@ export default function Home() {
   }, [])
 
   return (
-    <main className="w-full h-screen bg-gradient-to-b from-background via-background to-secondary/20 overflow-hidden">
-      {/* Background Grid Effect */}
-      <div className="absolute inset-0 opacity-10">
+    <main className="w-full min-h-screen bg-gradient-to-br from-background via-background to-secondary overflow-hidden">
+      {/* Animated background grid */}
+      <div className="absolute inset-0 opacity-5">
         <div
           className="absolute inset-0"
           style={{
             backgroundImage:
-              'linear-gradient(rgba(224, 224, 224, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(224, 224, 224, 0.1) 1px, transparent 1px)',
+              'linear-gradient(rgba(0, 217, 255, 0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 217, 255, 0.3) 1px, transparent 1px)',
             backgroundSize: '50px 50px',
           }}
         />
       </div>
 
-      {/* Header */}
-      <header className="relative z-10 flex justify-between items-center px-8 py-6">
+      {/* Glowing accent orbs */}
+      <div className="absolute top-20 right-20 w-96 h-96 bg-accent/10 rounded-full blur-3xl opacity-20 animate-pulse" />
+      <div className="absolute bottom-40 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl opacity-20 animate-pulse" style={{ animationDelay: '1s' }} />
+
+      {/* Header Navigation */}
+      <header className="relative z-10 flex justify-between items-center px-8 py-6 border-b border-border/50">
         <div
-          className={`text-2xl font-light tracking-widest transition-all duration-1000 ${
+          className={`text-2xl font-bold tracking-tight text-accent transition-all duration-1000 ${
             isLoaded ? 'opacity-100' : 'opacity-0'
           }`}
-          style={{ transitionDelay: '200ms' }}
+          style={{ transitionDelay: '100ms' }}
         >
-          MANSORY
+          X-HOLDING
         </div>
-        <nav className="hidden md:flex gap-12 text-sm tracking-wide">
-          {['MODELS', 'EXPERIENCE', 'CONTACT'].map((item, idx) => (
+        <nav className="hidden md:flex gap-8 text-sm font-medium">
+          {['BUY', 'SELL', 'EXPLORE', 'CONTACT'].map((item, idx) => (
             <a
               key={item}
               href="#"
-              className={`hover:text-accent transition-colors duration-300 ${
+              className={`text-muted-foreground hover:text-accent transition-all duration-300 relative group ${
                 isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'
               }`}
-              style={{ transitionDelay: `${400 + idx * 100}ms` }}
+              style={{ transitionDelay: `${200 + idx * 80}ms` }}
             >
               {item}
+              <span className="absolute bottom-0 left-0 w-0 h-px bg-accent group-hover:w-full transition-all duration-300" />
             </a>
           ))}
         </nav>
       </header>
 
       {/* Hero Content */}
-      <div className="relative z-10 h-full flex items-center justify-center px-6">
-        <div className="max-w-7xl w-full grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-          {/* Left Side - Text Content */}
-          <div className="space-y-8">
-            <div
-              className={`space-y-4 transition-all duration-1000 ${
-                isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-12'
-              }`}
-              style={{ transitionDelay: '600ms' }}
-            >
-              <div className="text-accent text-sm tracking-[0.3em] font-light">
-                INNOVATION & PERFORMANCE
+      <div className="relative z-10 px-6 py-20">
+        <div className="max-w-7xl mx-auto">
+          {/* Main Hero Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center mb-20">
+            {/* Left Content */}
+            <div className="space-y-8">
+              <div
+                className={`space-y-4 transition-all duration-1000 ${
+                  isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-12'
+                }`}
+                style={{ transitionDelay: '300ms' }}
+              >
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-secondary border border-accent/30 rounded-full w-fit">
+                  <Zap className="w-4 h-4 text-accent" />
+                  <span className="text-xs font-semibold text-accent tracking-widest">POWERED BY TESLA ECOSYSTEM</span>
+                </div>
+                <h1 className="text-6xl lg:text-7xl font-bold leading-tight text-foreground">
+                  Trade Tesla <span className="text-accent">Tomorrow</span>
+                </h1>
               </div>
-              <h1 className="text-5xl md:text-7xl font-light tracking-tight leading-tight">
-                Creation Without Limitation
-              </h1>
+
+              <p
+                className={`text-lg text-muted-foreground max-w-lg leading-relaxed transition-all duration-1000 ${
+                  isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+                }`}
+                style={{ transitionDelay: '500ms' }}
+              >
+                Buy and sell Tesla vehicles, robots, and energy products on the most secure fintech marketplace. Zero friction. Maximum opportunity.
+              </p>
+
+              {/* Stats */}
+              <div
+                className={`grid grid-cols-3 gap-6 transition-all duration-1000 ${
+                  isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+                }`}
+                style={{ transitionDelay: '700ms' }}
+              >
+                {[
+                  { label: '$2.4B+', description: 'Trading Volume' },
+                  { label: '50K+', description: 'Active Traders' },
+                  { label: '99.9%', description: 'Uptime' },
+                ].map((stat) => (
+                  <div key={stat.label} className="bg-secondary/50 border border-accent/20 rounded-lg p-4">
+                    <div className="text-xl font-bold text-accent">{stat.label}</div>
+                    <div className="text-xs text-muted-foreground mt-1">{stat.description}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* CTA Buttons */}
+              <div
+                className={`flex flex-col sm:flex-row gap-4 transition-all duration-1000 ${
+                  isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+                }`}
+                style={{ transitionDelay: '900ms' }}
+              >
+                <button className="px-8 py-3 bg-accent text-accent-foreground font-semibold rounded-lg hover:shadow-lg hover:shadow-accent/50 transition-all duration-300 transform hover:scale-105">
+                  Start Trading
+                </button>
+                <button className="px-8 py-3 border border-accent text-accent font-semibold rounded-lg hover:bg-accent/10 transition-all duration-300">
+                  Learn More
+                </button>
+              </div>
+
+              {/* Trust Features */}
+              <div
+                className={`flex gap-8 pt-4 transition-all duration-1000 ${
+                  isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+                }`}
+                style={{ transitionDelay: '1100ms' }}
+              >
+                {[
+                  { icon: Shield, label: 'Secure' },
+                  { icon: TrendingUp, label: 'Real-time' },
+                  { icon: Zap, label: 'Instant' },
+                ].map((feature) => (
+                  <div key={feature.label} className="flex items-center gap-2">
+                    <feature.icon className="w-4 h-4 text-accent" />
+                    <span className="text-sm text-muted-foreground">{feature.label}</span>
+                  </div>
+                ))}
+              </div>
             </div>
 
-            <p
-              className={`text-muted-foreground text-lg max-w-md leading-relaxed transition-all duration-1000 ${
-                isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-              }`}
-              style={{ transitionDelay: '800ms' }}
-            >
-              Experience the pinnacle of automotive engineering. Where performance meets elegance, and tradition meets innovation.
-            </p>
-
+            {/* Right Side - Car Image */}
             <div
-              className={`flex gap-6 transition-all duration-1000 ${
-                isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+              className={`relative h-full min-h-[500px] transition-all duration-1000 ${
+                isLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
               }`}
-              style={{ transitionDelay: '1000ms' }}
+              style={{ transitionDelay: '400ms' }}
             >
-              <button className="px-8 py-3 bg-primary text-primary-foreground hover:bg-accent hover:text-accent-foreground transition-all duration-300 tracking-wide text-sm font-light">
-                EXPLORE NOW
-              </button>
-              <button className="px-8 py-3 border border-accent text-accent hover:bg-accent hover:text-accent-foreground transition-all duration-300 tracking-wide text-sm font-light">
-                CONTACT SALES
-              </button>
+              <div className="relative w-full h-full flex items-center justify-center group">
+                {/* Glow border effect */}
+                <div className="absolute inset-0 bg-gradient-to-b from-accent/20 via-transparent to-transparent rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+                {/* Car Image with subtle float animation */}
+                <div className="relative w-full h-full animate-float">
+                  <Image
+                    src="/car.jpg"
+                    alt="Tesla Vehicle - X-Holding Marketplace"
+                    fill
+                    className="object-contain drop-shadow-2xl group-hover:drop-shadow-[0_0_30px_rgba(0,217,255,0.5)] transition-all duration-500"
+                    priority
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                  />
+                </div>
+
+                {/* Price/Market indicator */}
+                <div className="absolute bottom-8 left-4 right-4 bg-background/80 border border-accent/30 backdrop-blur-sm rounded-lg p-4 flex justify-between items-center">
+                  <div>
+                    <div className="text-xs text-muted-foreground">Current Price</div>
+                    <div className="text-xl font-bold text-accent">$45,230</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-xs text-muted-foreground">24h Change</div>
+                    <div className="text-lg font-bold text-green-400">+2.4%</div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Right Side - Car Image */}
+          {/* Bottom Features Section */}
           <div
-            className={`relative h-full min-h-[500px] md:min-h-[600px] transition-all duration-1000 ${
-              isLoaded
-                ? 'opacity-100 scale-100'
-                : 'opacity-0 scale-95'
+            className={`grid grid-cols-1 md:grid-cols-3 gap-6 transition-all duration-1000 ${
+              isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
             }`}
-            style={{ transitionDelay: '400ms' }}
+            style={{ transitionDelay: '1200ms' }}
           >
-            <div className="relative w-full h-full flex items-center justify-center group">
-              {/* Glow effect background */}
-              <div className="absolute inset-0 bg-gradient-radial from-accent/5 via-transparent to-transparent blur-3xl group-hover:from-accent/10 transition-all duration-500" />
-
-              {/* Car Image with Animation */}
-              <div className="relative w-full h-full animate-float">
-                <Image
-                  src="/car.jpg"
-                  alt="MANSORY Performance Vehicle"
-                  fill
-                  className="object-contain drop-shadow-2xl group-hover:drop-shadow-[0_0_40px_rgba(224,224,224,0.3)] transition-all duration-500"
-                  priority
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                />
+            {[
+              {
+                title: 'Tesla Vehicles',
+                description: 'Model S, 3, X, Y - Browse thousands of listings with real-time pricing',
+              },
+              {
+                title: 'Energy Systems',
+                description: 'Powerwall, Solar - Complete your energy ecosystem with verified sellers',
+              },
+              {
+                title: 'Robotics',
+                description: 'Optimus & Future Tech - Early access to next-generation Tesla products',
+              },
+            ].map((feature) => (
+              <div
+                key={feature.title}
+                className="bg-secondary/50 border border-accent/20 rounded-xl p-6 hover:border-accent/50 hover:bg-secondary transition-all duration-300 group cursor-pointer"
+              >
+                <h3 className="text-lg font-semibold text-foreground mb-2 group-hover:text-accent transition-colors">
+                  {feature.title}
+                </h3>
+                <p className="text-sm text-muted-foreground">{feature.description}</p>
               </div>
-
-              {/* Bottom accent line */}
-              <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-accent to-transparent" />
-            </div>
+            ))}
           </div>
         </div>
       </div>
 
-      {/* Bottom Scroll Indicator */}
+      {/* Scroll Indicator */}
       <div
-        className={`absolute bottom-8 left-1/2 -translate-x-1/2 z-10 transition-all duration-1000 ${
+        className={`fixed bottom-8 left-1/2 -translate-x-1/2 transition-all duration-1000 ${
           isLoaded ? 'opacity-100' : 'opacity-0'
         }`}
-        style={{ transitionDelay: '1200ms' }}
+        style={{ transitionDelay: '1400ms' }}
       >
         <div className="flex flex-col items-center gap-2">
-          <div className="text-xs tracking-[0.2em] text-muted-foreground">SCROLL TO REVEAL</div>
+          <div className="text-xs tracking-widest text-muted-foreground font-medium">SCROLL</div>
           <div className="w-px h-6 bg-gradient-to-b from-accent to-transparent animate-pulse" />
         </div>
       </div>
