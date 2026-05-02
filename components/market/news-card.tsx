@@ -23,7 +23,7 @@ export function NewsCard({ news, index }: NewsCardProps) {
       transition={{ delay: index * 0.1, duration: 0.5 }}
       className="group block h-full"
     >
-      <div className="h-full rounded-lg border border-white/10 bg-white/5 backdrop-blur-xl hover:border-accent/50 hover:bg-white/10 transition-all duration-300 overflow-hidden flex flex-col">
+      <div className="h-full rounded-lg border border-white/10 bg-white/5 backdrop-blur-xl hover:border-accent/50 hover:bg-white/10 transition-all duration-300 overflow-hidden flex flex-col glow-cyan-hover">
         {/* Image Container */}
         <div className="relative w-full h-48 overflow-hidden bg-black/20">
           <Image

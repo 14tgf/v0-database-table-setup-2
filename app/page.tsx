@@ -8,6 +8,8 @@ import { MarketSection } from '@/components/market/market-section'
 import { MarketMoversSection } from '@/components/market/market-movers-section'
 import { MarketNewsSection } from '@/components/market/market-news-section'
 import { InventorySection } from '@/components/inventory/inventory-section'
+import { PremiumCtaSection } from '@/components/premium-cta-section'
+import { PremiumFooter } from '@/components/premium-footer'
 
 export default function Home() {
   const [isLoaded, setIsLoaded] = useState(false)
@@ -257,6 +259,9 @@ export default function Home() {
           {/* Inventory Section */}
           <InventorySection />
 
+          {/* Premium CTA Section */}
+          <PremiumCtaSection />
+
           {/* Future: Services Section Placeholder */}
           <div className="py-16 text-center">
             <div className="inline-block px-4 py-2 bg-secondary border border-accent/30 rounded-full mb-4">
@@ -267,6 +272,9 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+      {/* Premium Footer */}
+      <PremiumFooter />
 
       {/* Scroll Indicator */}
       <div

@@ -12,7 +12,7 @@ interface StockRowProps {
 
 export function StockRow({ stock, index, isGainer }: StockRowProps) {
   const indicatorColor = isGainer ? 'text-green-400' : 'text-red-400';
-  const borderColor = isGainer ? 'border-green-400/20 hover:border-green-400/50' : 'border-red-400/20 hover:border-red-400/50';
+  const borderColor = isGainer ? 'border-green-400/20 hover:border-green-400/50 glow-green-hover' : 'border-red-400/20 hover:border-red-400/50 glow-red-hover';
   const bgHover = isGainer ? 'hover:bg-green-400/5' : 'hover:bg-red-400/5';
 
   return (

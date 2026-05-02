@@ -17,7 +17,7 @@ export function StockCard({ stock, index }: StockCardProps) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05 }}
-      className="group relative overflow-hidden rounded-xl border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] p-4 backdrop-blur-xl transition-all hover:border-white/20 hover:bg-gradient-to-br hover:from-white/10 hover:to-white/5"
+      className="group relative overflow-hidden rounded-xl border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] p-4 backdrop-blur-xl transition-all hover:border-accent/50 hover:bg-gradient-to-br hover:from-white/10 hover:to-white/5 glow-cyan-hover"
     >
       {/* Background glow effect */}
       <div className="absolute inset-0 -z-10 bg-gradient-to-br from-blue-500/0 via-transparent to-purple-500/0 opacity-0 transition-opacity group-hover:opacity-20" />

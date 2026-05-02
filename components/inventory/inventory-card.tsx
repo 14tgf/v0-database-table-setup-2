@@ -39,7 +39,7 @@ export function InventoryCard({ item, index }: InventoryCardProps) {
       viewport={{ once: true, margin: '-100px' }}
       className="group relative h-full"
     >
-      <div className="relative h-full flex flex-col rounded-xl border border-white/10 bg-gradient-to-b from-white/10 via-white/5 to-transparent backdrop-blur-xl overflow-hidden hover:border-accent/50 transition-all duration-300">
+      <div className="relative h-full flex flex-col rounded-xl border border-white/10 bg-gradient-to-b from-white/10 via-white/5 to-transparent backdrop-blur-xl overflow-hidden hover:border-accent/50 transition-all duration-300 glow-white-hover">
         {/* Hover glow effect */}
         <div className="absolute inset-0 bg-gradient-to-r from-accent/0 via-accent/10 to-accent/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
