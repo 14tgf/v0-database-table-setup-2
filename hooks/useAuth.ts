@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { AuthCredentials, AuthResponse, authenticateUser } from '@/lib/auth';
 
 interface UseAuthReturn {
@@ -13,6 +14,7 @@ interface UseAuthReturn {
 }
 
 export function useAuth(): UseAuthReturn {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -31,7 +33,10 @@ export function useAuth(): UseAuthReturn {
         if (response.token) {
           localStorage.setItem('authToken', response.token);
         }
-        // Redirect or handle success
+        // Redirect to dashboard after 1 second to show success message
+        setTimeout(() => {
+          router.push('/dashboard');
+        }, 1000);
       } else {
         setError(response.message);
       }
