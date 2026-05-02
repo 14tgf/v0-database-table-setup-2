@@ -24,7 +24,7 @@ export function TickerRibbon({ stocks }: TickerRibbonProps) {
 
   return (
     <div className="relative overflow-hidden rounded-lg border border-white/10 bg-black/40 backdrop-blur-xl">
-      <div className="relative h-12 overflow-hidden">
+      <div className="relative h-9 overflow-hidden">
         <motion.div
           animate={{ x: '-50%' }}
           transition={{
@@ -32,7 +32,7 @@ export function TickerRibbon({ stocks }: TickerRibbonProps) {
             repeat: Infinity,
             ease: 'linear',
           }}
-          className="flex gap-4 py-3 pl-4"
+          className="flex gap-2 py-2 pl-4"
         >
           {duplicatedStocks.map((stock, idx) => {
             const isPositive = stock.change >= 0;
@@ -42,14 +42,14 @@ export function TickerRibbon({ stocks }: TickerRibbonProps) {
               <motion.div
                 key={`${stock.symbol}-${idx}`}
                 whileHover={{ scale: 1.05 }}
-                className={`flex shrink-0 items-center gap-2 rounded-lg bg-gradient-to-r ${colorClass} px-3 py-1.5`}
+                className={`flex shrink-0 items-center gap-1.5 rounded-lg bg-gradient-to-r ${colorClass} px-2.5 py-1`}
               >
-                <span className="text-sm font-bold text-white">{stock.symbol}</span>
-                <span className="text-sm font-medium text-white">
+                <span className="text-xs font-bold text-white">{stock.symbol}</span>
+                <span className="text-xs font-medium text-white">
                   ${stock.price.toFixed(2)}
                 </span>
                 <span
-                  className={`text-sm font-semibold ${
+                  className={`text-xs font-semibold ${
                     isPositive ? 'text-green-300' : 'text-red-300'
                   }`}
                 >

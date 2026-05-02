@@ -44,7 +44,7 @@ export function InventoryCard({ item, index }: InventoryCardProps) {
         <div className="absolute inset-0 bg-gradient-to-r from-accent/0 via-accent/10 to-accent/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
         {/* Product Image */}
-        <div className="relative h-64 overflow-hidden bg-gradient-to-b from-secondary/50 to-secondary/20">
+        <div className="relative h-48 overflow-hidden bg-gradient-to-b from-secondary/50 to-secondary/20">
           <Image
             src={item.image}
             alt={item.name}
@@ -57,41 +57,41 @@ export function InventoryCard({ item, index }: InventoryCardProps) {
         </div>
 
         {/* Content */}
-        <div className="relative flex flex-col flex-1 p-4 space-y-3">
+        <div className="relative flex flex-col flex-1 p-3 space-y-2">
           {/* Category Badge */}
-          <div className="flex gap-2">
-            <span className={`inline-block px-2 py-1 text-xs font-semibold rounded border ${categoryColors[item.category]}`}>
+          <div className="flex gap-1.5">
+            <span className={`inline-block px-2 py-0.5 text-xs font-semibold rounded border ${categoryColors[item.category]}`}>
               {item.category}
             </span>
-            <span className={`inline-block px-2 py-1 text-xs font-semibold rounded border ml-auto ${availabilityColors[item.availability]}`}>
+            <span className={`inline-block px-2 py-0.5 text-xs font-semibold rounded border ml-auto ${availabilityColors[item.availability]}`}>
               {item.availability}
             </span>
           </div>
 
           {/* Product Name */}
           <div>
-            <h3 className="text-lg font-bold text-white group-hover:text-accent transition-colors duration-300">
+            <h3 className="text-base font-bold text-white group-hover:text-accent transition-colors duration-300">
               {item.name}
             </h3>
-            <p className="text-sm text-white/60 mt-1 line-clamp-2">
+            <p className="text-xs text-white/60 mt-0.5 line-clamp-2">
               {item.description}
             </p>
           </div>
 
           {/* Price and Button */}
-          <div className="flex items-end justify-between mt-auto pt-2 border-t border-white/10">
+          <div className="flex items-end justify-between mt-auto pt-1.5 border-t border-white/10">
             {item.price && (
               <div className="flex flex-col">
                 <span className="text-xs text-white/50">Starting at</span>
-                <span className="text-xl font-bold text-accent">${item.price.toLocaleString()}</span>
+                <span className="text-base font-bold text-accent">${item.price.toLocaleString()}</span>
               </div>
             )}
-            <Link
+            <a
               href="/inventory"
-              className="ml-auto px-4 py-2 bg-accent/20 border border-accent/50 text-accent font-semibold rounded-lg hover:bg-accent/30 hover:border-accent transition-all duration-300 transform hover:scale-105 text-sm whitespace-nowrap"
+              className="ml-auto px-3 py-1.5 bg-accent/20 border border-accent/50 text-accent font-semibold rounded-lg hover:bg-accent/30 hover:border-accent transition-all duration-300 transform hover:scale-105 text-xs whitespace-nowrap"
             >
               Order Now
-            </Link>
+            </a>
           </div>
         </div>
       </div>

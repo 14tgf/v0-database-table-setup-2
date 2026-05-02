@@ -47,14 +47,14 @@ export function MarketSection() {
 
       {/* Loading State */}
       {loading ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
             <motion.div
               key={i}
               initial={{ opacity: 0 }}
               animate={{ opacity: 0.5 }}
               transition={{ repeat: Infinity, duration: 1.5 }}
-              className="h-48 rounded-xl border border-white/10 bg-white/5 backdrop-blur-xl"
+              className="h-40 rounded-xl border border-white/10 bg-white/5 backdrop-blur-xl"
             />
           ))}
         </div>
@@ -62,7 +62,7 @@ export function MarketSection() {
         <>
           {/* Stock Cards Grid */}
           <motion.div
-            className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+            className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3"
             variants={{
               hidden: { opacity: 0 },
               visible: {
@@ -81,7 +81,7 @@ export function MarketSection() {
           </motion.div>
 
           {/* Footer Info and Button */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 rounded-lg border border-white/10 bg-white/5 px-4 py-3 backdrop-blur-xl">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 backdrop-blur-xl">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -91,7 +91,7 @@ export function MarketSection() {
               <div className="h-2 w-2 rounded-full bg-green-500" />
               <span className="text-xs text-white/50">Live Market Data</span>
             </motion.div>
-            <div className="flex items-center justify-between w-full sm:w-auto gap-4">
+            <div className="flex items-center justify-between w-full sm:w-auto gap-2">
               <motion.span
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -102,7 +102,7 @@ export function MarketSection() {
               </motion.span>
               <Link
                 href="/market"
-                className="px-4 py-2 bg-accent/20 border border-accent/50 text-accent font-semibold rounded-lg hover:bg-accent/30 hover:border-accent transition-all duration-300 text-sm whitespace-nowrap"
+                className="px-3 py-1.5 bg-accent/20 border border-accent/50 text-accent font-semibold rounded-lg hover:bg-accent/30 hover:border-accent transition-all duration-300 text-xs whitespace-nowrap"
               >
                 View Full Market
               </Link>

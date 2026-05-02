@@ -81,7 +81,7 @@ export function InventorySection() {
 
       {/* Inventory Grid */}
       <motion.div
-        className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+        className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
         variants={{
           hidden: { opacity: 0 },
           visible: {
@@ -106,13 +106,13 @@ export function InventorySection() {
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4, duration: 0.5 }}
         viewport={{ once: true, margin: '-100px' }}
-        className="mt-12 p-8 rounded-xl border border-accent/30 bg-gradient-to-r from-accent/20 via-accent/10 to-transparent text-center"
+        className="mt-8 p-6 rounded-xl border border-accent/30 bg-gradient-to-r from-accent/20 via-accent/10 to-transparent text-center"
       >
-        <h3 className="text-2xl font-bold text-white mb-2">Browse Full Inventory</h3>
-        <p className="text-white/60 mb-6">Access our complete product catalog with advanced filtering and purchasing options</p>
+        <h3 className="text-lg font-bold text-white mb-2">Browse Full Inventory</h3>
+        <p className="text-white/60 mb-4 text-sm">Access our complete product catalog with advanced filtering and purchasing options</p>
         <a
           href="/inventory"
-          className="inline-block px-8 py-3 bg-accent text-accent-foreground font-semibold rounded-lg hover:shadow-lg hover:shadow-accent/50 transition-all duration-300 transform hover:scale-105"
+          className="inline-block px-6 py-2 bg-accent text-accent-foreground font-semibold rounded-lg hover:shadow-lg hover:shadow-accent/50 transition-all duration-300 transform hover:scale-105 text-sm"
         >
           View All Products
         </a>
