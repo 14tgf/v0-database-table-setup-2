@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 interface CounterProps {
   target: number
@@ -10,8 +10,36 @@ interface CounterProps {
 
 export function AnimatedCounter({ target, duration = 2000, suffix = '' }: CounterProps) {
   const [count, setCount] = useState(0)
+  const [hasStarted, setHasStarted] = useState(false)
+  const ref = useRef<HTMLSpanElement>(null)
 
   useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && !hasStarted) {
+            setHasStarted(true)
+            observer.unobserve(entry.target)
+          }
+        })
+      },
+      { threshold: 0.5 }
+    )
+
+    if (ref.current) {
+      observer.observe(ref.current)
+    }
+
+    return () => {
+      if (ref.current) {
+        observer.unobserve(ref.current)
+      }
+    }
+  }, [hasStarted])
+
+  useEffect(() => {
+    if (!hasStarted) return
+
     let startTime: number
     let animationFrame: number
 
@@ -31,10 +59,10 @@ export function AnimatedCounter({ target, duration = 2000, suffix = '' }: Counte
     animationFrame = requestAnimationFrame(animate)
 
     return () => cancelAnimationFrame(animationFrame)
-  }, [target, duration])
+  }, [hasStarted, target, duration])
 
   return (
-    <span>
+    <span ref={ref}>
       {count}
       {suffix}
     </span>
