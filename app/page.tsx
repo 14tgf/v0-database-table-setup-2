@@ -85,12 +85,12 @@ export default function Home() {
       </header>
 
       {/* Hero Content */}
-      <div className="relative z-10 px-6 py-12">
+      <div className="relative z-10 px-4 py-8">
         <div className="max-w-7xl mx-auto">
           {/* Main Hero Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-12">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center mb-8">
             {/* Left Content */}
-            <div className="space-y-6">
+            <div className="space-y-4">
               <div
                 className={`space-y-4 transition-all duration-1000 ${
                   isLoaded ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-12'
@@ -101,13 +101,13 @@ export default function Home() {
                   <Zap className="w-4 h-4 text-accent" />
                   <span className="text-xs font-semibold text-accent tracking-widest">POWERED BY TESLA ECOSYSTEM</span>
                 </div>
-                <h1 className="text-5xl lg:text-6xl font-bold leading-tight text-foreground">
+                <h1 className="text-4xl lg:text-5xl font-bold leading-tight text-foreground">
                   Trade Tesla <span className="text-accent">Tomorrow</span>
                 </h1>
               </div>
 
               <p
-                className={`text-base text-muted-foreground max-w-lg leading-relaxed transition-all duration-1000 ${
+                className={`text-sm text-muted-foreground max-w-lg leading-relaxed transition-all duration-1000 ${
                   isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
                 }`}
                 style={{ transitionDelay: '500ms' }}
@@ -117,7 +117,7 @@ export default function Home() {
 
               {/* Stats */}
               <div
-                className={`grid grid-cols-3 gap-4 transition-all duration-1000 ${
+                className={`grid grid-cols-3 gap-3 transition-all duration-1000 ${
                   isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
                 }`}
                 style={{ transitionDelay: '700ms' }}
@@ -127,8 +127,8 @@ export default function Home() {
                   { target: 50, suffix: 'K+', description: 'Active Traders' },
                   { target: 99, suffix: '.9%', description: 'Uptime' },
                 ].map((stat) => (
-                  <div key={stat.description} className="bg-secondary/50 border border-accent/20 rounded-lg p-4">
-                    <div className="text-xl font-bold text-accent">
+                  <div key={stat.description} className="bg-secondary/50 border border-accent/20 rounded-lg p-3">
+                    <div className="text-lg font-bold text-accent">
                       {stat.suffix.startsWith('$') ? '$' : ''}
                       <AnimatedCounter 
                         target={stat.target} 
@@ -143,15 +143,15 @@ export default function Home() {
 
               {/* CTA Buttons */}
               <div
-                className={`flex flex-col sm:flex-row gap-4 transition-all duration-1000 ${
+                className={`flex flex-col sm:flex-row gap-3 transition-all duration-1000 ${
                   isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
                 }`}
                 style={{ transitionDelay: '900ms' }}
               >
-                <button className="px-8 py-3 bg-accent text-accent-foreground font-semibold rounded-lg hover:shadow-lg hover:shadow-accent/50 transition-all duration-300 transform hover:scale-105">
+                <button className="px-6 py-2 bg-accent text-accent-foreground font-semibold rounded-lg hover:shadow-lg hover:shadow-accent/50 transition-all duration-300 transform hover:scale-105 text-sm">
                   Start Trading
                 </button>
-                <button className="px-8 py-3 border border-accent text-accent font-semibold rounded-lg hover:bg-accent/10 transition-all duration-300">
+                <button className="px-6 py-2 border border-accent text-accent font-semibold rounded-lg hover:bg-accent/10 transition-all duration-300 text-sm">
                   Learn More
                 </button>
               </div>
@@ -178,7 +178,7 @@ export default function Home() {
 
             {/* Right Side - Car Image */}
             <div
-              className={`relative h-full min-h-[500px] transition-all duration-1000 ${
+              className={`relative h-full min-h-[350px] transition-all duration-1000 ${
                 isLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
               }`}
               style={{ transitionDelay: '400ms' }}
@@ -216,7 +216,7 @@ export default function Home() {
 
           {/* Bottom Features Section */}
           <div
-            className={`grid grid-cols-1 md:grid-cols-3 gap-6 transition-all duration-1000 ${
+            className={`grid grid-cols-1 md:grid-cols-3 gap-4 transition-all duration-1000 ${
               isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
             }`}
             style={{ transitionDelay: '1200ms' }}
@@ -239,7 +239,7 @@ export default function Home() {
                 key={feature.title}
                 className="bg-secondary/50 border border-accent/20 rounded-xl p-6 hover:border-accent/50 hover:bg-secondary transition-all duration-300 group cursor-pointer"
               >
-                <h3 className="text-lg font-semibold text-foreground mb-2 group-hover:text-accent transition-colors">
+                <h3 className="text-base font-semibold text-foreground mb-1 group-hover:text-accent transition-colors">
                   {feature.title}
                 </h3>
                 <p className="text-sm text-muted-foreground">{feature.description}</p>

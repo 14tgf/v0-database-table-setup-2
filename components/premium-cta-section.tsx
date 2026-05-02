@@ -6,7 +6,7 @@ import { slideInFromLeft, slideInFromRight, staggerContainer, staggerItem } from
 
 export function PremiumCtaSection() {
   return (
-    <section className="relative py-32 overflow-hidden">
+    <section className="relative py-16 overflow-hidden">
       {/* Animated background elements */}
       <div className="absolute inset-0">
         {/* Gradient background */}

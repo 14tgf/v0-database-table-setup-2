@@ -62,7 +62,7 @@ const INVENTORY_ITEMS: InventoryItem[] = [
 
 export function InventorySection() {
   return (
-    <section className="space-y-8 py-16">
+    <section className="space-y-6 py-8">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
@@ -71,10 +71,10 @@ export function InventorySection() {
         viewport={{ once: true, margin: '-100px' }}
         className="space-y-3"
       >
-        <h2 className="text-4xl md:text-5xl font-bold text-white">
+        <h2 className="text-3xl md:text-4xl font-bold text-white">
           Featured <span className="text-accent">Inventory</span>
         </h2>
-        <p className="text-lg text-white/60 max-w-2xl">
+        <p className="text-base text-white/60 max-w-2xl">
           Explore our premium selection of Tesla vehicles, energy solutions, and next-generation robotics products.
         </p>
       </motion.div>

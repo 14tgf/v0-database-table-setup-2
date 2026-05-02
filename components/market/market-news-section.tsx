@@ -62,7 +62,7 @@ export function MarketNewsSection() {
   }
 
   return (
-    <div className="space-y-6 my-20">
+    <div className="space-y-4 my-8">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
@@ -70,8 +70,8 @@ export function MarketNewsSection() {
         transition={{ duration: 0.5 }}
         className="space-y-2"
       >
-        <h2 className="text-3xl md:text-4xl font-bold text-white">Market News</h2>
-        <p className="text-white/60">Latest financial news and updates</p>
+        <h2 className="text-2xl md:text-3xl font-bold text-white">Market News</h2>
+        <p className="text-sm text-white/60">Latest financial news and updates</p>
       </motion.div>
 
       {/* News Grid */}

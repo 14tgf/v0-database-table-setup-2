@@ -16,17 +16,17 @@ export function MarketSection() {
   });
 
   return (
-    <section className="space-y-6 py-12">
+    <section className="space-y-4 py-8">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         className="space-y-2"
       >
-        <h2 className="text-3xl font-bold text-white md:text-4xl">
+        <h2 className="text-2xl font-bold text-white md:text-3xl">
           Live Market Data
         </h2>
-        <p className="text-white/60">
+        <p className="text-sm text-white/60">
           Real-time stock prices powered by Finnhub
         </p>
       </motion.div>

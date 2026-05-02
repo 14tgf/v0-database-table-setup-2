@@ -51,7 +51,7 @@ export function MarketMoversSection() {
       </div>
 
       {/* Two Column Layout: Gainers and Losers */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <GainersList stocks={gainers} loading={loading} />
         <LosersList stocks={losers} loading={loading} />
       </div>
