@@ -76,19 +76,19 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="sticky top-0 z-40 border-b border-white/10 bg-background/80 backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 py-3 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-white">Welcome back, Carl</h1>
-              <p className="text-sm text-white/60 mt-1">Manage your investments and portfolio</p>
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-accent/20 border border-accent/50 flex items-center justify-center">
+                <span className="text-accent font-bold text-sm">X</span>
+              </div>
+              <span className="text-white font-bold text-sm">X Holding</span>
             </div>
-            <div className="flex items-center gap-4">
-              <button className="p-2 rounded-lg hover:bg-white/10 transition-colors">
-                <svg className="w-6 h-6 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.5 1.5H3a1.5 1.5 0 00-1.5 1.5v16A1.5 1.5 0 003 20.5h10.5M17 9l4 4m0 0l-4 4m4-4H9" />
-                </svg>
-              </button>
-            </div>
+            <button className="p-1.5 rounded-lg hover:bg-white/10 transition-colors">
+              <svg className="w-5 h-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
           </div>
         </div>
       </header>

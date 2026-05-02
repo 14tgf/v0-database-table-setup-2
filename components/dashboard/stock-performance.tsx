@@ -65,8 +65,8 @@ export function StockPerformance() {
         transition={{ duration: 0.5, delay: 0.5 }}
         className="col-span-1 md:col-span-2"
       >
-        <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] p-6 backdrop-blur-xl h-96 flex items-center justify-center">
-          <p className="text-white/50">Loading market performance data...</p>
+        <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] p-3 backdrop-blur-xl h-64 flex items-center justify-center">
+          <p className="text-white/50 text-sm">Loading market performance data...</p>
         </div>
       </motion.div>
     );
@@ -79,21 +79,21 @@ export function StockPerformance() {
       transition={{ duration: 0.5, delay: 0.5 }}
       className="col-span-1 md:col-span-2"
     >
-      <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] p-6 backdrop-blur-xl">
+      <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] p-3 backdrop-blur-xl">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-3">
           <div>
-            <h2 className="text-xl font-bold text-white">Stock Market Performance</h2>
-            <p className="text-sm text-white/60">Top stocks over the last 30 days</p>
+            <h2 className="text-base font-bold text-white">Stock Performance</h2>
+            <p className="text-xs text-white/60">Top stocks over 30 days</p>
           </div>
         </div>
 
         {/* Chart Legend */}
-        <div className="flex flex-wrap gap-4 mb-6 text-sm">
+        <div className="flex flex-wrap gap-2 mb-3 text-xs">
           {displaySymbols.map((symbol) => (
-            <div key={symbol} className="flex items-center gap-2">
+            <div key={symbol} className="flex items-center gap-1">
               <div 
-                className="w-3 h-3 rounded-full" 
+                className="w-2 h-2 rounded-full" 
                 style={{ backgroundColor: symbolColorMap[symbol] }}
               />
               <span className="text-white/80">{symbol}</span>
@@ -102,7 +102,7 @@ export function StockPerformance() {
         </div>
 
         {/* Chart */}
-        <div className="w-full h-80 -mx-6 px-6">
+        <div className="w-full h-48 -mx-6 px-6">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={chartData} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />

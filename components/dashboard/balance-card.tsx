@@ -18,7 +18,13 @@ export function BalanceCard() {
         </div>
 
         <div className="relative z-10">
-          {/* Header */}
+          {/* Welcome Message */}
+          <div className="mb-3">
+            <h3 className="text-lg font-bold text-white">Welcome back, Carl</h3>
+            <p className="text-xs text-white/60">Track your investments, manage your portfolio, and explore opportunities.</p>
+          </div>
+
+          {/* Balance Header */}
           <div className="flex items-center justify-between mb-3">
             <div>
               <p className="text-xs text-white/60 mb-0.5">Available Balance</p>
@@ -28,9 +34,6 @@ export function BalanceCard() {
               <Wallet className="w-5 h-5 text-accent" />
             </div>
           </div>
-
-          {/* Description */}
-          <p className="text-white/60 text-xs mb-3">Track your investments, manage your portfolio, and explore opportunities.</p>
 
           {/* Action Buttons */}
           <div className="grid grid-cols-2 gap-2">
