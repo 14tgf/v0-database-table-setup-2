@@ -94,23 +94,23 @@ export default function DashboardPage() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-32">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 pb-24">
         {/* Balance Card */}
-        <div className="mb-8">
+        <div className="mb-6">
           <BalanceCard />
         </div>
 
-        {/* Stat Cards Grid */}
-        <div className="grid grid-cols-1 gap-4 mb-8">
+        {/* Stat Cards Grid - 2x2 Layout */}
+        <div className="grid grid-cols-2 gap-4 mb-6">
           {statCards.map((card, index) => (
             <StatCard key={card.title} {...card} index={index} />
           ))}
         </div>
 
-        {/* Quick Action Cards */}
-        <div className="mb-8">
-          <h2 className="text-lg font-bold text-white mb-4">Quick Actions</h2>
-          <div className="grid grid-cols-1 gap-4">
+        {/* Quick Action Cards - 2x2 Layout */}
+        <div className="mb-6">
+          <h2 className="text-lg font-bold text-white mb-3">Quick Actions</h2>
+          <div className="grid grid-cols-2 gap-4">
             {quickActions.map((action, index) => (
               <QuickActionCard key={action.title} {...action} index={index} />
             ))}
@@ -118,17 +118,17 @@ export default function DashboardPage() {
         </div>
 
         {/* Recent Orders */}
-        <div className="mb-8">
+        <div className="mb-6">
           <RecentOrders />
         </div>
 
         {/* Market Overview */}
-        <div className="mb-8">
+        <div className="mb-6">
           <MarketOverview />
         </div>
 
         {/* Stock Performance */}
-        <div className="mb-8">
+        <div className="mb-6">
           <StockPerformance />
         </div>
       </main>
