@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { CompanyLogo } from '@/components/market/company-logo';
 import { useMarketData } from '@/hooks/use-market-data';
@@ -24,9 +25,9 @@ export function MarketOverview() {
             <h2 className="text-xl font-bold text-white">Market Overview</h2>
             <p className="text-sm text-white/60">Live market data</p>
           </div>
-          <a href="/market" className="text-accent text-sm font-semibold hover:underline">
+          <Link href="/stocks" className="text-accent text-sm font-semibold hover:underline">
             View All →
-          </a>
+          </Link>
         </div>
 
         {/* Loading State */}
@@ -46,32 +47,35 @@ export function MarketOverview() {
             {displayStocks.map((stock) => {
               const isPositive = stock.change >= 0;
               return (
-                <div
+                <Link
                   key={stock.symbol}
-                  className="rounded-lg border border-white/10 bg-white/5 p-4 hover:bg-white/10 hover:border-accent/50 transition-all duration-300"
+                  href="/stocks"
+                  className="block"
                 >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className="flex-shrink-0">
-                        <CompanyLogo
-                          logo={stock.logo}
-                          name={stock.name}
-                          symbol={stock.symbol}
-                        />
+                  <div className="rounded-lg border border-white/10 bg-white/5 p-4 hover:bg-white/10 hover:border-accent/50 transition-all duration-300 cursor-pointer">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="flex-shrink-0">
+                          <CompanyLogo
+                            logo={stock.logo}
+                            name={stock.name}
+                            symbol={stock.symbol}
+                          />
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-white">{stock.name}</p>
+                          <p className="text-xs text-white/50">{stock.symbol}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-sm font-semibold text-white">{stock.name}</p>
-                        <p className="text-xs text-white/50">{stock.symbol}</p>
+                      <div className="text-right">
+                        <p className="text-sm font-semibold text-white">${stock.price.toFixed(2)}</p>
+                        <p className={`text-xs font-semibold ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
+                          {isPositive ? '+' : ''}{stock.changePercent.toFixed(2)}%
+                        </p>
                       </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm font-semibold text-white">${stock.price.toFixed(2)}</p>
-                      <p className={`text-xs font-semibold ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
-                        {isPositive ? '+' : ''}{stock.changePercent.toFixed(2)}%
-                      </p>
                     </div>
                   </div>
-                </div>
+                </Link>
               );
             })}
           </div>
