@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import {
   TrendingUp,
@@ -83,10 +84,13 @@ export default function DashboardPage() {
         <div className="max-w-7xl mx-auto px-4 py-3 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-accent/20 border border-accent/50 flex items-center justify-center">
-                <span className="text-accent font-bold text-sm">X</span>
-              </div>
-              <span className="text-white font-bold text-sm">X Holding</span>
+              <Image 
+                src="/logo.png" 
+                alt="X Holding" 
+                width={32} 
+                height={32}
+                className="w-8 h-8"
+              />
             </div>
             <button className="p-1.5 rounded-lg hover:bg-white/10 transition-colors">
               <svg className="w-5 h-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">

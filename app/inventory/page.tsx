@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useState } from 'react';
 import Link from 'next/link';
 import { Menu, Grid3x3, List } from 'lucide-react';
@@ -43,6 +44,28 @@ export default function InventoryPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Top Navigation */}
+      <nav className="sticky top-0 z-40 border-b border-white/10 bg-background/80 backdrop-blur-xl">
+        <div className="max-w-7xl mx-auto px-4 py-3 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between">
+            <Link href="/dashboard">
+              <Image 
+                src="/logo.png" 
+                alt="X Holding" 
+                width={32} 
+                height={32}
+                className="w-8 h-8 cursor-pointer hover:opacity-80 transition-opacity"
+              />
+            </Link>
+            <button className="p-1.5 rounded-lg hover:bg-white/10 transition-colors">
+              <svg className="w-5 h-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </nav>
+
       {/* Header with Hero Section */}
       <header className="relative overflow-hidden border-b border-white/10">
         {/* Background */}
