@@ -51,24 +51,28 @@ export default function DashboardPage() {
       description: 'Explore our inventory',
       actionText: 'View Inventory',
       icon: Car,
+      href: '/inventory',
     },
     {
       title: 'Investments',
       description: 'Grow your wealth',
       actionText: 'Start Investing',
       icon: TrendingUp,
+      href: '#',
     },
     {
       title: 'Stocks',
       description: 'Trade individual stocks',
       actionText: 'Trade Stocks',
       icon: BarChart3,
+      href: '#',
     },
     {
       title: 'Portfolio',
       description: 'View your holdings',
       actionText: 'View Portfolio',
       icon: WalletIcon,
+      href: '#',
     },
   ];
 
