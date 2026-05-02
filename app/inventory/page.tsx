@@ -24,7 +24,7 @@ const PRODUCTS: Product[] = [
     id: '1',
     name: 'Tesla Model S Plaid',
     price: 104990,
-    image: '/products/tesla-model-s.jpg',
+    image: '/products/model-3.jpeg',
     description: 'Ultimate performance electric sedan with tri-motor power',
     features: [
       '200+ mph top speed',
