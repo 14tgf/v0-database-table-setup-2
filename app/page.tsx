@@ -3,6 +3,7 @@
 import Image from 'next/image'
 import { useEffect, useState } from 'react'
 import { TrendingUp, Zap, Shield } from 'lucide-react'
+import { AnimatedCounter } from '@/components/animated-counter'
 
 export default function Home() {
   const [isLoaded, setIsLoaded] = useState(false)
@@ -12,7 +13,21 @@ export default function Home() {
   }, [])
 
   return (
-    <main className="w-full min-h-screen bg-gradient-to-br from-background via-background to-secondary overflow-hidden">
+    <main className="w-full min-h-screen overflow-hidden relative">
+      {/* Background Image with Overlay */}
+      <div
+        className="absolute inset-0"
+        style={{
+          backgroundImage: 'url(/tesla-bg.jpg)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundAttachment: 'fixed',
+        }}
+      />
+      
+      {/* Dark Overlay */}
+      <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/85 to-background/70" />
+
       {/* Animated background grid */}
       <div className="absolute inset-0 opacity-5">
         <div
@@ -95,12 +110,19 @@ export default function Home() {
                 style={{ transitionDelay: '700ms' }}
               >
                 {[
-                  { label: '$2.4B+', description: 'Trading Volume' },
-                  { label: '50K+', description: 'Active Traders' },
-                  { label: '99.9%', description: 'Uptime' },
+                  { target: 2400, suffix: 'B+', description: 'Trading Volume' },
+                  { target: 50, suffix: 'K+', description: 'Active Traders' },
+                  { target: 99, suffix: '.9%', description: 'Uptime' },
                 ].map((stat) => (
-                  <div key={stat.label} className="bg-secondary/50 border border-accent/20 rounded-lg p-4">
-                    <div className="text-xl font-bold text-accent">{stat.label}</div>
+                  <div key={stat.description} className="bg-secondary/50 border border-accent/20 rounded-lg p-4">
+                    <div className="text-xl font-bold text-accent">
+                      {stat.suffix.startsWith('$') ? '$' : ''}
+                      <AnimatedCounter 
+                        target={stat.target} 
+                        duration={2000}
+                        suffix={stat.suffix}
+                      />
+                    </div>
                     <div className="text-xs text-muted-foreground mt-1">{stat.description}</div>
                   </div>
                 ))}
