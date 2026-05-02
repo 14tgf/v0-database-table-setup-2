@@ -24,7 +24,7 @@ const PRODUCTS: Product[] = [
     id: '1',
     name: 'Tesla Model S Plaid',
     price: 104990,
-    image: '/tesla-model-s.jpg',
+    image: '/products/tesla-model-s.jpg',
     description: 'Ultimate performance electric sedan with tri-motor power',
     features: [
       '200+ mph top speed',
@@ -35,6 +35,86 @@ const PRODUCTS: Product[] = [
     range: '405 miles',
     acceleration: '1.99s 0-60',
     charging: '10-80% in 25 min'
+  },
+  {
+    id: '2',
+    name: 'Luxury Compact EV',
+    price: 85500,
+    image: '/products/luxury-compact.png',
+    description: 'Premium compact electric vehicle with minimalist design and advanced technology',
+    features: [
+      'Luxury minimalist design',
+      '0-60 in 3.2s',
+      '320 mile range',
+      'Premium materials'
+    ],
+    range: '320 miles',
+    acceleration: '3.2s 0-60',
+    charging: '10-80% in 28 min'
+  },
+  {
+    id: '3',
+    name: 'Mansory Performance Sedan',
+    price: 125000,
+    image: '/products/mansory-sedan.png',
+    description: 'Bespoke performance sedan with MANSORY customization and futuristic LED technology',
+    features: [
+      'Pixel LED headlights',
+      '0-60 in 2.8s',
+      '380 mile range',
+      'Custom MANSORY design'
+    ],
+    range: '380 miles',
+    acceleration: '2.8s 0-60',
+    charging: '10-80% in 22 min'
+  },
+  {
+    id: '4',
+    name: 'Tesla Humanoid Robot',
+    price: 25000,
+    image: '/products/tesla-robot.png',
+    description: 'Advanced AI-powered humanoid robot for automation and task assistance',
+    features: [
+      'Advanced AI integration',
+      '5-hour battery life',
+      'Autonomous task completion',
+      'Real-time learning capability'
+    ],
+    range: 'N/A',
+    acceleration: 'N/A',
+    charging: '8 hours'
+  },
+  {
+    id: '5',
+    name: 'Tesla Model 3',
+    price: 46990,
+    image: '/products/model-3.jpeg',
+    description: 'Practical and efficient electric sedan for everyday driving',
+    features: [
+      'Dual motor AWD',
+      '0-60 in 3.1s',
+      '358 mile range',
+      'Supercharger network access'
+    ],
+    range: '358 miles',
+    acceleration: '3.1s 0-60',
+    charging: '10-80% in 27 min'
+  },
+  {
+    id: '6',
+    name: 'Tesla Roadster',
+    price: 250000,
+    image: '/products/roadster.jpeg',
+    description: 'Ultra-high performance electric supercar with incredible acceleration and range',
+    features: [
+      '250 mph top speed',
+      '1.9s 0-60 acceleration',
+      '620 mile range',
+      'Next-gen technology'
+    ],
+    range: '620 miles',
+    acceleration: '1.9s 0-60',
+    charging: '10-80% in 15 min'
   }
 ];
 

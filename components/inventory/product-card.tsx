@@ -36,13 +36,23 @@ export function ProductCard({ product, viewMode }: ProductCardProps) {
         <div className={`relative overflow-hidden bg-gradient-to-br from-accent/10 to-transparent ${
           viewMode === 'list' ? 'w-48 h-48 flex-shrink-0' : 'w-full h-64'
         }`}>
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-center">
-              <div className="w-full h-full bg-gradient-to-br from-amber-500/20 via-orange-500/10 to-transparent flex items-center justify-center">
-                <div className="text-white/30 text-6xl">🚗</div>
+          {product.image ? (
+            <Image
+              src={product.image}
+              alt={product.name}
+              fill
+              className="object-cover group-hover:scale-105 transition-transform duration-300"
+              unoptimized
+            />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="text-center">
+                <div className="w-full h-full bg-gradient-to-br from-amber-500/20 via-orange-500/10 to-transparent flex items-center justify-center">
+                  <div className="text-white/30 text-6xl">🚗</div>
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Content */}
