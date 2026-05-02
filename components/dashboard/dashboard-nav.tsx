@@ -8,7 +8,7 @@ export function DashboardNav() {
     { icon: Wallet, label: 'Wallet', href: '/dashboard' },
     { icon: TrendingUp, label: 'Invest', href: '/dashboard/invest' },
     { icon: BarChart3, label: 'Stocks', href: '/stocks' },
-    { icon: PieChart, label: 'Portfolio', href: '/dashboard/portfolio' },
+    { icon: PieChart, label: 'Portfolio', href: '/portfolio' },
     { icon: Settings, label: 'Settings', href: '/dashboard/settings' },
   ];
 

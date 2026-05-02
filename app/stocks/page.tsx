@@ -81,7 +81,7 @@ export default function StocksPage() {
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           {/* Top Gainers */}
-          <div className="rounded-xl border border-white/10 bg-gradient-to-br from-green-900/20 via-red-800/20 to-background/50 p-4 backdrop-blur-xl">
+          <div className="rounded-xl border border-white/10 bg-gradient-to-br from-green-900/20 via-red-800/20 to-background/50 p-4 backdrop-blur-xl glow-green-hover">
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-white font-semibold text-sm">Top Gainers</h3>
               <TrendingUp className="w-4 h-4 text-green-400" />
@@ -91,7 +91,7 @@ export default function StocksPage() {
           </div>
 
           {/* Top Losers */}
-          <div className="rounded-xl border border-white/10 bg-gradient-to-br from-red-900/20 via-red-800/20 to-background/50 p-4 backdrop-blur-xl">
+          <div className="rounded-xl border border-white/10 bg-gradient-to-br from-red-900/20 via-red-800/20 to-background/50 p-4 backdrop-blur-xl glow-red-hover">
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-white font-semibold text-sm">Top Losers</h3>
               <TrendingDown className="w-4 h-4 text-red-400" />
@@ -101,7 +101,7 @@ export default function StocksPage() {
           </div>
 
           {/* Most Active */}
-          <div className="rounded-xl border border-white/10 bg-gradient-to-br from-red-900/20 via-red-800/20 to-background/50 p-4 backdrop-blur-xl">
+          <div className="rounded-xl border border-white/10 bg-gradient-to-br from-red-900/20 via-red-800/20 to-background/50 p-4 backdrop-blur-xl glow-cyan-hover">
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-white font-semibold text-sm">Market Status</h3>
               <Activity className="w-4 h-4 text-accent" />
@@ -127,7 +127,7 @@ export default function StocksPage() {
               {featuredStocks.map((stock) => {
                 const isPositive = stock.change >= 0;
                 return (
-                  <div key={stock.symbol} className="rounded-lg bg-red-800/30 border border-white/10 p-4 hover:bg-red-800/40 transition-all">
+                  <div key={stock.symbol} className="rounded-lg bg-red-800/30 border border-white/10 p-4 hover:bg-red-800/40 transition-all glow-cyan-hover">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3 flex-1">
                         {stock.logo ? (
