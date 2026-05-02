@@ -6,6 +6,7 @@ import { TrendingUp, Zap, Shield } from 'lucide-react'
 import { AnimatedCounter } from '@/components/animated-counter'
 import { MarketSection } from '@/components/market/market-section'
 import { MarketMoversSection } from '@/components/market/market-movers-section'
+import { MarketNewsSection } from '@/components/market/market-news-section'
 import { InventorySection } from '@/components/inventory/inventory-section'
 
 export default function Home() {
@@ -249,6 +250,9 @@ export default function Home() {
 
           {/* Market Movers Section */}
           <MarketMoversSection />
+
+          {/* Market News Section */}
+          <MarketNewsSection />
 
           {/* Inventory Section */}
           <InventorySection />
