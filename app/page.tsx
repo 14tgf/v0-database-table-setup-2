@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import { TrendingUp, Zap, Shield } from 'lucide-react'
 import { AnimatedCounter } from '@/components/animated-counter'
 import { MarketSection } from '@/components/market/market-section'
+import { InventorySection } from '@/components/inventory/inventory-section'
 
 export default function Home() {
   const [isLoaded, setIsLoaded] = useState(false)
@@ -244,6 +245,18 @@ export default function Home() {
 
           {/* Live Market Section */}
           <MarketSection />
+
+          {/* Inventory Section */}
+          <InventorySection />
+
+          {/* Future: Services Section Placeholder */}
+          <div className="py-16 text-center">
+            <div className="inline-block px-4 py-2 bg-secondary border border-accent/30 rounded-full mb-4">
+              <span className="text-xs font-semibold text-accent tracking-widest">COMING SOON</span>
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold text-white/50">Premium Services</h2>
+            <p className="text-white/40 mt-2 text-lg">Advanced financing, insurance, and concierge services</p>
+          </div>
         </div>
       </div>
 

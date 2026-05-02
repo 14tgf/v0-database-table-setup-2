@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { useMarketData } from '@/hooks/use-market-data';
 import { StockCard } from './stock-card';
@@ -79,19 +80,34 @@ export function MarketSection() {
             ))}
           </motion.div>
 
-          {/* Footer Info */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
-            className="flex items-center justify-between rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-xs text-white/50 backdrop-blur-xl"
-          >
-            <div className="flex items-center gap-2">
+          {/* Footer Info and Button */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 rounded-lg border border-white/10 bg-white/5 px-4 py-3 backdrop-blur-xl">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="flex items-center gap-2"
+            >
               <div className="h-2 w-2 rounded-full bg-green-500" />
-              <span>Live Market Data</span>
+              <span className="text-xs text-white/50">Live Market Data</span>
+            </motion.div>
+            <div className="flex items-center justify-between w-full sm:w-auto gap-4">
+              <motion.span
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.3 }}
+                className="text-xs text-white/50"
+              >
+                Last update: {lastUpdateTime}
+              </motion.span>
+              <Link
+                href="/market"
+                className="px-4 py-2 bg-accent/20 border border-accent/50 text-accent font-semibold rounded-lg hover:bg-accent/30 hover:border-accent transition-all duration-300 text-sm whitespace-nowrap"
+              >
+                View Full Market
+              </Link>
             </div>
-            <span>Last update: {lastUpdateTime}</span>
-          </motion.div>
+          </div>
         </>
       )}
     </section>
