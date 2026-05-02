@@ -7,7 +7,7 @@ export function DashboardNav() {
   const navItems = [
     { icon: Wallet, label: 'Wallet', href: '/dashboard' },
     { icon: TrendingUp, label: 'Invest', href: '/dashboard/invest' },
-    { icon: BarChart3, label: 'Stocks', href: '/dashboard/stocks' },
+    { icon: BarChart3, label: 'Stocks', href: '/stocks' },
     { icon: PieChart, label: 'Portfolio', href: '/dashboard/portfolio' },
     { icon: Settings, label: 'Settings', href: '/dashboard/settings' },
   ];
