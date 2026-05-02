@@ -47,12 +47,19 @@ export default function Home() {
       {/* Header Navigation */}
       <header className="relative z-10 flex justify-between items-center px-8 py-6 border-b border-border/50">
         <div
-          className={`text-2xl font-bold tracking-tight text-accent transition-all duration-1000 ${
+          className={`transition-all duration-1000 ${
             isLoaded ? 'opacity-100' : 'opacity-0'
           }`}
           style={{ transitionDelay: '100ms' }}
         >
-          X-HOLDING
+          <Image
+            src="/x-holding-logo.png"
+            alt="X-Holding Logo"
+            width={40}
+            height={40}
+            className="w-10 h-10"
+            priority
+          />
         </div>
         <nav className="hidden md:flex gap-8 text-sm font-medium">
           {['BUY', 'SELL', 'EXPLORE', 'CONTACT'].map((item, idx) => (
