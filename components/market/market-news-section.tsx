@@ -22,7 +22,7 @@ export function MarketNewsSection() {
           <p className="text-white/60">Latest financial news and updates</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {Array.from({ length: 6 }).map((_, i) => (
+          {Array.from({ length: 3 }).map((_, i) => (
             <div
               key={i}
               className="rounded-lg border border-white/10 bg-white/5 backdrop-blur-xl overflow-hidden animate-pulse"
@@ -76,7 +76,7 @@ export function MarketNewsSection() {
 
       {/* News Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {news.map((newsItem, index) => (
+        {news.slice(0, 3).map((newsItem, index) => (
           <NewsCard key={newsItem.id} news={newsItem} index={index} />
         ))}
       </div>
