@@ -60,11 +60,11 @@ export default function Home() {
           style={{ transitionDelay: '100ms' }}
         >
           <Image
-            src="/x-holding-logo.png"
+            src="/logo.png"
             alt="X-Holding Logo"
-            width={40}
+            width={80}
             height={40}
-            className="w-10 h-10"
+            className="w-auto h-10"
             priority
           />
         </div>
