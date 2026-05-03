@@ -192,34 +192,34 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: '5',
-    name: 'Tesla Model 3',
+    name: 'Tesla Model 3 2024 – Long Range AWD',
     price: 46990,
-    image: '/products/model-3.jpeg',
-    description: 'Practical and efficient electric sedan for everyday driving',
-    fullDescription: 'The Tesla Model 3 is the perfect blend of efficiency, performance, and value. Designed for everyday driving, it offers impressive range, quick acceleration, and access to the extensive Supercharger network for convenient long-distance travel.',
+    image: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_7855-Ci3Med2kMspNX2QnrFXIVutciAJsWT.png',
+    description: 'Premium electric sedan with advanced technology and impressive range',
+    fullDescription: 'The Tesla Model 3 2024 – Long Range AWD combines efficiency, performance, and premium comfort in an elegant sedan design. Featuring a minimalist cockpit with a large touchscreen display, panoramic sunroof, and sophisticated white and black interior with premium leather seating, this electric sedan offers an exceptional driving experience. With dual motor all-wheel drive, impressive acceleration, and extended range capability, the Model 3 provides perfect balance of practicality and performance with access to the extensive Supercharger network.',
     features: [
-      'Dual motor AWD',
+      'Dual motor all-wheel drive',
       '0-60 in 3.1s',
       '358 mile range',
-      'Supercharger network access'
+      'Panoramic sunroof'
     ],
     range: '358 miles',
     acceleration: '3.1s 0-60',
     charging: '10-80% in 27 min',
     make: 'Tesla',
-    model: 'Model 3',
+    model: 'Model 3 Long Range',
     year: 2024,
-    color: 'Solid Black',
+    color: 'Pearl White Multi-Coat',
     transmission: 'Automatic',
     drive: 'Dual Motor AWD',
     seating: '5 adults',
     display: '15.4-inch touchscreen',
     topSpeed: '145 mph',
     images: [
-      '/products/model-3.jpeg',
-      '/products/model-3.jpeg',
-      '/products/model-3.jpeg',
-      '/products/model-3.jpeg'
+      'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_7855-Ci3Med2kMspNX2QnrFXIVutciAJsWT.png',
+      'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_7857-5dxKf0uyUIXxyTJsBj6WQ1AKPtgXPO.png',
+      'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_7856-Dw84mWEEdFSTcc81MZTsggewxSQP2L.png',
+      'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_7858-4QN3tdAchu1QMHaEJTDoUSWwTTmfRT.png'
     ],
     purchasePrice: 46990,
     leasePrice: 429,
@@ -227,7 +227,7 @@ export const PRODUCTS: Product[] = [
     financePrice: 529,
     variants: [
       { name: 'Standard Range Plus', price: 429 },
-      { name: 'Long Range', price: 529 }
+      { name: 'Long Range AWD', price: 529 }
     ]
   },
   {
