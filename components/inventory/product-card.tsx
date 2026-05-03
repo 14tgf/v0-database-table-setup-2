@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import Image from 'next/image';
+import Link from 'next/link';
 import { Zap, Gauge, Battery } from 'lucide-react';
 
 interface Product {
@@ -129,9 +130,9 @@ export function ProductCard({ product, viewMode }: ProductCardProps) {
               <p className="text-xs text-white/60">From</p>
               <p className="text-lg font-bold text-white">${(product.price / 1000).toFixed(0)}K</p>
             </div>
-            <button className="px-3 py-1.5 rounded-lg bg-accent/20 border border-accent/50 text-accent hover:bg-accent/30 transition-all text-xs font-semibold">
+            <Link href={`/inventory/${product.id}`} className="px-3 py-1.5 rounded-lg bg-accent/20 border border-accent/50 text-accent hover:bg-accent/30 transition-all text-xs font-semibold">
               Details
-            </button>
+            </Link>
           </div>
         </div>
       </div>
