@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Bell, Sun, TrendingUp, TrendingDown, Zap, DollarSign, Calendar, Eye, RefreshCw, Download, Activity, ArrowUpRight, ArrowDownLeft, Clock } from 'lucide-react';
+import { Bell, Sun, TrendingUp, TrendingDown, Zap, DollarSign, Calendar, Eye, RefreshCw, Download, Activity, ArrowUpRight, ArrowDownLeft, Clock, ArrowUp, BarChart2, RefreshCcw, Send } from 'lucide-react';
 import { SidebarMenu } from '@/components/dashboard/sidebar-menu';
 import { DashboardNav } from '@/components/dashboard/dashboard-nav';
 
@@ -22,11 +22,11 @@ const activePlans = [
 ];
 
 const timeline = [
-  { type: 'deposit', title: 'Deposit to Wallet', description: '$5,000 deposited', date: '2024-01-15', icon: '📥' },
-  { type: 'investment', title: 'Invested in Solar Growth Plan', description: '$5,000 invested', date: '2024-01-16', icon: '📊' },
-  { type: 'payout', title: 'ROI Payout Received', description: '$425 received', date: '2024-02-15', icon: '💰' },
-  { type: 'reinvest', title: 'Reinvested Earnings', description: '$425 reinvested', date: '2024-02-16', icon: '🔄' },
-  { type: 'withdrawal', title: 'Withdrawal Processed', description: '$3,200 withdrawn', date: '2024-01-30', icon: '📤' },
+  { type: 'deposit', title: 'Deposit to Wallet', description: '$5,000 deposited', date: '2024-01-15', icon: ArrowUp },
+  { type: 'investment', title: 'Invested in Solar Growth Plan', description: '$5,000 invested', date: '2024-01-16', icon: BarChart2 },
+  { type: 'payout', title: 'ROI Payout Received', description: '$425 received', date: '2024-02-15', icon: DollarSign },
+  { type: 'reinvest', title: 'Reinvested Earnings', description: '$425 reinvested', date: '2024-02-16', icon: RefreshCcw },
+  { type: 'withdrawal', title: 'Withdrawal Processed', description: '$3,200 withdrawn', date: '2024-01-30', icon: Send },
 ];
 
 export default function InvestmentsDashboard() {
@@ -189,16 +189,21 @@ export default function InvestmentsDashboard() {
         <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-secondary/40 via-secondary/30 to-background/50 p-3 sm:p-4 backdrop-blur-xl mb-24">
           <h2 className="text-lg sm:text-xl font-bold text-white mb-4">Activity Timeline</h2>
           <div className="space-y-3">
-            {timeline.map((item, idx) => (
-              <div key={idx} className="flex gap-3 pb-3 border-b border-white/10 last:border-b-0">
-                <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0 text-sm">{item.icon}</div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-white font-semibold text-xs sm:text-sm">{item.title}</p>
-                  <p className="text-white/60 text-xs">{item.description}</p>
+            {timeline.map((item, idx) => {
+              const IconComponent = item.icon;
+              return (
+                <div key={idx} className="flex gap-3 pb-3 border-b border-white/10 last:border-b-0">
+                  <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
+                    <IconComponent className="w-4 h-4 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-white font-semibold text-xs sm:text-sm">{item.title}</p>
+                    <p className="text-white/60 text-xs">{item.description}</p>
+                  </div>
+                  <span className="text-white/60 text-xs flex-shrink-0">{item.date}</span>
                 </div>
-                <span className="text-white/60 text-xs flex-shrink-0">{item.date}</span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </main>
