@@ -52,7 +52,7 @@ export default function StocksPage() {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Header Section */}
-        <div className="mb-6 rounded-2xl border border-white/10 bg-gradient-to-br from-red-900/40 via-red-800/30 to-background/50 p-6 backdrop-blur-xl">
+        <div className="mb-6 rounded-2xl border border-white/10 bg-gradient-to-br from-secondary/40 via-secondary/30 to-background/50 p-6 backdrop-blur-xl">
           <div className="flex items-start justify-between mb-4">
             <div>
               <h1 className="text-3xl font-bold text-white mb-1">Stock Marketplace</h1>
@@ -87,7 +87,7 @@ export default function StocksPage() {
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           {/* Top Gainers */}
-          <div className="rounded-xl border border-white/10 bg-gradient-to-br from-green-900/20 via-red-800/20 to-background/50 p-4 backdrop-blur-xl glow-green-hover">
+          <div className="rounded-xl border border-white/10 bg-gradient-to-br from-green-900/20 via-secondary/20 to-background/50 p-4 backdrop-blur-xl glow-green-hover">
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-white font-semibold text-sm">Top Gainers</h3>
               <TrendingUp className="w-4 h-4 text-green-400" />
@@ -97,17 +97,17 @@ export default function StocksPage() {
           </div>
 
           {/* Top Losers */}
-          <div className="rounded-xl border border-white/10 bg-gradient-to-br from-red-900/20 via-red-800/20 to-background/50 p-4 backdrop-blur-xl glow-red-hover">
+          <div className="rounded-xl border border-white/10 bg-gradient-to-br from-secondary/30 via-secondary/20 to-background/50 p-4 backdrop-blur-xl glow-cyan-hover">
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-white font-semibold text-sm">Top Losers</h3>
               <TrendingDown className="w-4 h-4 text-red-400" />
             </div>
-            <p className="text-2xl font-bold text-red-400">{topLoserChange.toFixed(2)}%</p>
+            <p className="text-2xl font-bold text-primary">{topLoserChange.toFixed(2)}%</p>
             <p className="text-xs text-white/50 mt-2">Worst performance</p>
           </div>
 
           {/* Most Active */}
-          <div className="rounded-xl border border-white/10 bg-gradient-to-br from-red-900/20 via-red-800/20 to-background/50 p-4 backdrop-blur-xl glow-cyan-hover">
+          <div className="rounded-xl border border-white/10 bg-gradient-to-br from-secondary/30 via-secondary/20 to-background/50 p-4 backdrop-blur-xl glow-cyan-hover">
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-white font-semibold text-sm">Market Status</h3>
               <Activity className="w-4 h-4 text-accent" />
@@ -118,14 +118,14 @@ export default function StocksPage() {
         </div>
 
         {/* Featured Stocks */}
-        <div className="mb-6 rounded-2xl border border-white/10 bg-gradient-to-br from-red-900/40 via-red-800/30 to-background/50 p-6 backdrop-blur-xl">
+        <div className="mb-6 rounded-2xl border border-white/10 bg-gradient-to-br from-secondary/40 via-secondary/30 to-background/50 p-6 backdrop-blur-xl">
           <h2 className="text-xl font-bold text-white mb-1">Featured Stocks</h2>
           <p className="text-white/70 text-sm mb-4">Handpicked stocks for your portfolio</p>
 
           {loading ? (
             <div className="space-y-3">
               {Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="rounded-lg bg-red-800/30 h-16 animate-pulse" />
+                <div key={i} className="rounded-lg bg-secondary/30 h-16 animate-pulse" />
               ))}
             </div>
           ) : (
@@ -133,7 +133,7 @@ export default function StocksPage() {
               {featuredStocks.map((stock) => {
                 const isPositive = stock.change >= 0;
                 return (
-                  <div key={stock.symbol} className="rounded-lg bg-red-800/30 border border-white/10 p-4 hover:bg-red-800/40 transition-all glow-cyan-hover">
+                  <div key={stock.symbol} className="rounded-lg bg-secondary/30 border border-white/10 p-4 hover:bg-secondary/40 transition-all glow-cyan-hover">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3 flex-1">
                         {stock.logo ? (
@@ -159,7 +159,7 @@ export default function StocksPage() {
                       </div>
                       <div className="text-right">
                         <p className="text-base font-bold text-white">${stock.price.toFixed(2)}</p>
-                        <p className={`text-sm font-semibold ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
+                        <p className={`text-sm font-semibold ${isPositive ? 'text-green-400' : 'text-destructive'}`}>
                           {isPositive ? '+' : ''}{stock.change.toFixed(2)} ({stock.changePercent.toFixed(2)}%)
                         </p>
                       </div>
@@ -172,7 +172,7 @@ export default function StocksPage() {
         </div>
 
         {/* All Stocks Table */}
-        <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-red-900/40 via-red-800/30 to-background/50 p-6 backdrop-blur-xl overflow-hidden">
+        <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-secondary/40 via-secondary/30 to-background/50 p-6 backdrop-blur-xl overflow-hidden">
           <h2 className="text-xl font-bold text-white mb-1">All Stocks</h2>
           <p className="text-white/70 text-sm mb-4">{allStocks.length} stocks available</p>
 
@@ -196,7 +196,7 @@ export default function StocksPage() {
                 const isPositive = stock.change >= 0;
                 return (
                   <div key={stock.symbol} className={`grid grid-cols-3 gap-4 px-4 py-3 rounded-lg hover:bg-white/5 transition-all ${
-                    index % 2 === 0 ? 'bg-red-800/20' : ''
+                    index % 2 === 0 ? 'bg-secondary/20' : ''
                   }`}>
                     <div className="flex items-center gap-3">
                       {stock.logo ? (
@@ -222,10 +222,10 @@ export default function StocksPage() {
                       <p className="text-sm font-semibold text-white">${stock.price.toFixed(2)}</p>
                     </div>
                     <div className="text-right">
-                      <p className={`text-sm font-semibold ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
+                      <p className={`text-sm font-semibold ${isPositive ? 'text-green-400' : 'text-destructive'}`}>
                         {isPositive ? '+' : ''}{stock.change.toFixed(2)}
                       </p>
-                      <p className={`text-xs ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
+                      <p className={`text-xs ${isPositive ? 'text-green-400' : 'text-destructive'}`}>
                         {isPositive ? '+' : ''}{stock.changePercent.toFixed(2)}%
                       </p>
                     </div>

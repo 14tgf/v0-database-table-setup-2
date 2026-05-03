@@ -104,7 +104,7 @@ export default function PortfolioPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         
         {/* Portfolio Overview Header */}
-        <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-red-900/40 via-red-800/30 to-background/50 p-6 backdrop-blur-xl glow-cyan-hover">
+        <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-secondary/40 via-secondary/30 to-background/50 p-6 backdrop-blur-xl glow-cyan-hover">
           <div className="flex items-center justify-between mb-4">
             <div>
               <div className="flex items-center gap-2 mb-2">
@@ -136,7 +136,7 @@ export default function PortfolioPage() {
               </div>
               <div className="flex flex-col">
                 <p className="text-white/60 text-xs mb-1">Gain/Loss</p>
-                <p className={`text-lg font-semibold ${totalGain >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                <p className={`text-lg font-semibold ${totalGain >= 0 ? 'text-green-400' : 'text-primary'}`}>
                   {totalGain >= 0 ? '+' : ''}${totalGain.toFixed(2)}
                 </p>
               </div>
@@ -145,12 +145,12 @@ export default function PortfolioPage() {
         </div>
 
         {/* Portfolio Tools */}
-        <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-red-900/40 via-red-800/30 to-background/50 p-6 backdrop-blur-xl">
+        <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-secondary/40 via-secondary/30 to-background/50 p-6 backdrop-blur-xl">
           <h2 className="text-lg font-bold text-white mb-1">Portfolio Tools</h2>
           <p className="text-white/70 text-sm mb-4">Access detailed portfolio analysis and management</p>
 
           <div className="space-y-2">
-            <Link href="#" className="block rounded-lg bg-red-800/30 border border-white/10 p-4 hover:bg-red-800/40 transition-all group">
+            <Link href="#" className="block rounded-lg bg-secondary/30 border border-white/10 p-4 hover:bg-secondary/40 transition-all group">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-white font-semibold">Holdings</p>
@@ -160,7 +160,7 @@ export default function PortfolioPage() {
               </div>
             </Link>
 
-            <Link href="#" className="block rounded-lg bg-red-800/30 border border-white/10 p-4 hover:bg-red-800/40 transition-all group">
+            <Link href="#" className="block rounded-lg bg-secondary/30 border border-white/10 p-4 hover:bg-secondary/40 transition-all group">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-white font-semibold">Analytics</p>
@@ -170,7 +170,7 @@ export default function PortfolioPage() {
               </div>
             </Link>
 
-            <Link href="#" className="block rounded-lg bg-red-800/30 border border-white/10 p-4 hover:bg-red-800/40 transition-all group">
+            <Link href="#" className="block rounded-lg bg-secondary/30 border border-white/10 p-4 hover:bg-secondary/40 transition-all group">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-white font-semibold">Dashboard</p>
@@ -180,7 +180,7 @@ export default function PortfolioPage() {
               </div>
             </Link>
 
-            <Link href="#" className="block rounded-lg bg-red-800/30 border border-white/10 p-4 hover:bg-red-800/40 transition-all group">
+            <Link href="#" className="block rounded-lg bg-secondary/30 border border-white/10 p-4 hover:bg-secondary/40 transition-all group">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-white font-semibold">Transactions</p>
@@ -195,7 +195,7 @@ export default function PortfolioPage() {
         {/* Stats Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Total Invested */}
-          <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-red-900/40 via-red-800/30 to-background/50 p-6 backdrop-blur-xl glow-cyan-hover">
+          <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-secondary/40 via-secondary/30 to-background/50 p-6 backdrop-blur-xl glow-cyan-hover">
             <div className="flex items-center justify-between mb-2">
               <p className="text-white font-semibold">Total Invested</p>
               <svg className="w-5 h-5 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -206,7 +206,7 @@ export default function PortfolioPage() {
           </div>
 
           {/* Current Value */}
-          <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-red-900/40 via-red-800/30 to-background/50 p-6 backdrop-blur-xl glow-cyan-hover">
+          <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-secondary/40 via-secondary/30 to-background/50 p-6 backdrop-blur-xl glow-cyan-hover">
             <div className="flex items-center justify-between mb-2">
               <p className="text-white font-semibold">Current Value</p>
               <TrendingUp className="w-5 h-5 text-green-400" />
@@ -215,28 +215,28 @@ export default function PortfolioPage() {
           </div>
 
           {/* Total Gain/Loss */}
-          <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-red-900/40 via-red-800/30 to-background/50 p-6 backdrop-blur-xl glow-cyan-hover">
+          <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-secondary/40 via-secondary/30 to-background/50 p-6 backdrop-blur-xl glow-cyan-hover">
             <div className="flex items-center justify-between mb-2">
               <p className="text-white font-semibold">Total Gain/Loss</p>
-              <TrendingUp className={`w-5 h-5 ${totalGain >= 0 ? 'text-green-400' : 'text-red-400'}`} />
+              <TrendingUp className={`w-5 h-5 ${totalGain >= 0 ? 'text-green-400' : 'text-primary'}`} />
             </div>
-            <p className={`text-3xl font-bold ${totalGain >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+            <p className={`text-3xl font-bold ${totalGain >= 0 ? 'text-green-400' : 'text-primary'}`}>
               {totalGain >= 0 ? '+' : ''}{totalGain.toFixed(2)}
             </p>
-            <p className={`text-sm ${totalGain >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+            <p className={`text-sm ${totalGain >= 0 ? 'text-green-400' : 'text-primary'}`}>
               {totalGain >= 0 ? '+' : ''}{totalGainPercent.toFixed(2)}%
             </p>
           </div>
         </div>
 
         {/* Your Holdings */}
-        <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-red-900/40 via-red-800/30 to-background/50 p-6 backdrop-blur-xl">
+        <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-secondary/40 via-secondary/30 to-background/50 p-6 backdrop-blur-xl">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-lg font-bold text-white">Your Holdings</h2>
               <p className="text-white/70 text-sm">{holdings.length} investment plans</p>
             </div>
-            <Link href="#" className="text-red-400/60 hover:text-red-400 text-sm font-semibold transition-colors">
+            <Link href="#" className="text-primary/60 hover:text-primary text-sm font-semibold transition-colors">
               Browse More →
             </Link>
           </div>
@@ -248,8 +248,8 @@ export default function PortfolioPage() {
             </div>
           ) : holdings.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12">
-              <div className="w-16 h-16 rounded-full bg-red-800/30 flex items-center justify-center mb-4">
-                <TrendingUp className="w-8 h-8 text-red-400/60" />
+              <div className="w-16 h-16 rounded-full bg-secondary/30 flex items-center justify-center mb-4">
+                <TrendingUp className="w-8 h-8 text-primary/60" />
               </div>
               <h3 className="text-white font-semibold mb-2">No holdings yet</h3>
               <p className="text-white/60 text-sm text-center mb-4">Start building your portfolio by investing in our plans</p>
@@ -264,7 +264,7 @@ export default function PortfolioPage() {
                 return (
                   <div
                     key={holding.symbol}
-                    className="rounded-lg bg-red-800/20 border border-white/10 p-4 hover:bg-red-800/30 transition-all glow-cyan-hover"
+                    className="rounded-lg bg-secondary/20 border border-white/10 p-4 hover:bg-secondary/30 transition-all glow-cyan-hover"
                   >
                     <div className="flex items-center gap-3 mb-4">
                       {holding.logo ? (
@@ -302,7 +302,7 @@ export default function PortfolioPage() {
                       </div>
                       <div className="pt-2 border-t border-white/10 flex justify-between">
                         <p className="text-white/60">Gain/Loss:</p>
-                        <p className={`font-semibold ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
+                        <p className={`font-semibold ${isPositive ? 'text-green-400' : 'text-primary'}`}>
                           {isPositive ? '+' : ''}{holding.gainPercent.toFixed(2)}%
                         </p>
                       </div>
@@ -315,20 +315,20 @@ export default function PortfolioPage() {
         </div>
 
         {/* Recent Transactions */}
-        <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-red-900/40 via-red-800/30 to-background/50 p-6 backdrop-blur-xl">
+        <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-secondary/40 via-secondary/30 to-background/50 p-6 backdrop-blur-xl">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-lg font-bold text-white">Recent Transactions</h2>
               <p className="text-white/70 text-sm">Your latest investment activity</p>
             </div>
-            <Link href="#" className="text-red-400/60 hover:text-red-400 text-sm font-semibold transition-colors">
+            <Link href="#" className="text-primary/60 hover:text-primary text-sm font-semibold transition-colors">
               View All →
             </Link>
           </div>
 
           <div className="flex flex-col items-center justify-center py-12">
-            <div className="w-16 h-16 rounded-full bg-red-800/30 flex items-center justify-center mb-4">
-              <Activity className="w-8 h-8 text-red-400/60" />
+            <div className="w-16 h-16 rounded-full bg-secondary/30 flex items-center justify-center mb-4">
+              <Activity className="w-8 h-8 text-primary/60" />
             </div>
             <h3 className="text-white font-semibold mb-1">No recent transactions</h3>
             <p className="text-white/60 text-sm">Your transactions will appear here</p>
