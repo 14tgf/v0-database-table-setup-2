@@ -44,32 +44,32 @@ export function SidebarMenu({ isOpen, onClose, userEmail = 'cedoe70@gmail.com', 
 
       {/* Sidebar */}
       <div
-        className={`fixed left-0 top-0 z-50 h-screen w-64 bg-white overflow-y-auto transform transition-transform duration-300 ease-in-out ${
+        className={`fixed left-0 top-0 z-50 h-screen w-64 bg-gradient-to-b from-background to-background/80 overflow-y-auto transform transition-transform duration-300 ease-in-out border-r border-white/10 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         {/* Close Button */}
-        <div className="sticky top-0 z-10 bg-white p-4 flex justify-end border-b border-gray-200">
+        <div className="sticky top-0 z-10 bg-background/90 backdrop-blur-sm p-4 flex justify-end border-b border-white/10">
           <button
             onClick={onClose}
-            className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-1 hover:bg-white/10 rounded-lg transition-colors"
           >
-            <X className="w-6 h-6 text-gray-700" />
+            <X className="w-6 h-6 text-white/60" />
           </button>
         </div>
 
         {/* User Profile Section */}
-        <div className="bg-gradient-to-br from-pink-50 to-rose-50 p-4 border-b border-gray-200">
+        <div className="bg-gradient-to-br from-secondary/30 via-secondary/20 to-background/50 p-4 border-b border-white/10 backdrop-blur-sm">
           <div className="flex items-start gap-3">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-rose-400 to-rose-600 flex items-center justify-center flex-shrink-0">
-              <span className="text-white font-bold text-lg">{userName[0]}</span>
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center flex-shrink-0">
+              <span className="text-background font-bold text-lg">{userName[0]}</span>
             </div>
             <div className="flex-1">
-              <p className="font-semibold text-gray-900">{userName}</p>
-              <p className="text-sm text-gray-600">{userEmail}</p>
-              <div className="mt-2 inline-flex items-center gap-1.5 bg-white/60 px-2.5 py-1 rounded-full border border-gray-200">
-                <div className="w-1.5 h-1.5 bg-gray-400 rounded-full"></div>
-                <span className="text-xs text-gray-600">KYC Not Submitted</span>
+              <p className="font-semibold text-white">{userName}</p>
+              <p className="text-sm text-white/70">{userEmail}</p>
+              <div className="mt-2 inline-flex items-center gap-1.5 bg-white/10 px-2.5 py-1 rounded-full border border-white/20">
+                <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
+                <span className="text-xs text-white/60">KYC Not Submitted</span>
               </div>
             </div>
           </div>
@@ -82,17 +82,17 @@ export function SidebarMenu({ isOpen, onClose, userEmail = 'cedoe70@gmail.com', 
               key={item.label}
               href={item.href}
               onClick={handleMenuItemClick}
-              className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors group"
+              className="flex items-center gap-3 px-4 py-3 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition-colors group"
             >
-              <item.icon className="w-5 h-5 text-gray-600 group-hover:text-gray-900 transition-colors" />
+              <item.icon className="w-5 h-5 text-white/60 group-hover:text-primary transition-colors" />
               <span className="text-sm font-medium">{item.label}</span>
             </Link>
           ))}
         </nav>
 
         {/* Logout Button */}
-        <div className="sticky bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
-          <button className="w-full flex items-center justify-between px-4 py-3 rounded-lg text-rose-600 hover:bg-rose-50 transition-colors font-medium">
+        <div className="sticky bottom-0 left-0 right-0 bg-background/90 backdrop-blur-sm border-t border-white/10 p-4">
+          <button className="w-full flex items-center justify-between px-4 py-3 rounded-lg text-primary hover:bg-primary/20 transition-colors font-medium">
             <span className="flex items-center gap-2">
               <LogOut className="w-5 h-5" />
               Logout
