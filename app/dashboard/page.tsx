@@ -90,9 +90,9 @@ export default function DashboardPage() {
               <Image 
                 src="/logo.png" 
                 alt="X Holding" 
-                width={32} 
-                height={32}
-                className="w-8 h-8"
+                width={80} 
+                height={40}
+                className="w-auto h-10"
               />
             </div>
             <button 

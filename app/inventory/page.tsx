@@ -35,9 +35,9 @@ export default function InventoryPage() {
               <Image 
                 src="/logo.png" 
                 alt="X Holding" 
-                width={32} 
-                height={32}
-                className="w-8 h-8 cursor-pointer hover:opacity-80 transition-opacity"
+                width={80} 
+                height={40}
+                className="w-auto h-10 cursor-pointer hover:opacity-80 transition-opacity"
               />
             </Link>
             <button 

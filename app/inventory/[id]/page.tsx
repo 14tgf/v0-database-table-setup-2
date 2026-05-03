@@ -7,9 +7,12 @@ import { ChevronLeft, Zap, Gauge, Battery, Fuel, Users, Tv, Settings, ArrowRight
 import { SidebarMenu } from '@/components/dashboard/sidebar-menu';
 import { DashboardNav } from '@/components/dashboard/dashboard-nav';
 import { PRODUCTS } from '@/lib/products';
+import { useParams } from 'next/navigation';
 
-export default function CarDetailPage({ params }: { params: { id: string } }) {
-  const product = PRODUCTS.find(p => p.id === params.id);
+export default function CarDetailPage() {
+  const params = useParams();
+  const id = params?.id as string;
+  const product = PRODUCTS.find(p => p.id === id);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [mainImage, setMainImage] = useState(product?.images[0] || '');
   const [orderTab, setOrderTab] = useState<'lease' | 'purchase' | 'finance'>('lease');
