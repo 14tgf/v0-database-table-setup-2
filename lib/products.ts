@@ -70,41 +70,41 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: '2',
-    name: 'Luxury Compact EV',
+    name: 'Cyber Cab',
     price: 85500,
-    image: '/products/luxury-compact.png',
-    description: 'Premium compact electric vehicle with minimalist design',
-    fullDescription: 'Experience premium electric driving with our Luxury Compact EV. Featuring a sleek minimalist design and advanced technology integration, this vehicle offers the perfect balance of performance and efficiency for discerning drivers who value style and sustainability.',
+    image: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_7798-aurDyqsUEQeKV26eH7ynhDsLY4Dprk.png',
+    description: 'Futuristic autonomous electric vehicle with minimalist design',
+    fullDescription: 'The Cyber Cab represents the future of autonomous transportation. Featuring an innovative minimalist interior with a steering wheel-optional design, advanced autonomous driving capabilities, and sleek aerodynamic styling, the Cyber Cab offers an unparalleled driving experience with premium materials and cutting-edge technology integration.',
     features: [
-      'Luxury minimalist design',
+      'Autonomous driving ready',
       '0-60 in 3.2s',
       '320 mile range',
-      'Premium materials'
+      'Gull-wing doors'
     ],
     range: '320 miles',
     acceleration: '3.2s 0-60',
     charging: '10-80% in 28 min',
-    make: 'Premium Motors',
-    model: 'Luxury Compact',
+    make: 'Tesla',
+    model: 'Cyber Cab',
     year: 2024,
-    color: 'Midnight Black',
+    color: 'Gold Metallic',
     transmission: 'Automatic',
     drive: 'Front-Wheel Drive',
     seating: '5 adults',
     display: '15-inch touchscreen',
     topSpeed: '125 mph',
     images: [
-      '/products/luxury-compact.png',
-      '/products/luxury-compact.png',
-      '/products/luxury-compact.png',
-      '/products/luxury-compact.png'
+      'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_7798-aurDyqsUEQeKV26eH7ynhDsLY4Dprk.png',
+      'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_7836-d7e4eYGBJEshzdfezZ4Zg5KGU7V14E.png',
+      'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_7837-HvgBNemAZorbOgCCQ8HTqsL3J9nayd.png',
+      'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_7838-dDHwtAbQy7ibC0hC1vY24mg9CyZ8kK.png'
     ],
     purchasePrice: 85500,
     leasePrice: 1299,
     leaseTerms: '$5,000 down, 36 months, 10,000 miles',
     financePrice: 1395,
     variants: [
-      { name: 'Standard', price: 1299 },
+      { name: 'Standard Edition', price: 1299 },
       { name: 'Premium Edition', price: 1599 }
     ]
   },
