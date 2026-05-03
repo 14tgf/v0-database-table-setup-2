@@ -20,10 +20,10 @@ export default function Home() {
   }, [])
 
   return (
-    <main className="w-full min-h-screen overflow-hidden relative">
+    <main className="w-full min-h-screen relative">
       {/* Background Image with Overlay */}
       <div
-        className="absolute inset-0"
+        className="fixed inset-0 -z-10"
         style={{
           backgroundImage: 'url(/tesla-bg.jpg)',
           backgroundSize: 'cover',
@@ -33,10 +33,10 @@ export default function Home() {
       />
       
       {/* Dark Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/85 to-background/70" />
+      <div className="fixed inset-0 -z-10 bg-gradient-to-r from-background/95 via-background/85 to-background/70" />
 
       {/* Animated background grid */}
-      <div className="absolute inset-0 opacity-5">
+      <div className="fixed inset-0 opacity-5 -z-10">
         <div
           className="absolute inset-0"
           style={{
@@ -48,8 +48,8 @@ export default function Home() {
       </div>
 
       {/* Glowing accent orbs */}
-      <div className="absolute top-20 right-20 w-96 h-96 bg-accent/10 rounded-full blur-3xl opacity-20 animate-pulse" />
-      <div className="absolute bottom-40 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl opacity-20 animate-pulse" style={{ animationDelay: '1s' }} />
+      <div className="fixed top-20 right-20 w-96 h-96 bg-accent/10 rounded-full blur-3xl opacity-20 animate-pulse -z-10" />
+      <div className="fixed bottom-40 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl opacity-20 animate-pulse -z-10" style={{ animationDelay: '1s' }} />
 
       {/* Header Navigation */}
       <header className="sticky top-0 z-50 flex justify-between items-center px-8 py-6 border-b border-border/50 bg-gradient-to-r from-background/95 via-background/85 to-background/70 backdrop-blur-xl">
@@ -91,7 +91,7 @@ export default function Home() {
       </header>
 
       {/* Hero Content */}
-      <div className="relative z-10 px-4 py-8">
+      <div className="relative z-20 px-4 py-8">
         <div className="max-w-7xl mx-auto">
           {/* Main Hero Section */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center mb-8">
