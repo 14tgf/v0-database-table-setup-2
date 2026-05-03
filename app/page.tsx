@@ -53,27 +53,20 @@ export default function Home() {
 
       {/* Header Navigation */}
       <header className="sticky top-0 z-50 flex justify-between items-center px-8 py-6 border-b border-border/50 bg-gradient-to-r from-background/95 via-background/85 to-background/70 backdrop-blur-xl">
-        <div className="flex items-center gap-4">
-          <button className="p-1.5 rounded-lg hover:bg-white/10 transition-colors md:hidden">
-            <svg className="w-5 h-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
-          <div
-            className={`transition-all duration-1000 ${
-              isLoaded ? 'opacity-100' : 'opacity-0'
-            }`}
-            style={{ transitionDelay: '100ms' }}
-          >
-            <Image
-              src="/x-holding-logo.png"
-              alt="X-Holding Logo"
-              width={40}
-              height={40}
-              className="w-10 h-10"
-              priority
-            />
-          </div>
+        <div
+          className={`transition-all duration-1000 ${
+            isLoaded ? 'opacity-100' : 'opacity-0'
+          }`}
+          style={{ transitionDelay: '100ms' }}
+        >
+          <Image
+            src="/x-holding-logo.png"
+            alt="X-Holding Logo"
+            width={40}
+            height={40}
+            className="w-10 h-10"
+            priority
+          />
         </div>
         <nav className="hidden md:flex gap-8 text-sm font-medium">
           {['BUY', 'SELL', 'EXPLORE', 'CONTACT'].map((item, idx) => (
@@ -90,6 +83,11 @@ export default function Home() {
             </a>
           ))}
         </nav>
+        <button className="p-1.5 rounded-lg hover:bg-white/10 transition-colors md:hidden">
+          <svg className="w-5 h-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
       </header>
 
       {/* Hero Content */}
