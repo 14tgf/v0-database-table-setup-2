@@ -49,36 +49,36 @@ export default function WalletPage() {
         </div>
       </nav>
 
-      <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+      <main className="max-w-7xl mx-auto px-3 py-6 sm:px-4 lg:px-6">
         {/* Wallet Balance Header */}
-        <div className="mb-8 rounded-2xl border border-white/10 bg-gradient-to-br from-secondary/40 via-secondary/30 to-background/50 p-6 backdrop-blur-xl">
-          <h1 className="text-2xl font-bold text-white mb-2">Wallet Balance</h1>
-          <p className="text-white/70 mb-6">Manage your funds and transactions</p>
+        <div className="mb-6 rounded-2xl border border-white/10 bg-gradient-to-br from-secondary/40 via-secondary/30 to-background/50 p-4 sm:p-6 backdrop-blur-xl">
+          <h1 className="text-xl sm:text-2xl font-bold text-white mb-1">Wallet Balance</h1>
+          <p className="text-white/70 text-sm mb-4">Manage your funds and transactions</p>
           
           {/* Available Balance Card */}
-          <div className="rounded-xl border border-white/20 bg-white/5 p-6 backdrop-blur-sm">
+          <div className="rounded-xl border border-white/20 bg-white/5 p-4 backdrop-blur-sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-white/60 text-sm mb-2">Available Balance</p>
-                <p className="text-3xl font-bold text-white">${walletBalance.toFixed(2)}</p>
+                <p className="text-white/60 text-xs sm:text-sm mb-2">Available Balance</p>
+                <p className="text-2xl sm:text-3xl font-bold text-white">${walletBalance.toFixed(2)}</p>
               </div>
-              <WalletIcon className="w-8 h-8 text-primary" />
+              <WalletIcon className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
             </div>
           </div>
         </div>
 
         {/* Action Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-2 gap-3 sm:gap-6 mb-6">
           {/* Deposit Card */}
-          <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-secondary/40 via-secondary/30 to-background/50 p-6 backdrop-blur-xl hover:border-primary/30 transition-colors cursor-pointer glow-cyan-hover">
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0">
-                <Plus className="w-6 h-6 text-primary" />
+          <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-secondary/40 via-secondary/30 to-background/50 p-4 sm:p-6 backdrop-blur-xl hover:border-primary/30 transition-colors cursor-pointer glow-cyan-hover">
+            <div className="flex flex-col items-start gap-2 sm:gap-3">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0">
+                <Plus className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
               </div>
-              <div className="flex-1">
-                <h3 className="text-lg font-bold text-white mb-1">Deposit Funds</h3>
-                <p className="text-white/70 text-sm mb-4">Add money to your wallet</p>
-                <a href="#" className="inline-flex items-center gap-2 text-primary hover:text-primary/80 transition-colors font-medium text-sm">
+              <div>
+                <h3 className="text-sm sm:text-lg font-bold text-white mb-0.5 sm:mb-1">Deposit Funds</h3>
+                <p className="text-white/70 text-xs sm:text-sm mb-2 sm:mb-3">Add money to your wallet</p>
+                <a href="#" className="inline-flex items-center gap-1 text-primary hover:text-primary/80 transition-colors font-medium text-xs sm:text-sm">
                   Add Funds <span>→</span>
                 </a>
               </div>
@@ -86,15 +86,15 @@ export default function WalletPage() {
           </div>
 
           {/* Withdraw Card */}
-          <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-secondary/40 via-secondary/30 to-background/50 p-6 backdrop-blur-xl hover:border-primary/30 transition-colors cursor-pointer glow-cyan-hover">
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-xl bg-destructive/20 flex items-center justify-center flex-shrink-0">
-                <Minus className="w-6 h-6 text-destructive" />
+          <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-secondary/40 via-secondary/30 to-background/50 p-4 sm:p-6 backdrop-blur-xl hover:border-primary/30 transition-colors cursor-pointer glow-cyan-hover">
+            <div className="flex flex-col items-start gap-2 sm:gap-3">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-destructive/20 flex items-center justify-center flex-shrink-0">
+                <Minus className="w-5 h-5 sm:w-6 sm:h-6 text-destructive" />
               </div>
-              <div className="flex-1">
-                <h3 className="text-lg font-bold text-white mb-1">Withdraw Funds</h3>
-                <p className="text-white/70 text-sm mb-4">Transfer money to your bank</p>
-                <a href="#" className="inline-flex items-center gap-2 text-primary hover:text-primary/80 transition-colors font-medium text-sm">
+              <div>
+                <h3 className="text-sm sm:text-lg font-bold text-white mb-0.5 sm:mb-1">Withdraw Funds</h3>
+                <p className="text-white/70 text-xs sm:text-sm mb-2 sm:mb-3">Transfer to your bank</p>
+                <a href="#" className="inline-flex items-center gap-1 text-primary hover:text-primary/80 transition-colors font-medium text-xs sm:text-sm">
                   Withdraw <span>→</span>
                 </a>
               </div>
@@ -103,64 +103,64 @@ export default function WalletPage() {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-6">
           {/* Total Deposits */}
-          <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-secondary/40 via-secondary/30 to-background/50 p-6 backdrop-blur-xl glow-cyan-hover">
+          <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-secondary/40 via-secondary/30 to-background/50 p-4 sm:p-6 backdrop-blur-xl glow-cyan-hover">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-white/70 text-sm mb-2">Total Deposits</p>
-                <p className="text-2xl font-bold text-white mb-4">${totalDeposits.toFixed(2)}</p>
+                <p className="text-white/70 text-xs sm:text-sm mb-1 sm:mb-2">Total Deposits</p>
+                <p className="text-xl sm:text-2xl font-bold text-white mb-2 sm:mb-4">${totalDeposits.toFixed(2)}</p>
                 <p className="text-white/60 text-xs">This month</p>
               </div>
-              <TrendingUp className="w-8 h-8 text-primary" />
+              <TrendingUp className="w-6 h-6 sm:w-8 sm:h-8 text-primary flex-shrink-0" />
             </div>
           </div>
 
           {/* Total Withdrawals */}
-          <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-secondary/40 via-secondary/30 to-background/50 p-6 backdrop-blur-xl glow-cyan-hover">
+          <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-secondary/40 via-secondary/30 to-background/50 p-4 sm:p-6 backdrop-blur-xl glow-cyan-hover">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-white/70 text-sm mb-2">Total Withdrawals</p>
-                <p className="text-2xl font-bold text-white mb-4">${totalWithdrawals.toFixed(2)}</p>
+                <p className="text-white/70 text-xs sm:text-sm mb-1 sm:mb-2">Total Withdrawals</p>
+                <p className="text-xl sm:text-2xl font-bold text-white mb-2 sm:mb-4">${totalWithdrawals.toFixed(2)}</p>
                 <p className="text-white/60 text-xs">This month</p>
               </div>
-              <TrendingDown className="w-8 h-8 text-primary" />
+              <TrendingDown className="w-6 h-6 sm:w-8 sm:h-8 text-primary flex-shrink-0" />
             </div>
           </div>
         </div>
 
         {/* Total Invested Card */}
-        <div className="mb-8 rounded-2xl border border-white/10 bg-gradient-to-br from-secondary/40 via-secondary/30 to-background/50 p-6 backdrop-blur-xl glow-cyan-hover">
+        <div className="mb-6 rounded-2xl border border-white/10 bg-gradient-to-br from-secondary/40 via-secondary/30 to-background/50 p-4 sm:p-6 backdrop-blur-xl glow-cyan-hover">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-white/70 text-sm mb-2">Total Invested</p>
-              <p className="text-2xl font-bold text-white mb-2">${totalInvested.toFixed(2)}</p>
+              <p className="text-white/70 text-xs sm:text-sm mb-1 sm:mb-2">Total Invested</p>
+              <p className="text-xl sm:text-2xl font-bold text-white mb-1 sm:mb-2">${totalInvested.toFixed(2)}</p>
               <p className="text-white/60 text-xs">Portfolio value</p>
             </div>
-            <WalletIcon className="w-8 h-8 text-primary" />
+            <WalletIcon className="w-6 h-6 sm:w-8 sm:h-8 text-primary flex-shrink-0" />
           </div>
         </div>
 
         {/* Recent Transactions */}
-        <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-secondary/40 via-secondary/30 to-background/50 p-6 backdrop-blur-xl">
+        <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-secondary/40 via-secondary/30 to-background/50 p-4 sm:p-6 backdrop-blur-xl mb-24">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-xl font-bold text-white">Recent Transactions</h2>
-              <p className="text-white/70 text-sm">Your latest wallet activity</p>
+              <h2 className="text-lg sm:text-xl font-bold text-white">Recent Transactions</h2>
+              <p className="text-white/70 text-xs sm:text-sm">Your latest wallet activity</p>
             </div>
-            <a href="#" className="text-primary hover:text-primary/80 transition-colors font-medium text-sm flex items-center gap-1">
+            <a href="#" className="text-primary hover:text-primary/80 transition-colors font-medium text-xs sm:text-sm flex items-center gap-1">
               View All <span>→</span>
             </a>
           </div>
 
           {/* Empty State */}
-          <div className="py-12 text-center">
-            <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center mx-auto mb-4">
-              <WalletIcon className="w-8 h-8 text-white/40" />
+          <div className="py-8 sm:py-12 text-center">
+            <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-white/10 flex items-center justify-center mx-auto mb-4">
+              <WalletIcon className="w-6 h-6 sm:w-8 sm:h-8 text-white/40" />
             </div>
-            <p className="text-white text-lg font-medium mb-2">No transactions yet</p>
-            <p className="text-white/70 text-sm mb-6">Start by depositing funds to your wallet</p>
-            <button className="bg-white text-background px-6 py-2.5 rounded-lg font-medium hover:bg-white/90 transition-colors">
+            <p className="text-white text-base sm:text-lg font-medium mb-2">No transactions yet</p>
+            <p className="text-white/70 text-xs sm:text-sm mb-4 sm:mb-6">Start by depositing funds to your wallet</p>
+            <button className="bg-white text-background px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg font-medium text-sm hover:bg-white/90 transition-colors">
               + Deposit Funds
             </button>
           </div>
