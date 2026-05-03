@@ -353,5 +353,45 @@ export const PRODUCTS: Product[] = [
       { name: 'Plaid Tri-Motor', price: 2499 },
       { name: 'Plaid Plus Performance', price: 2999 }
     ]
+  },
+  {
+    id: '9',
+    name: 'Tesla Model Y 2024 – Long Range Electric SUV',
+    price: 56990,
+    image: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_7860-4dsNyCo5AzCruvIIujd69T8tLg0eiT.png',
+    description: 'Spacious and efficient electric SUV with advanced technology and impressive range',
+    fullDescription: 'The Tesla Model Y 2024 is a premium all-electric SUV that combines spacious interior, impressive performance, and cutting-edge technology. Featuring a dual motor long-range drivetrain, minimalist cockpit with dual touchscreen displays and purple ambient lighting, premium dashboard design, and stunning exterior proportions, the Model Y delivers versatility with exceptional efficiency. With seating for up to seven and access to the extensive Supercharger network, the Model Y is perfect for families and adventurers seeking sustainable luxury.',
+    features: [
+      'Dual motor all-wheel drive',
+      '0-60 in 3.5s',
+      '330 mile range',
+      'Seats up to 7 adults'
+    ],
+    range: '330 miles',
+    acceleration: '3.5s 0-60',
+    charging: '10-80% in 25 min',
+    make: 'Tesla',
+    model: 'Model Y Long Range',
+    year: 2024,
+    color: 'Pearl White Multi-Coat',
+    transmission: 'Automatic',
+    drive: 'Dual Motor AWD',
+    seating: '7 adults',
+    display: '15-inch touchscreen',
+    topSpeed: '135 mph',
+    images: [
+      'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_7860-4dsNyCo5AzCruvIIujd69T8tLg0eiT.png',
+      'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_7859-W7VNo2shrzigeiKU8a4vXR3MtHDus2.png',
+      'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_7861-1fcZ0aQJt1mKUzqI3GzzKzHFq9JUM2.png',
+      'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_7862-0JX6Fvur98nzjVMtCPqWyPsT29TuDT.png'
+    ],
+    purchasePrice: 56990,
+    leasePrice: 569,
+    leaseTerms: '$4,500 down, 36 months, 12,000 miles',
+    financePrice: 669,
+    variants: [
+      { name: 'Long Range AWD', price: 569 },
+      { name: 'Performance', price: 799 }
+    ]
   }
 ];
