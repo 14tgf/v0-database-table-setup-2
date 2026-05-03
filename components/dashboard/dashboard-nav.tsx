@@ -1,15 +1,15 @@
 'use client';
 
-import { Wallet, TrendingUp, BarChart3, PieChart, Settings } from 'lucide-react';
+import { LayoutGrid, Wallet, TrendingUp, BarChart3, PieChart } from 'lucide-react';
 import Link from 'next/link';
 
 export function DashboardNav() {
   const navItems = [
-    { icon: Wallet, label: 'Wallet', href: '/dashboard' },
+    { icon: LayoutGrid, label: 'Dashboard', href: '/dashboard' },
+    { icon: Wallet, label: 'Wallet', href: '/dashboard/wallet' },
     { icon: TrendingUp, label: 'Invest', href: '/dashboard/invest' },
     { icon: BarChart3, label: 'Stocks', href: '/stocks' },
     { icon: PieChart, label: 'Portfolio', href: '/portfolio' },
-    { icon: Settings, label: 'Settings', href: '/dashboard/settings' },
   ];
 
   return (
