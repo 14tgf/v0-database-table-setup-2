@@ -393,5 +393,49 @@ export const PRODUCTS: Product[] = [
       { name: 'Long Range AWD', price: 569 },
       { name: 'Performance', price: 799 }
     ]
+  },
+  {
+    id: '10',
+    name: 'Tesla Model X 2021',
+    price: 85000,
+    image: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_7863-VgLEqun5Q3Jua7aLmmidlGLLxhsRLq.png',
+    description: 'Premium electric SUV with iconic gull-wing doors and cutting-edge technology',
+    fullDescription: 'The Tesla Model X 2021 is a revolutionary electric SUV that pioneered the gull-wing door design. Featuring iconic falcon-wing gull-wing doors, dual motor all-wheel drive, a spacious seven-seat interior with premium leather, minimalist cockpit design with a large central touchscreen display, and advanced Autopilot capabilities, the Model X delivers exceptional performance and luxury. With its distinctive design and innovative technology, it represents the evolution of premium electric SUVs.',
+    features: [
+      'Iconic gull-wing doors',
+      '0-60 in 3.8s',
+      '371 mile range',
+      'Seats up to 7 adults'
+    ],
+    range: '371 miles',
+    acceleration: '3.8s 0-60',
+    charging: '10-80% in 26 min',
+    make: 'Tesla',
+    model: 'Model X',
+    year: 2021,
+    color: 'Pearl White Multi-Coat',
+    transmission: 'Automatic',
+    drive: 'Dual Motor AWD',
+    seating: '7 adults',
+    display: '17-inch touchscreen',
+    topSpeed: '155 mph',
+    images: [
+      'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_7863-VgLEqun5Q3Jua7aLmmidlGLLxhsRLq.png',
+      'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_7864-R3e0mgaLaqBPrhdINHclmhjQY8pfTj.png',
+      'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_7865-jSKfx8TvCqfv6u8BOue7DoTaCA6hGy.png',
+      'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_7866-v0TBpbzRrEQhyPNmBmD6FLaS1NFOJr.png',
+      'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_7867-XZl5nYu3RqXx6t6J38RSL9kofiJL7Y.png',
+      'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_7868-KimAq32YInY2fZOOoeiKIWh6YPTXoI.png',
+      'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_7869-Te9U2An7NSLWSrtCizYSOZWCk46xFJ.png',
+      'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_7870-Rx8ubv6z1dz9Pgo0yxLaDoPRdtLafc.png'
+    ],
+    purchasePrice: 85000,
+    leasePrice: 1499,
+    leaseTerms: '$5,500 down, 36 months, 10,000 miles',
+    financePrice: 1699,
+    variants: [
+      { name: 'Dual Motor AWD', price: 1499 },
+      { name: 'Plaid Performance', price: 1999 }
+    ]
   }
 ];
