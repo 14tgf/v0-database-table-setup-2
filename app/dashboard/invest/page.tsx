@@ -35,12 +35,34 @@ const featuredPlans = allPlans.slice(0, 3);
 export default function InvestPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedRisk, setSelectedRisk] = useState<'All' | 'High' | 'Medium' | 'Low'>('All');
   const plansPerPage = 3;
-  const totalPages = Math.ceil(allPlans.length / plansPerPage);
 
+  // Filter plans based on search and risk selection
+  const filteredPlans = allPlans.filter((plan) => {
+    const matchesSearch = plan.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                         plan.category.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesRisk = selectedRisk === 'All' || plan.risk === selectedRisk;
+    return matchesSearch && matchesRisk;
+  });
+
+  const totalPages = Math.ceil(filteredPlans.length / plansPerPage);
   const startIdx = (currentPage - 1) * plansPerPage;
   const endIdx = startIdx + plansPerPage;
-  const displayedPlans = allPlans.slice(startIdx, endIdx);
+  const displayedPlans = filteredPlans.slice(startIdx, endIdx);
+
+  // Reset to page 1 when search/filter changes
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    setCurrentPage(1);
+  };
+
+  const handleRiskChange = (risk: 'All' | 'High' | 'Medium' | 'Low') => {
+    setSelectedRisk(risk);
+    setCurrentPage(1);
+  };
 
   const getRiskColor = (risk: string) => {
     switch (risk) {
@@ -106,12 +128,59 @@ export default function InvestPage() {
         </div>
 
         {/* Search & Filters */}
-        <div className="mb-6 rounded-2xl border border-white/10 bg-gradient-to-br from-secondary/40 via-secondary/30 to-background/50 p-3 sm:p-4 backdrop-blur-xl flex items-center gap-3 cursor-pointer hover:border-primary/30 transition-colors">
-          <svg className="w-4 h-4 text-white/60 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-          </svg>
-          <span className="text-white font-medium text-sm flex-1">Search & Filters</span>
-          <ChevronDown className="w-4 h-4 text-white/60 flex-shrink-0" />
+        <div className="mb-6 rounded-2xl border border-white/10 bg-gradient-to-br from-secondary/40 via-secondary/30 to-background/50 backdrop-blur-xl overflow-hidden">
+          <button 
+            onClick={() => setSearchOpen(!searchOpen)}
+            className="w-full p-3 sm:p-4 flex items-center gap-3 hover:bg-white/5 transition-colors"
+          >
+            <svg className="w-4 h-4 text-white/60 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+            </svg>
+            <span className="text-white font-medium text-sm flex-1 text-left">Search & Filters</span>
+            <ChevronDown className={`w-4 h-4 text-white/60 flex-shrink-0 transition-transform ${searchOpen ? 'rotate-180' : ''}`} />
+          </button>
+
+          {/* Search Panel */}
+          {searchOpen && (
+            <div className="border-t border-white/10 p-3 sm:p-4 space-y-4">
+              {/* Search Input */}
+              <div>
+                <label className="text-white/70 text-xs font-medium mb-2 block">Search by name or category</label>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  placeholder="e.g., Tesla, Growth, Conservative..."
+                  className="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-white placeholder-white/40 text-sm focus:outline-none focus:border-primary/50 transition-colors"
+                />
+              </div>
+
+              {/* Risk Filter */}
+              <div>
+                <label className="text-white/70 text-xs font-medium mb-2 block">Filter by Risk Level</label>
+                <div className="flex flex-wrap gap-2">
+                  {(['All', 'High', 'Medium', 'Low'] as const).map((risk) => (
+                    <button
+                      key={risk}
+                      onClick={() => handleRiskChange(risk)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                        selectedRisk === risk
+                          ? 'bg-primary text-background border border-primary'
+                          : 'bg-white/10 text-white/70 border border-white/20 hover:bg-white/20'
+                      }`}
+                    >
+                      {risk}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Results Info */}
+              <div className="text-white/60 text-xs">
+                Showing {filteredPlans.length} of {allPlans.length} plans
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Featured Plans */}
@@ -159,65 +228,73 @@ export default function InvestPage() {
         {/* All Investment Plans */}
         <div className="mb-8">
           <h2 className="text-lg sm:text-xl font-bold text-white mb-1">All Investment Plans</h2>
-          <p className="text-white/60 text-xs sm:text-sm mb-4">Showing {startIdx + 1} of {allPlans.length} plans</p>
+          <p className="text-white/60 text-xs sm:text-sm mb-4">Showing {displayedPlans.length > 0 ? startIdx + 1 : 0} of {filteredPlans.length} plans</p>
 
-          <div className="space-y-3 mb-6">
-            {displayedPlans.map((plan) => (
-              <div key={plan.id} className="rounded-2xl border border-white/10 bg-gradient-to-br from-secondary/40 via-secondary/30 to-background/50 p-3 sm:p-4 backdrop-blur-xl glow-cyan-hover">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-sm sm:text-base font-bold text-white line-clamp-2">{plan.name}</h3>
-                    <p className="text-white/60 text-xs">{plan.category}</p>
+          {displayedPlans.length > 0 ? (
+            <>
+              <div className="space-y-3 mb-6">
+                {displayedPlans.map((plan) => (
+                  <div key={plan.id} className="rounded-2xl border border-white/10 bg-gradient-to-br from-secondary/40 via-secondary/30 to-background/50 p-3 sm:p-4 backdrop-blur-xl glow-cyan-hover">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-sm sm:text-base font-bold text-white line-clamp-2">{plan.name}</h3>
+                        <p className="text-white/60 text-xs">{plan.category}</p>
+                      </div>
+                      <div className={`px-2 py-0.5 rounded-full text-xs font-medium border flex-shrink-0 ml-2 ${getRiskColor(plan.risk)}`}>
+                        {plan.risk}
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
+                      <div>
+                        <p className="text-white/70 text-xs mb-0.5">NAV:</p>
+                        <p className="text-white font-semibold text-xs">{plan.nav}</p>
+                      </div>
+                      <div>
+                        <p className="text-white/70 text-xs mb-0.5">Return:</p>
+                        <p className="text-green-400 font-semibold text-xs">{plan.return}</p>
+                      </div>
+                      <div>
+                        <p className="text-white/70 text-xs mb-0.5">Min:</p>
+                        <p className="text-white font-semibold text-xs">{plan.min}</p>
+                      </div>
+                      <div className="flex items-end">
+                        <button className="w-full bg-white text-background px-2 py-1.5 rounded-lg font-medium text-xs hover:bg-white/90 transition-colors">
+                          Invest
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                  <div className={`px-2 py-0.5 rounded-full text-xs font-medium border flex-shrink-0 ml-2 ${getRiskColor(plan.risk)}`}>
-                    {plan.risk}
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
-                  <div>
-                    <p className="text-white/70 text-xs mb-0.5">NAV:</p>
-                    <p className="text-white font-semibold text-xs">{plan.nav}</p>
-                  </div>
-                  <div>
-                    <p className="text-white/70 text-xs mb-0.5">Return:</p>
-                    <p className="text-green-400 font-semibold text-xs">{plan.return}</p>
-                  </div>
-                  <div>
-                    <p className="text-white/70 text-xs mb-0.5">Min:</p>
-                    <p className="text-white font-semibold text-xs">{plan.min}</p>
-                  </div>
-                  <div className="flex items-end">
-                    <button className="w-full bg-white text-background px-2 py-1.5 rounded-lg font-medium text-xs hover:bg-white/90 transition-colors">
-                      Invest
-                    </button>
-                  </div>
-                </div>
+                ))}
               </div>
-            ))}
-          </div>
 
-          {/* Pagination */}
-          <div className="flex items-center justify-between gap-2 sm:gap-3">
-            <button
-              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-              disabled={currentPage === 1}
-              className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg border border-white/20 bg-white/5 text-white/60 hover:text-white hover:border-white/40 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-medium"
-            >
-              <ChevronLeft className="w-4 h-4" />
-              <span className="hidden sm:inline">Previous</span>
-            </button>
-            <span className="text-white/60 text-xs">
-              Page {currentPage} of {totalPages}
-            </span>
-            <button
-              onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-              disabled={currentPage === totalPages}
-              className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg border border-white/20 bg-white/5 text-white/60 hover:text-white hover:border-white/40 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-medium"
-            >
-              <span className="hidden sm:inline">Next</span>
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
+              {/* Pagination */}
+              <div className="flex items-center justify-between gap-2 sm:gap-3">
+                <button
+                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                  disabled={currentPage === 1}
+                  className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg border border-white/20 bg-white/5 text-white/60 hover:text-white hover:border-white/40 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-medium"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  <span className="hidden sm:inline">Previous</span>
+                </button>
+                <span className="text-white/60 text-xs">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <button
+                  onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                  disabled={currentPage === totalPages}
+                  className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg border border-white/20 bg-white/5 text-white/60 hover:text-white hover:border-white/40 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-xs sm:text-sm font-medium"
+                >
+                  <span className="hidden sm:inline">Next</span>
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </>
+          ) : (
+            <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-secondary/40 via-secondary/30 to-background/50 p-6 text-center backdrop-blur-xl">
+              <p className="text-white/60 text-sm">No plans found matching your search. Try adjusting your filters.</p>
+            </div>
+          )}
         </div>
       </main>
 
