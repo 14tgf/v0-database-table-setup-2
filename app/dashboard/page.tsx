@@ -62,7 +62,7 @@ export default function DashboardPage() {
       description: 'Grow your wealth',
       actionText: 'Start Investing',
       icon: TrendingUp,
-      href: '#',
+      href: '/dashboard/invest',
     },
     {
       title: 'Stocks',
@@ -76,7 +76,7 @@ export default function DashboardPage() {
       description: 'View your holdings',
       actionText: 'View Portfolio',
       icon: WalletIcon,
-      href: '#',
+      href: '/portfolio',
     },
   ];
 
