@@ -15,7 +15,7 @@ export function SidebarMenu({ isOpen, onClose, userEmail = 'cedoe70@gmail.com', 
   const menuItems = [
     { icon: LayoutGrid, label: 'Dashboard', href: '/dashboard' },
     { icon: Wallet, label: 'Wallet', href: '/dashboard/wallet' },
-    { icon: TrendingUp, label: 'Investments', href: '#' },
+    { icon: TrendingUp, label: 'Investments', href: '/dashboard/invest' },
     { icon: BarChart3, label: 'Stocks', href: '/stocks' },
     { icon: Clock, label: 'Portfolio', href: '/portfolio' },
     { icon: BarChart3, label: 'Investment Dashboard', href: '#' },
