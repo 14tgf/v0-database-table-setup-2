@@ -270,5 +270,46 @@ export const PRODUCTS: Product[] = [
       { name: 'Standard', price: 5999 },
       { name: 'Founder Series', price: 7999 }
     ]
+  },
+  {
+    id: '7',
+    name: 'Tesla Model S 2024 – Dual Motor AWD',
+    price: 94990,
+    image: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_7821-2l6HHhvQzgkyqswKh7Og4ci8mmzftd.png',
+    description: 'Luxury electric sedan with dual motor performance and advanced technology',
+    fullDescription: 'The Tesla Model S 2024 is a luxury all-electric sedan that delivers exceptional performance, advanced technology, and refined comfort. Built with dual motor all-wheel drive, it offers breathtaking acceleration, extended driving range, and a smooth, quiet ride. With its minimalist interior featuring a massive touchscreen display, premium quilted leather seating, and cutting-edge driver assistance features, the Model S provides an uncompromising premium driving experience for discerning enthusiasts.',
+    features: [
+      'Dual motor all-wheel drive',
+      '0-60 in 3.1s',
+      '420 mile range',
+      'Premium leather interior'
+    ],
+    range: '420 miles',
+    acceleration: '3.1s 0-60',
+    charging: '10-80% in 20 min',
+    make: 'Tesla',
+    model: 'Model S',
+    year: 2024,
+    color: 'Pearl White Multi-Coat',
+    transmission: 'Automatic',
+    drive: 'Dual Motor AWD',
+    seating: '5 adults',
+    display: '17-inch touchscreen',
+    topSpeed: '163 mph',
+    images: [
+      'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_7821-2l6HHhvQzgkyqswKh7Og4ci8mmzftd.png',
+      'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_7822-vDI76C7LAw0fAASmnYIaMcMxU1AZ9d.png',
+      'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_7823-RSTeYE9lqKkgUdVhyFHYYwWVdyMSQd.png',
+      'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_7824-EUbMynb4nDM08HKMAGOcU8D3usempM.png',
+      'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_7825-qPDqqp5EMSlj9vRDVZX9I5yXwRnRFO.png'
+    ],
+    purchasePrice: 94990,
+    leasePrice: 1899,
+    leaseTerms: '$6,500 down, 36 months, 10,000 miles',
+    financePrice: 1999,
+    variants: [
+      { name: 'Dual Motor AWD', price: 1899 },
+      { name: 'Plaid Performance', price: 2399 }
+    ]
   }
 ];
