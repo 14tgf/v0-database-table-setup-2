@@ -311,5 +311,47 @@ export const PRODUCTS: Product[] = [
       { name: 'Dual Motor AWD', price: 1899 },
       { name: 'Plaid Performance', price: 2399 }
     ]
+  },
+  {
+    id: '8',
+    name: 'Tesla Model X Plaid 2024 – Tri Motor AWD',
+    price: 108990,
+    image: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_7851-SmH9b4czhPBgS9B05EqGrOcDN1CWRp.png',
+    description: 'Ultra-performance electric SUV with iconic gull-wing doors and tri-motor power',
+    fullDescription: 'The Tesla Model X Plaid 2024 is an ultra-performance electric SUV that sets the standard for luxury and speed. Featuring iconic falcon-wing gull-wing doors, tri-motor all-wheel drive with exceptional acceleration, a spacious seven-seat interior, and a premium quilted leather cabin with advanced technology integration, the Model X Plaid delivers thrilling performance with uncompromising comfort. The sophisticated control center offers intuitive vehicle management and entertainment across multiple touchscreen displays.',
+    features: [
+      'Tri-motor all-wheel drive',
+      '0-60 in 2.5s',
+      '348 mile range',
+      'Iconic gull-wing doors'
+    ],
+    range: '348 miles',
+    acceleration: '2.5s 0-60',
+    charging: '10-80% in 18 min',
+    make: 'Tesla',
+    model: 'Model X Plaid',
+    year: 2024,
+    color: 'Pearl White Multi-Coat',
+    transmission: 'Automatic',
+    drive: 'Tri-Motor AWD',
+    seating: '7 adults',
+    display: '17-inch + 8-inch touchscreens',
+    topSpeed: '163 mph',
+    images: [
+      'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_7851-SmH9b4czhPBgS9B05EqGrOcDN1CWRp.png',
+      'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_7850-rCzdxDibiZiSdUZQvpABJ53nP4czYK.png',
+      'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_7854-SiZlxHFDlZ9HwOjSW6UtngZ7CM85pT.png',
+      'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_7852-stTkNg68Um7wbUWrcc0dS4rDfqRUAY.png',
+      'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_7853-Gba4tOIwNhPwcohUAl0gYlsesGC2wg.png',
+      'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_7849-4HlSdewB7bE1pDifuWE27LtKE3inja.png'
+    ],
+    purchasePrice: 108990,
+    leasePrice: 2499,
+    leaseTerms: '$8,000 down, 36 months, 10,000 miles',
+    financePrice: 2699,
+    variants: [
+      { name: 'Plaid Tri-Motor', price: 2499 },
+      { name: 'Plaid Plus Performance', price: 2999 }
+    ]
   }
 ];
