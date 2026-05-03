@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Bell, Sun, Plus, Minus, TrendingUp, TrendingDown, Wallet as WalletIcon } from 'lucide-react';
 import { SidebarMenu } from '@/components/dashboard/sidebar-menu';
+import { DashboardNav } from '@/components/dashboard/dashboard-nav';
 
 export default function WalletPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -175,39 +176,8 @@ export default function WalletPage() {
         userEmail="cedoe70@gmail.com"
       />
 
-      {/* Sticky Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-white/10 bg-background/95 backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto px-4 py-3 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-around md:justify-start md:gap-8">
-            <Link href="/dashboard" className="flex flex-col items-center gap-1 text-white/60 hover:text-white transition-colors py-2">
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M3 13h2v8H3zm4-8h2v16H7zm4-2h2v18h-2zm4-2h2v20h-2zm4 4h2v16h-2zm4-4h2v20h-2z"/>
-              </svg>
-              <span className="text-xs">Dashboard</span>
-            </Link>
-            <Link href="/dashboard/wallet" className="flex flex-col items-center gap-1 text-primary py-2">
-              <WalletIcon className="w-5 h-5" />
-              <span className="text-xs font-medium">Wallet</span>
-            </Link>
-            <Link href="/dashboard/invest" className="flex flex-col items-center gap-1 text-white/60 hover:text-white transition-colors py-2">
-              <TrendingUp className="w-5 h-5" />
-              <span className="text-xs">Invest</span>
-            </Link>
-            <Link href="/stocks" className="flex flex-col items-center gap-1 text-white/60 hover:text-white transition-colors py-2">
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M3 13h2v8H3zm4-8h2v16H7zm4-2h2v18h-2z"/>
-              </svg>
-              <span className="text-xs">Stocks</span>
-            </Link>
-            <Link href="/portfolio" className="flex flex-col items-center gap-1 text-white/60 hover:text-white transition-colors py-2">
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeWidth="2"/>
-              </svg>
-              <span className="text-xs">Portfolio</span>
-            </Link>
-          </div>
-        </div>
-      </nav>
+      {/* Bottom Navigation */}
+      <DashboardNav />
     </div>
   );
 }

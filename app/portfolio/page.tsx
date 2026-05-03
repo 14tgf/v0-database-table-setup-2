@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Bell, Sun, TrendingUp, TrendingDown, Activity, ArrowUpRight, Plus } from 'lucide-react';
 import { useMarketData } from '@/hooks/use-market-data';
 import { SidebarMenu } from '@/components/dashboard/sidebar-menu';
+import { DashboardNav } from '@/components/dashboard/dashboard-nav';
 
 interface PortfolioHolding {
   symbol: string;
@@ -343,6 +344,9 @@ export default function PortfolioPage() {
         userName="Carl"
         userEmail="cedoe70@gmail.com"
       />
+
+      {/* Bottom Navigation */}
+      <DashboardNav />
     </div>
   );
 }

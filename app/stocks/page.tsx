@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Bell, Sun, TrendingUp, TrendingDown, Activity } from 'lucide-react';
 import { useMarketData } from '@/hooks/use-market-data';
 import { SidebarMenu } from '@/components/dashboard/sidebar-menu';
+import { DashboardNav } from '@/components/dashboard/dashboard-nav';
 
 export default function StocksPage() {
   const { stocks, loading } = useMarketData();
@@ -244,6 +245,9 @@ export default function StocksPage() {
         userName="Carl"
         userEmail="cedoe70@gmail.com"
       />
+
+      {/* Bottom Navigation */}
+      <DashboardNav />
     </div>
   );
 }
