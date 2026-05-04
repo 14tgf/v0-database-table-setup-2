@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { Wallet } from 'lucide-react';
+import Link from 'next/link';
 import { useCurrencyFormatter } from '@/hooks/useCurrencyFormatter';
 
 export function BalanceCard() {
@@ -41,12 +42,12 @@ export function BalanceCard() {
 
           {/* Action Buttons */}
           <div className="grid grid-cols-2 gap-2">
-            <button className="px-3 py-1.5 bg-white/10 border border-white/20 text-white font-semibold rounded-lg hover:bg-white/20 transition-all duration-300 text-xs flex items-center justify-center gap-1">
+            <Link href="/dashboard/deposit" className="px-3 py-1.5 bg-white/10 border border-white/20 text-white font-semibold rounded-lg hover:bg-white/20 transition-all duration-300 text-xs flex items-center justify-center gap-1">
               <span>+</span> Deposit
-            </button>
-            <button className="px-3 py-1.5 bg-white/10 border border-white/20 text-white font-semibold rounded-lg hover:bg-white/20 transition-all duration-300 text-xs flex items-center justify-center gap-1">
+            </Link>
+            <Link href="/dashboard/withdraw" className="px-3 py-1.5 bg-white/10 border border-white/20 text-white font-semibold rounded-lg hover:bg-white/20 transition-all duration-300 text-xs flex items-center justify-center gap-1">
               <span>−</span> Withdraw
-            </button>
+            </Link>
           </div>
         </div>
       </div>
