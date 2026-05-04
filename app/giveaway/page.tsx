@@ -18,7 +18,7 @@ const Giveaways = [
     endDate: '110 days',
     participants: 0,
     status: 'Active',
-    image: '/api/placeholder?w=400&h=300',
+    image: '/tesla-car.jpg',
   },
   {
     id: 2,
@@ -29,7 +29,7 @@ const Giveaways = [
     endDate: '45 days',
     participants: 1243,
     status: 'Active',
-    image: '/api/placeholder?w=400&h=300',
+    image: '/tesla-car.jpg',
   },
   {
     id: 3,
@@ -40,7 +40,7 @@ const Giveaways = [
     endDate: '75 days',
     participants: 856,
     status: 'Active',
-    image: '/api/placeholder?w=400&h=300',
+    image: '/tesla-car.jpg',
   },
   {
     id: 4,
@@ -51,7 +51,7 @@ const Giveaways = [
     endDate: '30 days',
     participants: 567,
     status: 'Active',
-    image: '/api/placeholder?w=400&h=300',
+    image: '/tesla-car.jpg',
   },
 ]
 
@@ -114,10 +114,10 @@ export default function GiveawayPage() {
           variants={staggerContainer}
           initial="hidden"
           animate={isLoaded ? 'visible' : 'hidden'}
-          className="text-center mb-12 space-y-3"
+          className="text-center mb-8 space-y-2"
         >
           <motion.div variants={staggerItem} className="inline-flex items-center gap-2 px-3 py-1.5 bg-secondary border border-accent/30 rounded-full w-fit mx-auto">
-            <Gift className="w-4 h-4 text-accent" />
+            <Gift className="w-3 h-3 text-accent" />
             <span className="text-xs font-semibold text-accent tracking-widest">GIVEAWAYS</span>
           </motion.div>
 
@@ -125,12 +125,12 @@ export default function GiveawayPage() {
             Enter to Win <span className="text-accent">Amazing Prizes!</span>
           </motion.h1>
 
-          <motion.p variants={staggerItem} className="text-sm md:text-base text-muted-foreground max-w-2xl mx-auto">
+          <motion.p variants={staggerItem} className="text-sm text-muted-foreground max-w-2xl mx-auto">
             Participate in our exclusive giveaways and win cars, cash, and more
           </motion.p>
 
-          <motion.div variants={staggerItem} className="flex justify-center pt-2">
-            <button className="px-6 py-2 bg-accent text-background font-semibold rounded-lg text-sm hover:bg-accent/90 transition-colors">
+          <motion.div variants={staggerItem} className="flex justify-center pt-1">
+            <button className="px-4 py-1.5 bg-accent text-background font-semibold rounded-lg text-xs hover:bg-accent/90 transition-colors">
               My Entries
             </button>
           </motion.div>
@@ -143,7 +143,7 @@ export default function GiveawayPage() {
           animate={isLoaded ? 'visible' : 'hidden'}
           className="mb-8"
         >
-          <motion.h2 variants={staggerItem} className="text-xl font-bold text-foreground mb-6">
+          <motion.h2 variants={staggerItem} className="text-lg font-bold text-foreground mb-4">
             Active Giveaways
           </motion.h2>
 
@@ -162,27 +162,33 @@ export default function GiveawayPage() {
                 <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10 bg-gradient-to-br from-accent/20 to-transparent blur-2xl" />
 
                 {/* Image Section */}
-                <div className="relative h-40 bg-gradient-to-br from-secondary to-secondary/50 overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-b from-transparent to-secondary/50" />
+                <div className="relative h-32 bg-gradient-to-br from-secondary to-secondary/50 overflow-hidden">
+                  <Image
+                    src={giveaway.image}
+                    alt={giveaway.title}
+                    fill
+                    className="object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-b from-transparent to-secondary/80" />
                   
                   {/* Status Badge */}
-                  <div className="absolute top-3 right-3 z-10">
-                    <span className="px-2 py-1 bg-primary/90 text-white text-xs font-bold rounded-full">
+                  <div className="absolute top-2 right-2 z-10">
+                    <span className="px-2 py-0.5 bg-primary/90 text-white text-xs font-bold rounded-full">
                       {giveaway.status}
                     </span>
                   </div>
                 </div>
 
                 {/* Content Section */}
-                <div className="p-4">
-                  <h3 className="text-lg font-bold text-foreground mb-2 line-clamp-1">{giveaway.title}</h3>
-                  <p className="text-xs text-muted-foreground mb-4 line-clamp-2">{giveaway.description}</p>
+                <div className="p-3">
+                  <h3 className="text-base font-bold text-foreground mb-1 line-clamp-1">{giveaway.title}</h3>
+                  <p className="text-xs text-muted-foreground mb-3 line-clamp-2">{giveaway.description}</p>
 
                   {/* Details Grid */}
-                  <div className="grid grid-cols-2 gap-3 mb-4">
+                  <div className="grid grid-cols-2 gap-2 mb-3">
                     {/* Prize */}
-                    <div className="flex items-center gap-2">
-                      <Gift className="w-4 h-4 text-accent flex-shrink-0" />
+                    <div className="flex items-center gap-1.5">
+                      <Gift className="w-3 h-3 text-accent flex-shrink-0" />
                       <div>
                         <p className="text-xs text-muted-foreground">Prize</p>
                         <p className="text-xs font-semibold text-foreground">{giveaway.prize}</p>
@@ -190,8 +196,8 @@ export default function GiveawayPage() {
                     </div>
 
                     {/* Prize Value */}
-                    <div className="flex items-center gap-2">
-                      <DollarSign className="w-4 h-4 text-accent flex-shrink-0" />
+                    <div className="flex items-center gap-1.5">
+                      <DollarSign className="w-3 h-3 text-accent flex-shrink-0" />
                       <div>
                         <p className="text-xs text-muted-foreground">Value</p>
                         <p className="text-xs font-semibold text-foreground">${giveaway.prizeValue.toLocaleString()}</p>
@@ -199,8 +205,8 @@ export default function GiveawayPage() {
                     </div>
 
                     {/* End Date */}
-                    <div className="flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-accent flex-shrink-0" />
+                    <div className="flex items-center gap-1.5">
+                      <Clock className="w-3 h-3 text-accent flex-shrink-0" />
                       <div>
                         <p className="text-xs text-muted-foreground">Ends in</p>
                         <p className="text-xs font-semibold text-foreground">{giveaway.endDate}</p>
@@ -208,8 +214,8 @@ export default function GiveawayPage() {
                     </div>
 
                     {/* Participants */}
-                    <div className="flex items-center gap-2">
-                      <Users className="w-4 h-4 text-accent flex-shrink-0" />
+                    <div className="flex items-center gap-1.5">
+                      <Users className="w-3 h-3 text-accent flex-shrink-0" />
                       <div>
                         <p className="text-xs text-muted-foreground">Participants</p>
                         <p className="text-xs font-semibold text-foreground">{giveaway.participants}</p>
@@ -218,7 +224,7 @@ export default function GiveawayPage() {
                   </div>
 
                   {/* Action Button */}
-                  <button className="w-full py-2 px-3 bg-gradient-to-r from-accent/80 to-accent text-background font-bold rounded-lg text-sm hover:shadow-lg hover:shadow-accent/50 transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2 group/btn">
+                  <button className="w-full py-1.5 px-2 bg-gradient-to-r from-accent/80 to-accent text-background font-bold rounded-lg text-xs hover:shadow-lg hover:shadow-accent/50 transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-1 group/btn">
                     <span>View Details & Enter</span>
                     <ArrowRight className="w-3 h-3" />
                   </button>
@@ -234,7 +240,7 @@ export default function GiveawayPage() {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: '-100px' }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-12"
+          className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-8"
         >
           {[
             {
@@ -253,9 +259,9 @@ export default function GiveawayPage() {
             <motion.div
               key={feature.title}
               variants={staggerItem}
-              className="bg-secondary/50 border border-accent/20 rounded-xl p-4 hover:border-accent/50 hover:bg-secondary transition-all duration-300"
+              className="bg-secondary/50 border border-accent/20 rounded-xl p-3 hover:border-accent/50 hover:bg-secondary transition-all duration-300"
             >
-              <h4 className="text-base font-semibold text-foreground mb-1">{feature.title}</h4>
+              <h4 className="text-sm font-semibold text-foreground mb-1">{feature.title}</h4>
               <p className="text-xs text-muted-foreground leading-snug">{feature.description}</p>
             </motion.div>
           ))}
@@ -263,9 +269,9 @@ export default function GiveawayPage() {
       </main>
 
       {/* Footer */}
-      <footer className="relative border-t border-border/50 bg-background mt-12">
+      <footer className="relative border-t border-border/50 bg-background mt-8">
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-accent/50 to-transparent" />
-        <div className="max-w-7xl mx-auto px-6 py-8 text-center">
+        <div className="max-w-7xl mx-auto px-6 py-6 text-center">
           <p className="text-xs text-muted-foreground">
             &copy; {new Date().getFullYear()} X Holding. All rights reserved. | <Link href="/" className="text-accent hover:text-accent/80">Back to Home</Link>
           </p>
