@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
@@ -17,6 +18,9 @@ interface StockCardProps {
 }
 
 export function StockCard({ stock, index }: StockCardProps) {
+  const [isAdding, setIsAdding] = useState(false);
+  const [inPortfolio, setInPortfolio] = useState(false);
+
   // Defensive checks for undefined values
   const price = typeof stock.price === 'number' ? stock.price : 0;
   const change = typeof stock.change === 'number' ? stock.change : 0;
@@ -32,17 +36,43 @@ export function StockCard({ stock, index }: StockCardProps) {
 
   const trend = change > 0.5 ? 'up' : change < -0.5 ? 'down' : 'flat';
 
+  const handleAddToPortfolio = async () => {
+    setIsAdding(true);
+    try {
+      const response = await fetch('/api/portfolio/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          symbol: stock.symbol,
+          companyName: stock.name,
+          quantity: 1,
+          entryPrice: price,
+          currentPrice: price,
+          logo: stock.logo,
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to add stock');
+      setInPortfolio(true);
+      console.log('[v0] Stock added to portfolio:', stock.symbol);
+    } catch (error) {
+      console.error('[v0] Error adding stock:', error);
+    } finally {
+      setIsAdding(false);
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05, duration: 0.4 }}
       whileHover={{ y: -4 }}
-      className={`rounded-lg border ${borderClass} ${bgColor} backdrop-blur-sm ${glowClass} transition-all duration-300 p-4 cursor-pointer group`}
+      className={`rounded-lg border ${borderClass} ${bgColor} backdrop-blur-sm ${glowClass} transition-all duration-300 p-4 cursor-pointer group flex flex-col`}
     >
       {/* Header with Logo and Ticker */}
       <div className="flex items-start justify-between mb-3">
-        <div className="flex items-center gap-2 min-w-0">
+        <div className="flex items-center gap-2 min-w-0 flex-1">
           {stock.logo ? (
             <div className="relative w-8 h-8 rounded-lg bg-white/10 overflow-hidden flex-shrink-0">
               <Image
@@ -83,7 +113,7 @@ export function StockCard({ stock, index }: StockCardProps) {
       </div>
 
       {/* Change */}
-      <div className="flex items-center justify-between pt-2 border-t border-white/10">
+      <div className="flex items-center justify-between pt-2 border-t border-white/10 mb-3">
         <div>
           <p className={`text-xs font-semibold ${changeColor}`}>
             {change >= 0 ? '+' : ''}{change.toFixed(2)}
@@ -97,7 +127,7 @@ export function StockCard({ stock, index }: StockCardProps) {
       </div>
 
       {/* Mini sparkline indicator */}
-      <div className="mt-2 h-0.5 w-full bg-white/10 rounded-full overflow-hidden">
+      <div className="mb-3 h-0.5 w-full bg-white/10 rounded-full overflow-hidden">
         <motion.div
           layoutId={`sparkline-${stock.symbol}`}
           className={`h-full ${isPositive ? 'bg-green-500' : isNegative ? 'bg-red-500' : 'bg-white/30'}`}
@@ -106,6 +136,19 @@ export function StockCard({ stock, index }: StockCardProps) {
           transition={{ duration: 0.5 }}
         />
       </div>
+
+      {/* Add to Portfolio Button */}
+      <button
+        onClick={handleAddToPortfolio}
+        disabled={inPortfolio || isAdding}
+        className={`w-full py-2 rounded-lg font-semibold text-sm transition-all ${
+          inPortfolio
+            ? 'bg-green-500/20 text-green-400 border border-green-500/30 cursor-default'
+            : 'bg-accent/20 text-accent border border-accent/50 hover:bg-accent/30 disabled:opacity-50'
+        }`}
+      >
+        {isAdding ? '...' : inPortfolio ? '✓ Added' : '+ Add'}
+      </button>
     </motion.div>
   );
 }
