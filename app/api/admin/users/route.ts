@@ -7,12 +7,11 @@ export async function GET(request: NextRequest) {
   try {
     const searchQuery = request.nextUrl.searchParams.get('search') || '';
 
-    let query: string;
-    let params: any[] = [];
+    let users: any[];
 
     if (searchQuery) {
-      query = `
-        SELECT 
+      users = await sql.query(
+        `SELECT 
           id, 
           email, 
           full_name, 
@@ -21,12 +20,12 @@ export async function GET(request: NextRequest) {
           created_at
         FROM users
         WHERE status = 'active' AND (full_name ILIKE $1 OR email ILIKE $1)
-        ORDER BY created_at DESC LIMIT 100
-      `;
-      params = [`%${searchQuery}%`];
+        ORDER BY created_at DESC LIMIT 100`,
+        [`%${searchQuery}%`]
+      );
     } else {
-      query = `
-        SELECT 
+      users = await sql.query(
+        `SELECT 
           id, 
           email, 
           full_name, 
@@ -35,11 +34,9 @@ export async function GET(request: NextRequest) {
           created_at
         FROM users
         WHERE status = 'active'
-        ORDER BY created_at DESC LIMIT 100
-      `;
+        ORDER BY created_at DESC LIMIT 100`
+      );
     }
-
-    const users = await sql(query, params);
 
     const formattedUsers = users.map((user: any) => ({
       id: user.id,

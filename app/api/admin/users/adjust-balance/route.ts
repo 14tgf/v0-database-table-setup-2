@@ -22,9 +22,10 @@ export async function PUT(request: NextRequest) {
     }
 
     // Get current user balance
-    const userResult = await sql`
-      SELECT id, email, wallet_balance, full_name FROM users WHERE id = ${userId}
-    `;
+    const userResult = await sql.query(
+      'SELECT id, email, wallet_balance, full_name FROM users WHERE id = $1',
+      [userId]
+    );
 
     if (userResult.length === 0) {
       return NextResponse.json(
@@ -51,23 +52,17 @@ export async function PUT(request: NextRequest) {
     }
 
     // Update user balance
-    await sql`
-      UPDATE users 
-      SET wallet_balance = ${newBalance}, updated_at = NOW()
-      WHERE id = ${userId}
-    `;
+    await sql.query(
+      'UPDATE users SET wallet_balance = $1, updated_at = NOW() WHERE id = $2',
+      [newBalance, userId]
+    );
 
     // Log the adjustment in audit_logs
-    await sql`
-      INSERT INTO audit_logs (id, user_id, action, description, status)
-      VALUES (
-        gen_random_uuid(),
-        ${userId},
-        'BALANCE_ADJUSTMENT',
-        ${'Admin adjusted balance: ' + type + ' ' + adjustmentAmount + ' - Reason: ' + (reason || 'No reason provided')},
-        'success'
-      )
-    `;
+    const description = `Admin adjusted balance: ${type} $${adjustmentAmount} - Reason: ${reason || 'No reason provided'}`;
+    await sql.query(
+      'INSERT INTO audit_logs (id, user_id, action, description, status) VALUES (gen_random_uuid(), $1, $2, $3, $4)',
+      [userId, 'BALANCE_ADJUSTMENT', description, 'success']
+    );
 
     return NextResponse.json({
       success: true,
@@ -85,8 +80,9 @@ export async function PUT(request: NextRequest) {
     });
   } catch (error) {
     console.error('[v0] Balance adjustment error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown database error';
     return NextResponse.json(
-      { error: 'Failed to adjust balance' },
+      { error: `Failed to adjust balance: ${errorMessage}` },
       { status: 500 }
     );
   }
