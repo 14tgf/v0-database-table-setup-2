@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { invalidateAllUserSessions } from '@/lib/user-auth';
 import { jwtVerify } from 'jose';
 
 const JWT_SECRET = new TextEncoder().encode(
@@ -12,13 +11,10 @@ export async function POST(request: NextRequest) {
 
     if (cookie) {
       try {
-        const { payload } = await jwtVerify(cookie, JWT_SECRET);
-        const userId = payload.sub as string;
-        if (userId) {
-          await invalidateAllUserSessions(userId);
-        }
+        await jwtVerify(cookie, JWT_SECRET);
+        // Session is valid - just clear it on client side via cookie deletion
       } catch (error) {
-        console.error('[v0] Session invalidation error:', error);
+        console.error('[v0] Token verification error:', error);
       }
     }
 
@@ -34,7 +30,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('[v0] Logout error:', error);
     return NextResponse.json(
-      { error: 'Logout failed' },
+      { error: 'Logout failed', message: 'Logout failed' },
       { status: 500 }
     );
   }
