@@ -8,81 +8,8 @@ import { Check, Menu, X as XIcon } from 'lucide-react'
 import { staggerContainer, staggerItem } from '@/lib/animations'
 import { SidebarMenu } from '@/components/dashboard/sidebar-menu'
 
-const VIPTiers = [
-  {
-    name: 'Bronze',
-    price: 99.00,
-    duration: '12.2 months',
-    description: 'Essential VIP benefits for new members',
-    benefits: [
-      '3.00% off car purchases',
-      '1.00% investment bonus',
-      'Priority email support',
-      'Exclusive member newsletter',
-      'Early access to new inventory',
-    ],
-    glowColor: 'glow-cyan',
-    featured: false,
-  },
-  {
-    name: 'Silver',
-    price: 249.00,
-    duration: '12.2 months',
-    description: 'Enhanced benefits with greater rewards',
-    benefits: [
-      '5.00% off car purchases',
-      '2.00% investment bonus',
-      '2x giveaway entries',
-      'Priority customer support',
-      'All Bronze benefits',
-      '24/7 phone support',
-      'Invitation to exclusive events',
-      'Quarterly market insights report',
-    ],
-    glowColor: 'glow-cyan',
-    featured: false,
-  },
-  {
-    name: 'Private Access',
-    price: 5000.00,
-    duration: '12.2 months',
-    description: 'Premium tier with exclusive opportunities',
-    benefits: [
-      '7.00% off car purchases',
-      '10.00% investment bonus',
-      '3x giveaway entries',
-      'Priority customer support',
-      'Access to exclusive opportunities',
-      'Advanced AI & robotics insights',
-      'Private investment deals',
-      'Priority Tesla vehicle allocations',
-      'VIP client priority support',
-      'Not available to all clients',
-    ],
-    glowColor: 'glow-cyan',
-    featured: true,
-  },
-  {
-    name: 'Platinum',
-    price: 999.00,
-    duration: '12.2 months',
-    description: 'Ultimate VIP experience with maximum benefits',
-    benefits: [
-      '10.00% off car purchases',
-      '5.00% investment bonus',
-      '5x giveaway entries',
-      'Priority customer support',
-      'All Gold benefits',
-      'Concierge service',
-      'Personalized investment strategy',
-      'Annual Tesla accessory package',
-      'Exclusive Tesla events invitation',
-      'White-glove delivery service',
-    ],
-    glowColor: 'glow-cyan',
-    featured: false,
-  },
-]
+// Removed all mock VIP tier data - database-ready
+const VIPTiers: any[] = [];
 
 export default function VIPMembershipPage() {
   const [isLoaded, setIsLoaded] = useState(false)

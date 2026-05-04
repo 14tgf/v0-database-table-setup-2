@@ -33,36 +33,36 @@ export interface PaymentMethodsData {
   bank: PaymentMethod & { config: BankConfig };
 }
 
-// Default configuration (mock data)
+// Default configuration (removed mock data - database-ready)
 export const DEFAULT_PAYMENT_CONFIG: PaymentMethodsData = {
   crypto: {
     type: 'crypto',
-    status: 'active',
+    status: 'inactive',
     config: {
-      btc_address: '1A1z7agoat5dVvS4VKQwVAjkPHDMxLB1xh',
-      eth_address: '0x742d35Cc6634C0532925a3b844Bc96e6E6f2d2c5',
-      usdt_trc20: 'TQn9jFiarHd1mwf3vqyJ1n7wHBYkQVcVj7',
-      usdt_erc20: '0x742d35Cc6634C0532925a3b844Bc96e6E6f2d2c5',
+      btc_address: '',
+      eth_address: '',
+      usdt_trc20: '',
+      usdt_erc20: '',
     },
     updated_at: new Date().toISOString(),
   },
   paypal: {
     type: 'paypal',
-    status: 'active',
+    status: 'inactive',
     config: {
-      email: 'business@xholding.com',
+      email: '',
     },
     updated_at: new Date().toISOString(),
   },
   bank: {
     type: 'bank',
-    status: 'active',
+    status: 'inactive',
     config: {
-      bank_name: 'International Business Bank',
-      account_name: 'X Holding Inc',
-      account_number: 'DE89370400440532013000',
-      swift_code: 'COBADEMDEM',
-      country: 'Germany',
+      bank_name: '',
+      account_name: '',
+      account_number: '',
+      swift_code: '',
+      country: '',
     },
     updated_at: new Date().toISOString(),
   },

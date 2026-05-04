@@ -40,12 +40,7 @@ export default function MembershipPage() {
   const [selectedPayment, setSelectedPayment] = useState<MembershipPayment | null>(null);
   const [actionNote, setActionNote] = useState('');
 
-  const payments: MembershipPayment[] = [
-    { id: '1', userName: 'John Smith', userEmail: 'john@example.com', amount: 99, plan: 'silver', paymentMethod: 'Bank Transfer', status: 'pending', submitDate: '2024-03-15', proofUrl: 'proof_1.pdf' },
-    { id: '2', userName: 'Alice Johnson', userEmail: 'alice@example.com', amount: 199, plan: 'gold', paymentMethod: 'Credit Card', status: 'pending', submitDate: '2024-03-14', proofUrl: 'proof_2.pdf' },
-    { id: '3', userName: 'Bob Wilson', userEmail: 'bob@example.com', amount: 299, plan: 'platinum', paymentMethod: 'Bank Transfer', status: 'approved', submitDate: '2024-03-10', proofUrl: 'proof_3.pdf' },
-    { id: '4', userName: 'Mike Brown', userEmail: 'mike@example.com', amount: 99, plan: 'silver', paymentMethod: 'Crypto', status: 'rejected', submitDate: '2024-03-08', proofUrl: 'proof_4.pdf' },
-  ];
+  const payments: MembershipPayment[] = [];
 
   const pendingPayments = payments.filter(p => p.status === 'pending');
 
