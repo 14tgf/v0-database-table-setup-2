@@ -20,7 +20,7 @@ export function SidebarMenu({ isOpen, onClose, userEmail = '', userName = '' }: 
     { icon: LayoutGrid, label: 'Dashboard', href: '/dashboard' },
     { icon: Wallet, label: 'Wallet', href: '/dashboard/wallet' },
     { icon: TrendingUp, label: 'Investments', href: '/dashboard/invest' },
-    { icon: BarChart3, label: 'Stocks', href: '/stocks' },
+    { icon: BarChart3, label: 'Stocks', href: '/market' },
     { icon: Clock, label: 'Portfolio', href: '/portfolio' },
     { icon: BarChart3, label: 'Investment Dashboard', href: '/dashboard/investments' },
     { icon: Car, label: 'Inventory', href: '/inventory' },

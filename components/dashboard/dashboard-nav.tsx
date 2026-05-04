@@ -8,7 +8,7 @@ export function DashboardNav() {
     { icon: LayoutGrid, label: 'Dashboard', href: '/dashboard' },
     { icon: Wallet, label: 'Wallet', href: '/dashboard/wallet' },
     { icon: TrendingUp, label: 'Invest', href: '/dashboard/invest' },
-    { icon: BarChart3, label: 'Stocks', href: '/stocks' },
+    { icon: BarChart3, label: 'Stocks', href: '/market' },
     { icon: PieChart, label: 'Portfolio', href: '/portfolio' },
   ];
 
