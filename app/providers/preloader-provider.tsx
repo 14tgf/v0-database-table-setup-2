@@ -7,17 +7,12 @@ export function PreloaderProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Hide preloader once page has loaded
-    const handleLoad = () => {
+    // Keep preloader visible for 35 seconds (30-40 second range)
+    const preloaderTimeout = setTimeout(() => {
       setIsLoading(false);
-    };
+    }, 35000);
 
-    if (document.readyState === 'complete') {
-      setIsLoading(false);
-    } else {
-      window.addEventListener('load', handleLoad);
-      return () => window.removeEventListener('load', handleLoad);
-    }
+    return () => clearTimeout(preloaderTimeout);
   }, []);
 
   return (
