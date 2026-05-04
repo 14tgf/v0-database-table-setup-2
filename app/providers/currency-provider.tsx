@@ -14,20 +14,39 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
   const [selectedCurrency, setSelectedCurrencyState] = useState('USD');
   const [isReady, setIsReady] = useState(false);
 
-  // Load from localStorage on mount
+  // Load from database on mount (when backend is ready)
+  // For now, default to USD
   useEffect(() => {
-    const saved = localStorage.getItem('preferredCurrency');
-    if (saved) {
-      setSelectedCurrencyState(saved);
-    }
+    // TODO: Fetch user's preferred currency from /api/user/preferences
+    // const fetchCurrency = async () => {
+    //   try {
+    //     const res = await fetch('/api/user/preferences');
+    //     if (res.ok) {
+    //       const data = await res.json();
+    //       setSelectedCurrencyState(data.preferredCurrency || 'USD');
+    //     }
+    //   } catch (error) {
+    //     console.error('[v0] Failed to fetch currency preference:', error);
+    //   } finally {
+    //     setIsReady(true);
+    //   }
+    // };
+    // fetchCurrency();
+    
     setIsReady(true);
   }, []);
 
   const setSelectedCurrency = (code: string) => {
     setSelectedCurrencyState(code);
-    localStorage.setItem('preferredCurrency', code);
     // Dispatch custom event for global updates
     window.dispatchEvent(new CustomEvent('currencyChanged', { detail: { currency: code } }));
+    
+    // TODO: Sync to database when backend is ready
+    // fetch('/api/user/preferences', {
+    //   method: 'PUT',
+    //   headers: { 'Content-Type': 'application/json' },
+    //   body: JSON.stringify({ preferredCurrency: code }),
+    // }).catch(error => console.error('[v0] Failed to sync currency:', error));
   };
 
   return (
@@ -49,4 +68,5 @@ export function useCurrency() {
   }
   return context;
 }
+
 

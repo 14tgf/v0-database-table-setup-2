@@ -19,31 +19,34 @@ import { MarketOverview } from '@/components/dashboard/market-overview';
 import { StockPerformance } from '@/components/dashboard/stock-performance';
 import { DashboardNav } from '@/components/dashboard/dashboard-nav';
 import { SidebarMenu } from '@/components/dashboard/sidebar-menu';
+import { useWallet } from '@/hooks/useWallet';
 
 export default function DashboardPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { wallet } = useWallet();
+
   const statCards = [
     {
       title: 'Portfolio Value',
-      value: 0,
+      value: wallet?.portfolioValue || 0,
       subtitle: '+0.0% this month',
       icon: TrendingUp,
     },
     {
       title: 'Investments',
-      value: 0,
-      subtitle: '0 active investments',
+      value: wallet?.investmentCount || 0,
+      subtitle: `${wallet?.investmentCount || 0} active investments`,
       icon: BarChart3,
     },
     {
       title: 'Stock Holdings',
-      value: 0,
-      subtitle: '0 stock positions',
+      value: wallet?.stockHoldings || 0,
+      subtitle: `${wallet?.stockHoldings || 0} stock positions`,
       icon: Zap,
     },
     {
       title: 'Tesla Vehicles',
-      value: '0',
+      value: wallet?.teslaVehicles || '0',
       subtitle: 'Electric fleet',
       icon: Car,
     },

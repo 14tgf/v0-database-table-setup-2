@@ -6,14 +6,18 @@ import Link from 'next/link';
 import { Bell, Sun, Plus, Minus, TrendingUp, TrendingDown, Wallet as WalletIcon } from 'lucide-react';
 import { SidebarMenu } from '@/components/dashboard/sidebar-menu';
 import { DashboardNav } from '@/components/dashboard/dashboard-nav';
+import { useWallet } from '@/hooks/useWallet';
+import { useCurrencyFormatter } from '@/hooks/useCurrencyFormatter';
 
 export default function WalletPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { wallet, isLoading } = useWallet();
+  const { format } = useCurrencyFormatter();
 
-  const walletBalance = 0;
-  const totalDeposits = 0;
-  const totalWithdrawals = 0;
-  const totalInvested = 0;
+  const walletBalance = wallet?.balance || 0;
+  const totalDeposits = wallet?.totalDeposits || 0;
+  const totalWithdrawals = wallet?.totalWithdrawals || 0;
+  const totalInvested = wallet?.totalInvested || 0;
 
   return (
     <div className="min-h-screen bg-background">
@@ -61,7 +65,7 @@ export default function WalletPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-white/60 text-xs sm:text-sm mb-2">Available Balance</p>
-                <p className="text-2xl sm:text-3xl font-bold text-white">${walletBalance.toFixed(2)}</p>
+                <p className="text-2xl sm:text-3xl font-bold text-white">{isLoading ? '...' : format(walletBalance)}</p>
               </div>
               <WalletIcon className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
             </div>
