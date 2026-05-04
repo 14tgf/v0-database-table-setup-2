@@ -6,34 +6,51 @@ import Image from 'next/image';
 export function Preloader() {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background">
-      {/* Glow effect */}
+      {/* Outer pulsing glow effect */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         <motion.div
           animate={{
-            scale: [1, 1.1, 1],
-            opacity: [0.3, 0.6, 0.3],
+            scale: [0.8, 1.3, 0.8],
+            opacity: [0, 0.8, 0],
           }}
           transition={{
-            duration: 3,
+            duration: 2.5,
             repeat: Infinity,
             ease: 'easeInOut',
           }}
-          className="absolute w-40 h-40 rounded-full bg-accent/20 blur-2xl"
+          className="absolute w-56 h-56 rounded-full bg-accent/30 blur-3xl"
         />
       </div>
 
-      {/* X Logo with breathing effect */}
+      {/* Middle breathing glow */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <motion.div
+          animate={{
+            scale: [1, 1.2, 1],
+            opacity: [0.4, 0.8, 0.4],
+          }}
+          transition={{
+            duration: 2.5,
+            repeat: Infinity,
+            ease: 'easeInOut',
+            delay: 0.2,
+          }}
+          className="absolute w-48 h-48 rounded-full bg-accent/40 blur-2xl"
+        />
+      </div>
+
+      {/* X Logo with very noticeable breathing effect */}
       <motion.div
         animate={{
-          scale: [1, 1.05, 1],
-          opacity: [0.8, 1, 0.8],
+          scale: [0.9, 1.15, 0.9],
+          opacity: [0.5, 1, 0.5],
         }}
         transition={{
-          duration: 3,
+          duration: 2.5,
           repeat: Infinity,
           ease: 'easeInOut',
         }}
-        className="relative z-10 drop-shadow-[0_0_20px_rgba(0,217,255,0.4)]"
+        className="relative z-10 drop-shadow-[0_0_40px_rgba(0,217,255,0.8)]"
       >
         <Image
           src="/images/preloader-x.png"
@@ -41,9 +58,25 @@ export function Preloader() {
           width={120}
           height={120}
           priority
-          className="w-32 h-32"
+          className="w-40 h-40"
         />
       </motion.div>
+
+      {/* Inner pulsing ring around logo */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <motion.div
+          animate={{
+            scale: [1, 1.08, 1],
+            opacity: [0.2, 1, 0.2],
+          }}
+          transition={{
+            duration: 2.5,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
+          className="absolute w-52 h-52 rounded-full border-2 border-accent/60"
+        />
+      </div>
     </div>
   );
 }
