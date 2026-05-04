@@ -1,8 +1,9 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { StockData } from '@/hooks/use-market-data';
-import { CompanyLogo } from './company-logo';
+import Image from 'next/image';
+import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { StockData, getTrendIndicator, formatPrice, formatPercent } from '@/lib/finnhub';
 
 interface StockCardProps {
   stock: StockData;
@@ -10,62 +11,87 @@ interface StockCardProps {
 }
 
 export function StockCard({ stock, index }: StockCardProps) {
-  const isPositive = stock.change >= 0;
+  const trend = getTrendIndicator(stock.change);
+  const isPositive = stock.percentChange >= 0;
+  const isNegative = stock.percentChange < 0;
+
+  const glowClass = isPositive ? 'glow-green' : isNegative ? 'glow-red' : 'glow-white';
+  const borderClass = isPositive ? 'border-green-500/30 hover:border-green-500/50' : isNegative ? 'border-red-500/30 hover:border-red-500/50' : 'border-white/10 hover:border-accent/50';
+  const changeColor = isPositive ? 'text-green-400' : isNegative ? 'text-red-400' : 'text-white/60';
+  const bgColor = isPositive ? 'bg-green-500/5' : isNegative ? 'bg-red-500/5' : 'bg-white/5';
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.05 }}
-      className="group relative overflow-hidden rounded-lg border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] p-3 backdrop-blur-xl transition-all hover:border-accent/50 hover:bg-gradient-to-br hover:from-white/10 hover:to-white/5 glow-cyan-hover"
+      transition={{ delay: index * 0.05, duration: 0.4 }}
+      whileHover={{ y: -4 }}
+      className={`rounded-lg border ${borderClass} ${bgColor} backdrop-blur-sm ${glowClass} transition-all duration-300 p-4 cursor-pointer group`}
     >
-      {/* Background glow effect */}
-      <div className="absolute inset-0 -z-10 bg-gradient-to-br from-blue-500/0 via-transparent to-purple-500/0 opacity-0 transition-opacity group-hover:opacity-20" />
-
-      {/* Header */}
-      <div className="mb-2 flex items-start justify-between">
-        <div className="flex items-center gap-1">
-          <CompanyLogo logo={stock.logo} name={stock.name} symbol={stock.symbol} />
-          <div>
-            <p className="text-xs font-semibold text-white">{stock.symbol}</p>
-            <p className="text-xs text-white/50 hidden">{stock.name}</p>
+      {/* Header with Logo and Ticker */}
+      <div className="flex items-start justify-between mb-3">
+        <div className="flex items-center gap-2 min-w-0">
+          {stock.logo ? (
+            <div className="relative w-8 h-8 rounded-lg bg-white/10 overflow-hidden flex-shrink-0">
+              <Image
+                src={stock.logo}
+                alt={stock.companyName}
+                fill
+                className="object-cover"
+                sizes="32px"
+              />
+            </div>
+          ) : (
+            <div className="w-8 h-8 rounded-lg bg-accent/20 border border-accent/50 flex items-center justify-center text-xs font-bold text-accent flex-shrink-0">
+              {stock.ticker.substring(0, 1)}
+            </div>
+          )}
+          <div className="min-w-0">
+            <p className="text-xs font-semibold text-white/60">{stock.ticker}</p>
+            <p className="text-xs font-bold text-white truncate">{stock.companyName}</p>
           </div>
         </div>
-        <motion.div
-          animate={{ scale: isPositive ? [1, 1.05, 1] : 1 }}
-          transition={{ repeat: isPositive ? Infinity : 0, duration: 2 }}
-          className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-            isPositive
-              ? 'bg-green-500/20 text-green-400'
-              : 'bg-red-500/20 text-red-400'
-          }`}
-        >
-          {isPositive ? '↑' : '↓'} {Math.abs(stock.changePercent).toFixed(2)}%
-        </motion.div>
+
+        {/* Trend Icon */}
+        <div className={`flex-shrink-0 ${isPositive ? 'text-green-400' : isNegative ? 'text-red-400' : 'text-white/60'}`}>
+          {trend === 'up' ? (
+            <TrendingUp className="w-4 h-4" />
+          ) : trend === 'down' ? (
+            <TrendingDown className="w-4 h-4" />
+          ) : (
+            <Minus className="w-4 h-4" />
+          )}
+        </div>
       </div>
 
       {/* Price */}
       <div className="mb-2">
-        <p className="text-lg font-bold text-white">${stock.price.toFixed(2)}</p>
-        <p
-          className={`text-xs font-medium ${
-            isPositive ? 'text-green-400' : 'text-red-400'
-          }`}
-        >
-          {isPositive ? '+' : ''}{stock.change.toFixed(2)}
-        </p>
+        <p className="text-lg font-bold text-white">${formatPrice(stock.price)}</p>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 gap-1.5 text-xs">
-        <div className="rounded-lg bg-white/5 p-1.5">
-          <p className="text-white/50 text-xs">High</p>
-          <p className="font-semibold text-white text-xs">${stock.high.toFixed(2)}</p>
+      {/* Change */}
+      <div className="flex items-center justify-between pt-2 border-t border-white/10">
+        <div>
+          <p className={`text-xs font-semibold ${changeColor}`}>
+            {stock.change >= 0 ? '+' : ''}{stock.change.toFixed(2)}
+          </p>
         </div>
-        <div className="rounded-lg bg-white/5 p-1.5">
-          <p className="text-white/50 text-xs">Low</p>
-          <p className="font-semibold text-white text-xs">${stock.low.toFixed(2)}</p>
+        <div>
+          <p className={`text-xs font-bold ${changeColor}`}>
+            {formatPercent(stock.percentChange)}
+          </p>
         </div>
+      </div>
+
+      {/* Mini sparkline indicator */}
+      <div className="mt-2 h-0.5 w-full bg-white/10 rounded-full overflow-hidden">
+        <motion.div
+          layoutId={`sparkline-${stock.ticker}`}
+          className={`h-full ${isPositive ? 'bg-green-500' : isNegative ? 'bg-red-500' : 'bg-white/30'}`}
+          initial={{ width: '50%' }}
+          animate={{ width: '50%' }}
+          transition={{ duration: 0.5 }}
+        />
       </div>
     </motion.div>
   );
