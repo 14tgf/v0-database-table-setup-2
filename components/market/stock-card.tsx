@@ -8,12 +8,12 @@ import { usePortfolioStocks } from '@/hooks/usePortfolioStocks';
 
 interface StockCardProps {
   stock: {
-    symbol: string;
-    name: string;
+    ticker: string;
+    companyName: string;
     logo: string;
     price: number;
     change: number;
-    changePercent: number;
+    percentChange: number;
   };
   index: number;
 }
@@ -26,11 +26,11 @@ export function StockCard({ stock, index }: StockCardProps) {
   // Defensive checks for undefined values
   const price = typeof stock.price === 'number' ? stock.price : 0;
   const change = typeof stock.change === 'number' ? stock.change : 0;
-  const changePercent = typeof stock.changePercent === 'number' ? stock.changePercent : 0;
+  const changePercent = typeof stock.percentChange === 'number' ? stock.percentChange : 0;
   
   const isPositive = changePercent >= 0;
   const isNegative = changePercent < 0;
-  const isInPortfolio = isStockInPortfolio(stock.symbol);
+  const isInPortfolio = isStockInPortfolio(stock.ticker);
 
   const handleAddStock = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -42,7 +42,7 @@ export function StockCard({ stock, index }: StockCardProps) {
     setAddError(null);
 
     try {
-      await addStock(stock.symbol, stock.name, stock.logo, price);
+      await addStock(stock.ticker, stock.companyName, stock.logo, price);
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Failed to add stock';
       setAddError(errorMsg);
@@ -74,21 +74,21 @@ export function StockCard({ stock, index }: StockCardProps) {
             <div className="relative w-8 h-8 rounded-lg bg-white/10 overflow-hidden flex-shrink-0">
               <Image
                 src={stock.logo}
-                alt={stock.name}
+                alt={stock.companyName}
                 fill
                 className="object-cover"
                 sizes="32px"
-                onError={() => console.log(`[v0] Failed to load logo for ${stock.symbol}`)}
+                onError={() => console.log(`[v0] Failed to load logo for ${stock.ticker}`)}
               />
             </div>
           ) : (
             <div className="w-8 h-8 rounded-lg bg-accent/20 border border-accent/50 flex items-center justify-center text-xs font-bold text-accent flex-shrink-0">
-              {stock.symbol.substring(0, 1)}
+              {stock.ticker.substring(0, 1)}
             </div>
           )}
           <div className="min-w-0">
-            <p className="text-xs font-semibold text-white/60">{stock.symbol}</p>
-            <p className="text-xs font-bold text-white truncate">{stock.name}</p>
+            <p className="text-xs font-semibold text-white/60">{stock.ticker}</p>
+            <p className="text-xs font-bold text-white truncate">{stock.companyName}</p>
           </div>
         </div>
 
@@ -126,7 +126,7 @@ export function StockCard({ stock, index }: StockCardProps) {
       {/* Mini sparkline indicator */}
       <div className="mt-2 h-0.5 w-full bg-white/10 rounded-full overflow-hidden mb-3">
         <motion.div
-          layoutId={`sparkline-${stock.symbol}`}
+          layoutId={`sparkline-${stock.ticker}`}
           className={`h-full ${isPositive ? 'bg-green-500' : isNegative ? 'bg-red-500' : 'bg-white/30'}`}
           initial={{ width: '50%' }}
           animate={{ width: '50%' }}
