@@ -74,10 +74,10 @@ export function CurrencySelector() {
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="absolute top-full left-0 right-0 mt-2 bg-secondary border border-border rounded-xl shadow-xl z-10 overflow-hidden"
+                className="absolute top-full left-0 right-0 mt-2 bg-secondary border border-border rounded-xl shadow-2xl z-50 overflow-hidden"
               >
                 {/* Search Input */}
-                <div className="p-3 border-b border-border/50 sticky top-0 bg-secondary z-20">
+                <div className="p-3 border-b border-border/50 sticky top-0 bg-secondary z-50">
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
                     <input
