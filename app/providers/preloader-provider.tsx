@@ -1,7 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import { Preloader } from '@/components/preloader';
+
+interface PreloaderContextType {
+  isLoading: boolean;
+}
+
+const PreloaderContext = createContext<PreloaderContextType | undefined>(undefined);
 
 export function PreloaderProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
@@ -16,9 +22,17 @@ export function PreloaderProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <>
+    <PreloaderContext.Provider value={{ isLoading }}>
       {isLoading && <Preloader />}
       {children}
-    </>
+    </PreloaderContext.Provider>
   );
+}
+
+export function usePreloader() {
+  const context = useContext(PreloaderContext);
+  if (context === undefined) {
+    return { isLoading: false };
+  }
+  return context;
 }

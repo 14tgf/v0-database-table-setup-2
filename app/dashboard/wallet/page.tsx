@@ -8,11 +8,13 @@ import { SidebarMenu } from '@/components/dashboard/sidebar-menu';
 import { DashboardNav } from '@/components/dashboard/dashboard-nav';
 import { useWallet } from '@/hooks/useWallet';
 import { useCurrencyFormatter } from '@/hooks/useCurrencyFormatter';
+import { usePreloader } from '@/app/providers/preloader-provider';
 
 export default function WalletPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { wallet, isLoading } = useWallet();
   const { format } = useCurrencyFormatter();
+  const { isLoading: isPreloading } = usePreloader();
 
   const walletBalance = wallet?.balance || 0;
   const totalDeposits = wallet?.totalDeposits || 0;
@@ -43,7 +45,9 @@ export default function WalletPage() {
               </button>
               <button 
                 onClick={() => setSidebarOpen(true)}
-                className="p-1.5 rounded-lg hover:bg-white/10 transition-colors md:hidden"
+                className={`p-1.5 rounded-lg hover:bg-white/10 transition-all md:hidden ${
+                  isPreloading ? 'hidden' : 'block'
+                }`}
               >
                 <svg className="w-5 h-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
