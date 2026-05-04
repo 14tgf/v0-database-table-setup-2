@@ -5,7 +5,7 @@ const sql = neon(process.env.DATABASE_URL || '');
 
 export async function PUT(request: NextRequest) {
   try {
-    const { userId, amount, type, reason } = await request.json();
+    const { userId, amount, type, balanceType = 'wallet', reason } = await request.json();
 
     if (!userId || !amount || !type) {
       return NextResponse.json(
@@ -21,9 +21,26 @@ export async function PUT(request: NextRequest) {
       );
     }
 
+    const validBalanceTypes = ['wallet', 'stock', 'vehicle', 'energy'];
+    if (!validBalanceTypes.includes(balanceType)) {
+      return NextResponse.json(
+        { error: 'Invalid balance type. Must be one of: wallet, stock, vehicle, energy' },
+        { status: 400 }
+      );
+    }
+
+    // Map balance type to column name
+    const columnMap: Record<string, string> = {
+      wallet: 'wallet_balance',
+      stock: 'stock_balance',
+      vehicle: 'vehicle_balance',
+      energy: 'energy_balance',
+    };
+    const columnName = columnMap[balanceType];
+
     // Get current user balance
     const userResult = await sql.query(
-      'SELECT id, email, wallet_balance, full_name FROM users WHERE id = $1',
+      `SELECT id, email, ${columnName}, full_name FROM users WHERE id = $1`,
       [userId]
     );
 
@@ -35,7 +52,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const user = userResult[0];
-    const currentBalance = parseFloat(user.wallet_balance);
+    const currentBalance = parseFloat(user[columnName]) || 0;
     const adjustmentAmount = parseFloat(amount);
 
     // Calculate new balance
@@ -46,19 +63,19 @@ export async function PUT(request: NextRequest) {
     // Prevent negative balances
     if (newBalance < 0) {
       return NextResponse.json(
-        { error: 'Insufficient balance for debit operation' },
+        { error: `Insufficient ${balanceType} balance for debit operation` },
         { status: 400 }
       );
     }
 
     // Update user balance
     await sql.query(
-      'UPDATE users SET wallet_balance = $1, updated_at = NOW() WHERE id = $2',
+      `UPDATE users SET ${columnName} = $1, updated_at = NOW() WHERE id = $2`,
       [newBalance, userId]
     );
 
     // Log the adjustment in audit_logs
-    const description = `Admin adjusted balance: ${type} $${adjustmentAmount} - Reason: ${reason || 'No reason provided'}`;
+    const description = `Admin adjusted ${balanceType} balance: ${type} $${adjustmentAmount} - Reason: ${reason || 'No reason provided'}`;
     await sql.query(
       'INSERT INTO audit_logs (id, user_id, action, description, status) VALUES (gen_random_uuid(), $1, $2, $3, $4)',
       [userId, 'BALANCE_ADJUSTMENT', description, 'success']
@@ -66,11 +83,12 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Balance adjusted successfully',
+      message: `${balanceType} balance adjusted successfully`,
       user: {
         id: user.id,
         email: user.email,
         fullName: user.full_name,
+        balanceType: balanceType,
         previousBalance: currentBalance,
         newBalance: newBalance,
         adjustmentAmount: adjustmentAmount,

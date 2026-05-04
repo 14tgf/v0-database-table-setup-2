@@ -29,13 +29,19 @@ interface User {
   name: string;
   email: string;
   balance: number;
+  stockBalance: number;
+  vehicleBalance: number;
+  energyBalance: number;
   status: 'active' | 'frozen';
   joinDate: string;
 }
 
+type BalanceType = 'wallet' | 'stock' | 'vehicle' | 'energy';
+
 export default function UsersPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [balanceType, setBalanceType] = useState<BalanceType>('wallet');
   const [adjustmentAmount, setAdjustmentAmount] = useState('');
   const [adjustmentType, setAdjustmentType] = useState<'credit' | 'debit'>('credit');
   const [note, setNote] = useState('');
@@ -91,6 +97,7 @@ export default function UsersPage() {
           userId: selectedUser.id,
           amount: parseFloat(adjustmentAmount),
           type: adjustmentType,
+          balanceType: balanceType,
           reason: note,
         }),
       });
@@ -107,20 +114,41 @@ export default function UsersPage() {
         return;
       }
 
-      setMessage({ type: 'success', text: `Balance adjusted successfully for ${selectedUser.name}` });
+      setMessage({ type: 'success', text: `${balanceType} balance adjusted successfully for ${selectedUser.name}` });
       
       // Update local users list
-      setUsers(users.map(u => 
-        u.id === selectedUser.id 
-          ? { ...u, balance: data.user.newBalance }
-          : u
-      ));
+      const updatedUsers = users.map(u => {
+        if (u.id === selectedUser.id) {
+          const updatedUser = { ...u };
+          const newValue = data.user.newBalance;
+          
+          switch(balanceType) {
+            case 'stock':
+              updatedUser.stockBalance = newValue;
+              break;
+            case 'vehicle':
+              updatedUser.vehicleBalance = newValue;
+              break;
+            case 'energy':
+              updatedUser.energyBalance = newValue;
+              break;
+            default:
+              updatedUser.balance = newValue;
+          }
+          
+          return updatedUser;
+        }
+        return u;
+      });
+      
+      setUsers(updatedUsers);
 
       // Clear form
       setSelectedUser(null);
       setAdjustmentAmount('');
       setNote('');
       setAdjustmentType('credit');
+      setBalanceType('wallet');
 
       // Clear message after 3 seconds
       setTimeout(() => setMessage(null), 3000);
@@ -260,8 +288,37 @@ export default function UsersPage() {
 
             <div className="space-y-4 mb-4">
               <div>
+                <label className="block text-xs font-semibold text-white/70 mb-2">Balance Type</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { value: 'wallet' as BalanceType, label: 'Wallet' },
+                    { value: 'stock' as BalanceType, label: 'Stocks' },
+                    { value: 'vehicle' as BalanceType, label: 'Vehicles' },
+                    { value: 'energy' as BalanceType, label: 'Energy' },
+                  ].map((bt) => (
+                    <button
+                      key={bt.value}
+                      onClick={() => setBalanceType(bt.value)}
+                      className={`px-3 py-2 rounded text-xs font-semibold transition-colors ${
+                        balanceType === bt.value
+                          ? 'bg-accent/20 text-accent'
+                          : 'bg-white/5 text-white/70 hover:bg-white/10'
+                      }`}
+                    >
+                      {bt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
                 <label className="block text-xs font-semibold text-white/70 mb-2">Current Balance</label>
-                <p className="text-xl font-bold text-accent">${selectedUser.balance.toLocaleString()}</p>
+                <p className="text-xl font-bold text-accent">
+                  ${(balanceType === 'stock' ? selectedUser.stockBalance : 
+                    balanceType === 'vehicle' ? selectedUser.vehicleBalance :
+                    balanceType === 'energy' ? selectedUser.energyBalance :
+                    selectedUser.balance).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </p>
               </div>
 
               <div>
@@ -309,9 +366,15 @@ export default function UsersPage() {
                   <p className="text-xs text-white/70">New Balance</p>
                   <p className="text-lg font-bold text-foreground">
                     ${(adjustmentType === 'credit' 
-                      ? selectedUser.balance + parseFloat(adjustmentAmount) 
-                      : selectedUser.balance - parseFloat(adjustmentAmount)
-                    ).toLocaleString()}
+                      ? (balanceType === 'stock' ? selectedUser.stockBalance : 
+                         balanceType === 'vehicle' ? selectedUser.vehicleBalance :
+                         balanceType === 'energy' ? selectedUser.energyBalance :
+                         selectedUser.balance) + parseFloat(adjustmentAmount) 
+                      : (balanceType === 'stock' ? selectedUser.stockBalance : 
+                         balanceType === 'vehicle' ? selectedUser.vehicleBalance :
+                         balanceType === 'energy' ? selectedUser.energyBalance :
+                         selectedUser.balance) - parseFloat(adjustmentAmount)
+                    ).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                 </div>
               )}
