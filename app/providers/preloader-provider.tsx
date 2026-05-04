@@ -7,10 +7,10 @@ export function PreloaderProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Keep preloader visible for 12.5 seconds (10-15 second range)
+    // Keep preloader visible for 7.5 seconds (5-10 second range)
     const preloaderTimeout = setTimeout(() => {
       setIsLoading(false);
-    }, 12500);
+    }, 7500);
 
     return () => clearTimeout(preloaderTimeout);
   }, []);
