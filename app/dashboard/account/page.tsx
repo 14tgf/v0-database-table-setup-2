@@ -63,18 +63,18 @@ export default function AccountPage() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-28 overflow-visible">
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24 overflow-visible">
         {/* Page Title */}
         <motion.div
           variants={staggerContainer}
           initial="hidden"
           animate={isLoaded ? 'visible' : 'hidden'}
-          className="mb-8"
+          className="mb-6"
         >
-          <motion.h1 variants={staggerItem} className="text-3xl md:text-4xl font-bold text-foreground mb-2">
+          <motion.h1 variants={staggerItem} className="text-2xl md:text-3xl font-bold text-foreground mb-1">
             Account Settings
           </motion.h1>
-          <motion.p variants={staggerItem} className="text-muted-foreground">
+          <motion.p variants={staggerItem} className="text-xs md:text-sm text-muted-foreground">
             Manage your profile, preferences, and security settings
           </motion.p>
         </motion.div>
@@ -85,15 +85,15 @@ export default function AccountPage() {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="mb-6 p-4 bg-primary/10 border border-primary/30 rounded-xl flex items-center gap-3"
+            className="mb-4 p-3 bg-primary/10 border border-primary/30 rounded-xl flex items-center gap-3"
           >
-            <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
-            <p className="text-sm font-semibold text-primary">Your changes have been saved successfully</p>
+            <div className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse" />
+            <p className="text-xs font-semibold text-primary">Your changes have been saved successfully</p>
           </motion.div>
         )}
 
         {/* Content Sections */}
-        <div className="space-y-6">
+        <div className="space-y-4">
           {/* Profile Overview */}
           <ProfileCard />
 
