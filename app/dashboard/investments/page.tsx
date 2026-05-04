@@ -7,27 +7,11 @@ import { Bell, Sun, TrendingUp, TrendingDown, Zap, DollarSign, Calendar, Eye, Re
 import { SidebarMenu } from '@/components/dashboard/sidebar-menu';
 import { DashboardNav } from '@/components/dashboard/dashboard-nav';
 
-const investmentData = [
-  { id: 1, plan: 'Solar Growth Plan', amount: '$5,000', duration: '12 months', roi: '+8.5%', profit: '$425', status: 'Active', nextPayout: '2024-02-15' },
-  { id: 2, plan: 'EV Expansion Fund', amount: '$10,000', duration: '24 months', roi: '+12.3%', profit: '$1,230', status: 'Active', nextPayout: '2024-02-20' },
-  { id: 3, plan: 'Robotics Yield Plan', amount: '$7,500', duration: '18 months', roi: '+9.7%', profit: '$727.50', status: 'Active', nextPayout: '2024-02-25' },
-  { id: 4, plan: 'Energy Infrastructure Fund', amount: '$3,200', duration: '12 months', roi: '+6.2%', profit: '$198.40', status: 'Completed', nextPayout: 'N/A' },
-];
+const investmentData: any[] = [];
 
-const activePlans = [
-  { name: 'Solar Growth Plan', status: 'Active', roi: '+8.5%', allocation: '35%' },
-  { name: 'EV Expansion Fund', status: 'Active', roi: '+12.3%', allocation: '56%' },
-  { name: 'Robotics Yield Plan', status: 'Active', roi: '+9.7%', allocation: '9%' },
-  { name: 'Energy Infrastructure Fund', status: 'Matured', roi: '+6.2%', allocation: '0%' },
-];
+const activePlans: any[] = [];
 
-const timeline = [
-  { type: 'deposit', title: 'Deposit to Wallet', description: '$5,000 deposited', date: '2024-01-15', icon: ArrowUp },
-  { type: 'investment', title: 'Invested in Solar Growth Plan', description: '$5,000 invested', date: '2024-01-16', icon: BarChart2 },
-  { type: 'payout', title: 'ROI Payout Received', description: '$425 received', date: '2024-02-15', icon: DollarSign },
-  { type: 'reinvest', title: 'Reinvested Earnings', description: '$425 reinvested', date: '2024-02-16', icon: RefreshCcw },
-  { type: 'withdrawal', title: 'Withdrawal Processed', description: '$3,200 withdrawn', date: '2024-01-30', icon: Send },
-];
+const timeline: any[] = [];
 
 export default function InvestmentsDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);

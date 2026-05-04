@@ -37,12 +37,7 @@ export default function KYCPage() {
   const [selectedRequest, setSelectedRequest] = useState<KYCRequest | null>(null);
   const [actionNote, setActionNote] = useState('');
 
-  const kycRequests: KYCRequest[] = [
-    { id: '1', userName: 'John Smith', userEmail: 'john@example.com', status: 'pending', submitDate: '2024-03-15', documents: ['passport.pdf', 'selfie.jpg'] },
-    { id: '2', userName: 'Alice Johnson', userEmail: 'alice@example.com', status: 'pending', submitDate: '2024-03-14', documents: ['drivers_license.pdf', 'address_proof.pdf', 'selfie.jpg'] },
-    { id: '3', userName: 'Bob Wilson', userEmail: 'bob@example.com', status: 'approved', submitDate: '2024-03-10', documents: ['national_id.pdf', 'selfie.jpg'] },
-    { id: '4', userName: 'Sarah Davis', userEmail: 'sarah@example.com', status: 'rejected', submitDate: '2024-03-08', documents: ['passport.pdf'] },
-  ];
+  const kycRequests: KYCRequest[] = [];
 
   const pendingRequests = kycRequests.filter(r => r.status === 'pending');
 

@@ -40,13 +40,7 @@ export default function UsersPage() {
   const [adjustmentType, setAdjustmentType] = useState<'credit' | 'debit'>('credit');
   const [note, setNote] = useState('');
 
-  const users: User[] = [
-    { id: '1', name: 'John Smith', email: 'john@example.com', balance: 5000, status: 'active', joinDate: '2024-01-15' },
-    { id: '2', name: 'Alice Johnson', email: 'alice@example.com', balance: 12500, status: 'active', joinDate: '2024-02-20' },
-    { id: '3', name: 'Bob Wilson', email: 'bob@example.com', balance: 8750, status: 'active', joinDate: '2024-01-30' },
-    { id: '4', name: 'Sarah Davis', email: 'sarah@example.com', balance: 15000, status: 'frozen', joinDate: '2024-03-05' },
-    { id: '5', name: 'Mike Brown', email: 'mike@example.com', balance: 3200, status: 'active', joinDate: '2024-03-10' },
-  ];
+  const users: User[] = [];
 
   const filteredUsers = users.filter(user =>
     user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||

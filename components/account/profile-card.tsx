@@ -8,11 +8,11 @@ import { CheckCircle } from 'lucide-react';
 
 export function ProfileCard() {
   const [profileData] = useState({
-    fullName: 'Carl Doe',
-    email: 'cedoe70@gmail.com',
-    accountId: 'ACC-2024-X-000123',
-    accountType: 'Premium VIP',
-    verified: true,
+    fullName: '',
+    email: '',
+    accountId: '',
+    accountType: 'Standard',
+    verified: false,
   });
 
   return (
