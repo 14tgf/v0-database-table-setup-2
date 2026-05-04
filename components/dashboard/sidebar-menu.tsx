@@ -24,7 +24,7 @@ export function SidebarMenu({ isOpen, onClose, userEmail = 'cedoe70@gmail.com', 
     { icon: Gift, label: 'Giveaways', href: '/giveaway' },
     { icon: Package, label: 'Orders', href: '/dashboard/orders' },
     { icon: User, label: 'Account', href: '/dashboard/account' },
-    { icon: Shield, label: 'KYC Verification', href: '#' },
+    { icon: Shield, label: 'KYC Verification', href: '/dashboard/kyc' },
     { icon: HelpCircle, label: 'Support', href: '#' },
   ];
 
