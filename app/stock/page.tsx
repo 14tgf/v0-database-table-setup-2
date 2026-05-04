@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
@@ -20,7 +20,7 @@ export default function StockPage() {
   const [error, setError] = useState<string | null>(null);
 
   // Fetch stocks on mount
-  React.useEffect(() => {
+  useEffect(() => {
     const loadStocks = async () => {
       try {
         setLoading(true);
