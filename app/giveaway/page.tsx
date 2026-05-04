@@ -5,6 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Gift, Clock, Users, DollarSign, ArrowRight, Menu, X as XIcon } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { staggerContainer, staggerItem } from '@/lib/animations'
 import { SidebarMenu } from '@/components/dashboard/sidebar-menu'
 
@@ -20,44 +21,12 @@ const Giveaways = [
     status: 'Active',
     image: '/tesla-car.jpg',
   },
-  {
-    id: 2,
-    title: '$50,000 Cash Giveaway',
-    description: 'Win $50,000 in cash to invest in the stock market or use for your personal needs. Limited slots available.',
-    prizeValue: 50000,
-    prize: 'Cash Prize',
-    endDate: '45 days',
-    participants: 1243,
-    status: 'Active',
-    image: '/tesla-car.jpg',
-  },
-  {
-    id: 3,
-    title: 'Tesla Model 3 Giveaway',
-    description: 'Win the all-electric Tesla Model 3 with extended range battery. Perfect for daily commutes with zero emissions.',
-    prizeValue: 42990,
-    prize: 'Car Prize',
-    endDate: '75 days',
-    participants: 856,
-    status: 'Active',
-    image: '/tesla-car.jpg',
-  },
-  {
-    id: 4,
-    title: 'Portfolio Boost Package',
-    description: 'Win a $25,000 investment portfolio package managed by our expert team for one year.',
-    prizeValue: 25000,
-    prize: 'Investment Prize',
-    endDate: '30 days',
-    participants: 567,
-    status: 'Active',
-    image: '/tesla-car.jpg',
-  },
 ]
 
 export default function GiveawayPage() {
   const [isLoaded, setIsLoaded] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const router = useRouter()
 
   useEffect(() => {
     setIsLoaded(true)
@@ -130,7 +99,10 @@ export default function GiveawayPage() {
           </motion.p>
 
           <motion.div variants={staggerItem} className="flex justify-center pt-1">
-            <button className="px-4 py-1.5 bg-accent text-background font-semibold rounded-lg text-xs hover:bg-accent/90 transition-colors">
+            <button 
+              onClick={() => router.push('/giveaway/tesla-model-s-plaid')}
+              className="px-4 py-1.5 bg-accent text-background font-semibold rounded-lg text-xs hover:bg-accent/90 transition-colors"
+            >
               My Entries
             </button>
           </motion.div>
@@ -224,7 +196,10 @@ export default function GiveawayPage() {
                   </div>
 
                   {/* Action Button */}
-                  <button className="w-full py-1.5 px-2 bg-gradient-to-r from-accent/80 to-accent text-background font-bold rounded-lg text-xs hover:shadow-lg hover:shadow-accent/50 transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-1 group/btn">
+                  <button 
+                    onClick={() => router.push('/giveaway/tesla-model-s-plaid')}
+                    className="w-full py-1.5 px-2 bg-gradient-to-r from-accent/80 to-accent text-background font-bold rounded-lg text-xs hover:shadow-lg hover:shadow-accent/50 transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-1 group/btn"
+                  >
                     <span>View Details & Enter</span>
                     <ArrowRight className="w-3 h-3" />
                   </button>
