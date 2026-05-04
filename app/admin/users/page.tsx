@@ -48,14 +48,20 @@ export default function UsersPage() {
   useEffect(() => {
     const fetchUsers = async () => {
       setIsLoading(true);
+      setMessage(null);
       try {
         const response = await fetch(`/api/admin/users?search=${encodeURIComponent(searchQuery)}`);
-        if (!response.ok) throw new Error('Failed to fetch users');
         const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to fetch users');
+        }
+        
         setUsers(data.users || []);
       } catch (error) {
         console.error('[v0] Fetch users error:', error);
         setMessage({ type: 'error', text: 'Failed to load users' });
+        setUsers([]);
       } finally {
         setIsLoading(false);
       }
