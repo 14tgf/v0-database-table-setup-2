@@ -13,6 +13,7 @@ export default function TeslaModelSPlaidDetailsPage() {
   const [isLoaded, setIsLoaded] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [hasEntered, setHasEntered] = useState(false)
+  const [isVIPMember, setIsVIPMember] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -171,21 +172,26 @@ export default function TeslaModelSPlaidDetailsPage() {
               <div className="bg-gradient-to-br from-accent/20 to-accent/5 border border-accent/30 rounded-2xl p-4">
                 <div className="text-center mb-4">
                   <p className="text-xs text-muted-foreground mb-1">Your Status</p>
-                  <p className={`text-lg font-bold ${hasEntered ? 'text-accent' : 'text-foreground'}`}>
-                    {hasEntered ? 'Entered ✓' : 'Not Entered'}
+                  <p className={`text-lg font-bold ${
+                    hasEntered ? 'text-accent' : isVIPMember ? 'text-foreground' : 'text-orange-400'
+                  }`}>
+                    {hasEntered ? 'Entered ✓' : isVIPMember ? 'Eligible' : 'NOT ELIGIBLE'}
                   </p>
                 </div>
                 
-                {!hasEntered && (
+                {!isVIPMember ? (
+                  <div className="p-3 bg-orange-400/20 border border-orange-400/30 rounded-lg text-center">
+                    <p className="text-xs text-orange-400 font-semibold">VIP membership required</p>
+                    <p className="text-xs text-muted-foreground mt-1">Upgrade to VIP to participate</p>
+                  </div>
+                ) : !hasEntered ? (
                   <button 
                     onClick={handleEnterGiveaway}
                     className="w-full py-2 px-3 bg-gradient-to-r from-accent/80 to-accent text-background font-bold rounded-lg text-sm hover:shadow-lg hover:shadow-accent/50 transition-all duration-300 transform hover:scale-105"
                   >
                     Enter Giveaway
                   </button>
-                )}
-                
-                {hasEntered && (
+                ) : (
                   <div className="p-2 bg-accent/20 rounded-lg text-center">
                     <p className="text-xs text-accent font-semibold">Good luck! You&apos;re in the drawing</p>
                   </div>
