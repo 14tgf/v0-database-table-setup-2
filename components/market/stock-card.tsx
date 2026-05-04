@@ -50,19 +50,30 @@ export function StockCard({ stock, index }: StockCardProps) {
     setMessage(null);
     
     try {
-      console.log('[v0] Attempting to add stock:', stock.ticker, 'User ID:', user.id);
+      const requestData = {
+        userId: user.id,
+        symbol: stock.ticker,
+        companyName: stock.companyName,
+        companyLogo: stock.logo,
+        initialPrice: price,
+        currentPrice: price,
+      };
+      
+      console.log('[v0] Attempting to add stock:', stock.ticker);
+      console.log('[v0] User:', user);
+      console.log('[v0] Stock object:', stock);
+      console.log('[v0] Extracted price:', price, 'Type:', typeof price);
+      console.log('[v0] Request data:', requestData);
+      console.log('[v0] Checking each field:');
+      console.log('[v0]   userId:', requestData.userId, '- Valid:', !!requestData.userId);
+      console.log('[v0]   symbol:', requestData.symbol, '- Valid:', !!requestData.symbol);
+      console.log('[v0]   companyName:', requestData.companyName, '- Valid:', !!requestData.companyName);
+      console.log('[v0]   initialPrice:', requestData.initialPrice, '- Valid:', requestData.initialPrice !== undefined && requestData.initialPrice !== null);
       
       const response = await fetch('/api/portfolio/add', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: user.id,
-          symbol: stock.ticker,
-          companyName: stock.companyName,
-          companyLogo: stock.logo,
-          initialPrice: price,
-          currentPrice: price,
-        }),
+        body: JSON.stringify(requestData),
       });
 
       console.log('[v0] API Response status:', response.status);
@@ -71,7 +82,7 @@ export function StockCard({ stock, index }: StockCardProps) {
 
       if (!response.ok) {
         const errorMsg = data.message || `Error: ${response.statusText}`;
-        console.error('[v0] Error adding stock:', errorMsg);
+        console.error('[v0] Error details:', data);
         setMessage({ type: 'error', text: errorMsg });
         setIsAdding(false);
         return;

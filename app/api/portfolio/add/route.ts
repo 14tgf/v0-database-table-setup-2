@@ -6,12 +6,22 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { userId, symbol, companyName, companyLogo, initialPrice, currentPrice } = body;
 
-    console.log('[v0] Portfolio add request:', { userId, symbol, companyName, initialPrice });
+    console.log('[v0] Portfolio add request body:', JSON.stringify(body));
+    console.log('[v0] Extracted fields:', { userId, symbol, companyName, initialPrice, currentPrice });
 
-    if (!userId || !symbol || !companyName || !initialPrice) {
-      console.log('[v0] Missing required fields');
+    // Detailed validation with specific error messages
+    const missingFields = [];
+    if (!userId) missingFields.push('userId');
+    if (!symbol) missingFields.push('symbol');
+    if (!companyName) missingFields.push('companyName');
+    if (!initialPrice && initialPrice !== 0) missingFields.push('initialPrice');
+
+    if (missingFields.length > 0) {
+      const errorMsg = `Missing fields: ${missingFields.join(', ')}`;
+      console.log('[v0]', errorMsg);
+      console.log('[v0] Received body:', body);
       return NextResponse.json(
-        { message: 'Missing required fields' },
+        { message: errorMsg, receivedData: body },
         { status: 400 }
       );
     }
