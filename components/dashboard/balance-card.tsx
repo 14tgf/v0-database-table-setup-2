@@ -1,15 +1,26 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Wallet } from 'lucide-react';
+import { Wallet, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
+import { useState } from 'react';
 import { useCurrencyFormatter } from '@/hooks/useCurrencyFormatter';
 import { useWallet } from '@/hooks/useWallet';
 
 export function BalanceCard() {
   const { format } = useCurrencyFormatter();
-  const { wallet, isLoading } = useWallet();
+  const { wallet, isLoading, refreshWallet } = useWallet();
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const balanceAmount = wallet?.balance || 0;
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await refreshWallet();
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   return (
     <motion.div
@@ -39,8 +50,17 @@ export function BalanceCard() {
                 {isLoading ? '...' : format(balanceAmount)}
               </p>
             </div>
-            <div className="w-12 h-12 rounded-xl bg-accent/20 border border-accent/50 flex items-center justify-center">
-              <Wallet className="w-5 h-5 text-accent" />
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleRefresh}
+                disabled={isRefreshing || isLoading}
+                className="w-12 h-12 rounded-xl bg-accent/20 border border-accent/50 flex items-center justify-center hover:bg-accent/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <RefreshCw className={`w-5 h-5 text-accent ${isRefreshing ? 'animate-spin' : ''}`} />
+              </button>
+              <div className="w-12 h-12 rounded-xl bg-accent/20 border border-accent/50 flex items-center justify-center">
+                <Wallet className="w-5 h-5 text-accent" />
+              </div>
             </div>
           </div>
 

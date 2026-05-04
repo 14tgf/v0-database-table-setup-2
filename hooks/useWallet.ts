@@ -25,19 +25,25 @@ const fetcher = async (url: string) => {
 };
 
 export function useWallet() {
-  const { data, error, isLoading } = useSWR<{ success: boolean; data: WalletData }>(
+  const { data, error, isLoading, mutate } = useSWR<{ success: boolean; data: WalletData }>(
     '/api/user/wallet',
     fetcher,
     {
-      revalidateOnFocus: false,
+      revalidateOnFocus: true,
       revalidateOnReconnect: true,
-      dedupingInterval: 60000, // 1 minute
+      dedupingInterval: 5000, // 5 seconds - reduced for faster updates
+      focusThrottleInterval: 30000, // 30 seconds
     }
   );
+
+  const refreshWallet = async () => {
+    await mutate();
+  };
 
   return {
     wallet: data?.data || null,
     isLoading,
     error: error ? error.message : null,
+    refreshWallet,
   };
 }
