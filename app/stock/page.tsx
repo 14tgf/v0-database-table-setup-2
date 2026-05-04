@@ -187,156 +187,79 @@ export default function StockPage() {
 
         {/* Available Stocks Section */}
         <div>
-          <h2 className="text-lg font-bold text-white mb-4">Available Stocks</h2>
+          <h2 className="text-lg font-bold text-white mb-4">Available Stocks ({stocks.length})</h2>
           {loading ? (
             <div className="text-center py-12">
               <div className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin mx-auto mb-2" />
               <p className="text-white/60">Loading stocks...</p>
             </div>
           ) : (
-            <>
-              {/* Mobile Table View */}
-              <div className="md:hidden overflow-x-auto rounded-xl border border-white/10 bg-gradient-to-br from-secondary/40 via-secondary/30 to-background/50 backdrop-blur-xl">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-white/10">
-                      <th className="text-left px-3 py-3 text-xs font-semibold text-white/70">STOCK</th>
-                      <th className="text-right px-3 py-3 text-xs font-semibold text-white/70">PRICE</th>
-                      <th className="text-right px-3 py-3 text-xs font-semibold text-white/70">CHANGE</th>
-                      <th className="text-center px-3 py-3 text-xs font-semibold text-white/70">ACTION</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {stocks.map((stock) => {
-                      const isPositive = stock.percentChange >= 0;
-                      const inPortfolio = isStockInPortfolio(stock.ticker);
-                      return (
-                        <tr key={stock.ticker} className="border-b border-white/10 hover:bg-white/5 transition-colors">
-                          <td className="px-3 py-3">
-                            <div className="flex items-center gap-2">
-                              {stock.logo ? (
-                                <div className="relative w-8 h-8 flex-shrink-0">
-                                  <Image
-                                    src={stock.logo}
-                                    alt={stock.ticker}
-                                    fill
-                                    className="object-contain"
-                                  />
-                                </div>
-                              ) : (
-                                <div className="w-8 h-8 bg-accent/20 rounded flex items-center justify-center text-xs font-bold text-accent flex-shrink-0">
-                                  {stock.ticker[0]}
-                                </div>
-                              )}
-                              <div className="min-w-0">
-                                <p className="text-xs font-bold text-white">{stock.ticker}</p>
-                                <p className="text-xs text-white/60 truncate">{stock.companyName}</p>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-3 py-3 text-right">
-                            <p className="text-xs font-semibold text-white">${stock.price.toFixed(2)}</p>
-                          </td>
-                          <td className="px-3 py-3 text-right">
-                            <p className={`text-xs font-semibold ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
-                              {isPositive ? '+' : ''}{stock.percentChange.toFixed(2)}%
-                            </p>
-                          </td>
-                          <td className="px-3 py-3 text-center">
-                            <button
-                              onClick={() => handleAddStock(stock)}
-                              disabled={inPortfolio || addingStock === stock.ticker}
-                              className={`px-2 py-1 rounded text-xs font-semibold whitespace-nowrap transition-all ${
-                                inPortfolio
-                                  ? 'bg-green-500/20 text-green-400 border border-green-500/30 cursor-default'
-                                  : 'bg-accent/20 text-accent border border-accent/50 hover:bg-accent/30 disabled:opacity-50 disabled:cursor-not-allowed'
-                              }`}
-                            >
-                              {addingStock === stock.ticker ? (
-                                <span>...</span>
-                              ) : inPortfolio ? (
-                                <span>✓</span>
-                              ) : (
-                                <span>Add</span>
-                              )}
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
+            <div className="space-y-2">
+              {stocks.map((stock) => {
+                const isPositive = stock.percentChange >= 0;
+                const inPortfolio = isStockInPortfolio(stock.ticker);
 
-              {/* Desktop Card View */}
-              <div className="hidden md:grid grid-cols-2 lg:grid-cols-3 gap-4">
-                {stocks.map((stock, index) => {
-                  const isPositive = stock.percentChange >= 0;
-                  const inPortfolio = isStockInPortfolio(stock.ticker);
-
-                  return (
-                    <motion.div
-                      key={stock.ticker}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                      className="rounded-xl border border-white/10 bg-gradient-to-br from-secondary/40 via-secondary/30 to-background/50 p-4 backdrop-blur-xl hover:border-white/20 transition-all"
-                    >
-                      {/* Stock Header */}
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-center gap-3 flex-1">
-                          {stock.logo ? (
-                            <div className="relative w-10 h-10 flex-shrink-0">
-                              <Image
-                                src={stock.logo}
-                                alt={stock.ticker}
-                                fill
-                                className="object-contain"
-                              />
-                            </div>
-                          ) : (
-                            <div className="w-10 h-10 bg-accent/20 rounded flex items-center justify-center text-xs font-bold text-accent flex-shrink-0">
-                              {stock.ticker[0]}
-                            </div>
-                          )}
-                          <div className="min-w-0">
-                            <p className="text-sm font-bold text-white">{stock.ticker}</p>
-                            <p className="text-xs text-white/60 truncate">{stock.companyName}</p>
-                          </div>
+                return (
+                  <motion.div
+                    key={stock.ticker}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 rounded-lg border border-white/10 bg-gradient-to-br from-secondary/40 via-secondary/30 to-background/50 hover:bg-secondary/40 transition-all backdrop-blur-xl"
+                  >
+                    {/* Stock Info */}
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      {stock.logo ? (
+                        <div className="relative w-10 h-10 flex-shrink-0">
+                          <Image
+                            src={stock.logo}
+                            alt={stock.ticker}
+                            fill
+                            className="object-contain"
+                          />
                         </div>
-                        {isPositive ? (
-                          <TrendingUp className="w-4 h-4 text-green-400 flex-shrink-0" />
-                        ) : (
-                          <TrendingDown className="w-4 h-4 text-red-400 flex-shrink-0" />
-                        )}
+                      ) : (
+                        <div className="w-10 h-10 bg-accent/20 rounded flex items-center justify-center text-sm font-bold text-accent flex-shrink-0">
+                          {stock.ticker[0]}
+                        </div>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-bold text-white">{stock.ticker}</p>
+                          <span className="text-xs text-white/50 hidden sm:inline">·</span>
+                          <p className="text-xs text-white/60 truncate hidden sm:block">{stock.companyName}</p>
+                        </div>
+                        <p className="text-xs text-white/50 sm:hidden truncate">{stock.companyName}</p>
                       </div>
+                    </div>
 
-                      {/* Stock Price */}
-                      <div className="mb-4">
-                        <p className="text-2xl font-bold text-white">${stock.price.toFixed(2)}</p>
-                        <p className={`text-sm font-semibold ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
-                          {isPositive ? '+' : ''}{stock.change.toFixed(2)} ({stock.percentChange.toFixed(2)}%)
+                    {/* Price & Change */}
+                    <div className="flex items-center justify-between gap-4 sm:flex-col sm:items-end sm:justify-center">
+                      <div>
+                        <p className="text-sm font-semibold text-white">${stock.price.toFixed(2)}</p>
+                        <p className={`text-xs font-semibold ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
+                          {isPositive ? '+' : ''}{stock.percentChange.toFixed(2)}%
                         </p>
                       </div>
 
-                      {/* Add Button */}
+                      {/* Action Button */}
                       <button
                         onClick={() => handleAddStock(stock)}
                         disabled={inPortfolio || addingStock === stock.ticker}
-                        className={`w-full py-2 px-3 rounded-lg font-medium text-sm flex items-center justify-center gap-2 transition-all ${
+                        className={`px-4 py-2 rounded-lg font-semibold text-sm whitespace-nowrap transition-all flex items-center gap-2 ${
                           inPortfolio
                             ? 'bg-green-500/20 text-green-400 border border-green-500/30 cursor-default'
-                            : 'bg-accent/20 text-accent border border-accent/50 hover:bg-accent/30 disabled:opacity-50 disabled:cursor-not-allowed'
+                            : 'bg-accent/20 text-accent border border-accent/50 hover:bg-accent/30 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed'
                         }`}
                       >
                         {addingStock === stock.ticker ? (
                           <>
                             <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                            <span>Adding...</span>
+                            <span className="hidden sm:inline">Adding...</span>
+                            <span className="sm:hidden">...</span>
                           </>
                         ) : inPortfolio ? (
                           <>
-                            <span>Added</span>
+                            <span>✓ Added</span>
                           </>
                         ) : (
                           <>
@@ -345,11 +268,11 @@ export default function StockPage() {
                           </>
                         )}
                       </button>
-                    </motion.div>
-                  );
-                })}
-              </div>
-            </>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
           )}
         </div>
       </main>
