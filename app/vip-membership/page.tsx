@@ -4,8 +4,9 @@ import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { Check } from 'lucide-react'
+import { Check, Menu, X as XIcon } from 'lucide-react'
 import { staggerContainer, staggerItem } from '@/lib/animations'
+import { SidebarMenu } from '@/components/dashboard/sidebar-menu'
 
 const VIPTiers = [
   {
@@ -85,6 +86,7 @@ const VIPTiers = [
 
 export default function VIPMembershipPage() {
   const [isLoaded, setIsLoaded] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   useEffect(() => {
     setIsLoaded(true)
@@ -155,10 +157,11 @@ export default function VIPMembershipPage() {
             </a>
           ))}
         </nav>
-        <button className="p-1.5 rounded-lg hover:bg-white/10 transition-colors md:hidden">
-          <svg className="w-5 h-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
+        <button 
+          onClick={() => setSidebarOpen(true)}
+          className="p-1.5 rounded-lg hover:bg-white/10 transition-colors md:hidden"
+        >
+          <Menu className="w-5 h-5 text-white/60" />
         </button>
       </header>
 
@@ -170,17 +173,17 @@ export default function VIPMembershipPage() {
             variants={staggerContainer}
             initial="hidden"
             animate={isLoaded ? 'visible' : 'hidden'}
-            className="text-center mb-16 space-y-4"
+            className="text-center mb-12 space-y-3"
           >
-            <motion.div variants={staggerItem} className="inline-flex items-center gap-2 px-4 py-2 bg-secondary border border-accent/30 rounded-full w-fit mx-auto">
+            <motion.div variants={staggerItem} className="inline-flex items-center gap-2 px-3 py-1.5 bg-secondary border border-accent/30 rounded-full w-fit mx-auto">
               <span className="text-xs font-semibold text-accent tracking-widest">VIP MEMBERSHIP</span>
             </motion.div>
 
-            <motion.h1 variants={staggerItem} className="text-4xl md:text-6xl font-bold leading-tight text-foreground">
+            <motion.h1 variants={staggerItem} className="text-3xl md:text-4xl font-bold leading-tight text-foreground">
               Unlock Exclusive <span className="text-accent">Tesla Benefits</span>
             </motion.h1>
 
-            <motion.p variants={staggerItem} className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            <motion.p variants={staggerItem} className="text-sm md:text-base text-muted-foreground max-w-2xl mx-auto">
               Choose a VIP membership tier and enjoy special perks, discounts, and rewards exclusive to our most valued members
             </motion.p>
           </motion.div>
@@ -190,7 +193,7 @@ export default function VIPMembershipPage() {
             variants={staggerContainer}
             initial="hidden"
             animate={isLoaded ? 'visible' : 'hidden'}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-12"
           >
             {VIPTiers.map((tier, idx) => (
               <motion.div
@@ -206,40 +209,40 @@ export default function VIPMembershipPage() {
                 }`} />
 
                 {/* Card */}
-                <div className={`relative h-full flex flex-col bg-secondary/80 border border-accent/30 rounded-2xl p-6 hover:border-accent/60 transition-all duration-300 backdrop-blur-sm ${
+                <div className={`relative h-full flex flex-col bg-secondary/80 border border-accent/30 rounded-2xl p-4 hover:border-accent/60 transition-all duration-300 backdrop-blur-sm ${
                   tier.featured ? 'ring-2 ring-accent/50' : ''
                 } ${tier.glowColor} animate-glow-cyan`}>
                   {/* Featured badge */}
                   {tier.featured && (
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                      <div className="px-4 py-1 bg-accent text-background text-xs font-bold rounded-full">
+                      <div className="px-3 py-0.5 bg-accent text-background text-xs font-bold rounded-full">
                         MOST POPULAR
                       </div>
                     </div>
                   )}
 
                   {/* Tier Info */}
-                  <div className="mb-6">
-                    <h3 className="text-2xl font-bold text-foreground mb-2">{tier.name}</h3>
+                  <div className="mb-4">
+                    <h3 className="text-xl font-bold text-foreground mb-1">{tier.name}</h3>
                     <div className="flex items-baseline gap-2 mb-2">
-                      <span className="text-3xl font-bold text-accent">${tier.price.toFixed(2)}</span>
-                      <span className="text-sm text-muted-foreground">/{tier.duration}</span>
+                      <span className="text-2xl font-bold text-accent">${tier.price.toFixed(2)}</span>
+                      <span className="text-xs text-muted-foreground">/{tier.duration}</span>
                     </div>
-                    <p className="text-sm text-muted-foreground">{tier.description}</p>
+                    <p className="text-xs text-muted-foreground leading-snug">{tier.description}</p>
                   </div>
 
                   {/* Benefits List */}
-                  <div className="flex-1 mb-6 space-y-3">
+                  <div className="flex-1 mb-4 space-y-2">
                     {tier.benefits.map((benefit, benefitIdx) => (
-                      <div key={benefitIdx} className="flex items-start gap-3">
-                        <Check className="w-4 h-4 text-accent flex-shrink-0 mt-1" />
-                        <span className="text-sm text-muted-foreground leading-relaxed">{benefit}</span>
+                      <div key={benefitIdx} className="flex items-start gap-2">
+                        <Check className="w-3 h-3 text-accent flex-shrink-0 mt-0.5" />
+                        <span className="text-xs text-muted-foreground leading-snug">{benefit}</span>
                       </div>
                     ))}
                   </div>
 
                   {/* Purchase Button */}
-                  <button className="w-full py-3 px-4 bg-gradient-to-r from-accent/80 to-accent text-background font-bold rounded-lg hover:shadow-lg hover:shadow-accent/50 transition-all duration-300 transform hover:scale-105 group/btn">
+                  <button className="w-full py-2 px-3 bg-gradient-to-r from-accent/80 to-accent text-background font-bold rounded-lg text-sm hover:shadow-lg hover:shadow-accent/50 transition-all duration-300 transform hover:scale-105 group/btn">
                     <span className="relative z-10">Purchase Now</span>
                     {/* Animated shine effect */}
                     <div className="absolute inset-0 bg-white/20 translate-x-[-200%] group-hover/btn:translate-x-[200%] transition-transform duration-500 rounded-lg" />
@@ -255,7 +258,7 @@ export default function VIPMembershipPage() {
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, margin: '-100px' }}
-            className="grid grid-cols-1 md:grid-cols-3 gap-6"
+            className="grid grid-cols-1 md:grid-cols-3 gap-4"
           >
             {[
               {
@@ -274,10 +277,10 @@ export default function VIPMembershipPage() {
               <motion.div
                 key={feature.title}
                 variants={staggerItem}
-                className="bg-secondary/50 border border-accent/20 rounded-xl p-6 hover:border-accent/50 hover:bg-secondary transition-all duration-300"
+                className="bg-secondary/50 border border-accent/20 rounded-xl p-4 hover:border-accent/50 hover:bg-secondary transition-all duration-300"
               >
-                <h4 className="text-lg font-semibold text-foreground mb-2">{feature.title}</h4>
-                <p className="text-sm text-muted-foreground">{feature.description}</p>
+                <h4 className="text-base font-semibold text-foreground mb-1">{feature.title}</h4>
+                <p className="text-xs text-muted-foreground leading-snug">{feature.description}</p>
               </motion.div>
             ))}
           </motion.div>
@@ -285,14 +288,22 @@ export default function VIPMembershipPage() {
       </div>
 
       {/* Footer */}
-      <footer className="relative border-t border-border/50 bg-background mt-20">
+      <footer className="relative border-t border-border/50 bg-background mt-12">
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-accent/50 to-transparent" />
-        <div className="max-w-7xl mx-auto px-6 py-12 text-center">
-          <p className="text-sm text-muted-foreground">
+        <div className="max-w-7xl mx-auto px-6 py-8 text-center">
+          <p className="text-xs text-muted-foreground">
             &copy; {new Date().getFullYear()} X Holding. All rights reserved. | <Link href="/" className="text-accent hover:text-accent/80">Back to Home</Link>
           </p>
         </div>
       </footer>
+
+      {/* Sidebar Menu */}
+      <SidebarMenu 
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        userName="Carl"
+        userEmail="cedoe70@gmail.com"
+      />
     </main>
   )
 }
