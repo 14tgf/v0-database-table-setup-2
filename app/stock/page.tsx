@@ -215,7 +215,7 @@ export default function StockPage() {
           </motion.div>
         )}
 
-        {/* Available Stocks Section - Horizontal Scroll Table */}
+        {/* Available Stocks Section */}
         <div>
           <h2 className="text-lg font-bold text-white mb-4">Available Stocks ({stocks.length})</h2>
           {loading ? (
@@ -224,80 +224,73 @@ export default function StockPage() {
               <p className="text-white/60">Loading stocks...</p>
             </div>
           ) : (
-            <div className="overflow-x-auto rounded-xl border border-white/10 bg-gradient-to-br from-secondary/40 via-secondary/30 to-background/50 backdrop-blur-xl">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-white/10 bg-secondary/20">
-                    <th className="text-left px-4 py-3 font-semibold text-white/70 whitespace-nowrap">STOCK</th>
-                    <th className="text-right px-4 py-3 font-semibold text-white/70 whitespace-nowrap">PRICE</th>
-                    <th className="text-right px-4 py-3 font-semibold text-white/70 whitespace-nowrap">CHANGE</th>
-                    <th className="text-center px-4 py-3 font-semibold text-white/70 whitespace-nowrap">ACTION</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {stocks.map((stock) => {
-                    const isPositive = stock.percentChange >= 0;
-                    const inPortfolio = isStockInPortfolio(stock.ticker);
+            <div className="space-y-2">
+              {stocks.map((stock) => {
+                const isPositive = stock.percentChange >= 0;
+                const inPortfolio = isStockInPortfolio(stock.ticker);
 
-                    return (
-                      <tr key={stock.ticker} className="border-b border-white/10 hover:bg-white/5 transition-colors">
-                        {/* Stock Info */}
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          <div className="flex items-center gap-2">
-                            {stock.logo ? (
-                              <div className="relative w-8 h-8 flex-shrink-0">
-                                <Image
-                                  src={stock.logo}
-                                  alt={stock.ticker}
-                                  fill
-                                  className="object-contain"
-                                />
-                              </div>
-                            ) : (
-                              <div className="w-8 h-8 bg-accent/20 rounded flex items-center justify-center text-xs font-bold text-accent flex-shrink-0">
-                                {stock.ticker[0]}
-                              </div>
-                            )}
-                            <div>
-                              <p className="font-bold text-white">{stock.ticker}</p>
-                              <p className="text-xs text-white/50 hidden sm:block">{stock.companyName.substring(0, 15)}</p>
-                            </div>
-                          </div>
-                        </td>
+                return (
+                  <motion.div
+                    key={stock.ticker}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex items-center justify-between gap-2 p-3 rounded-lg border border-white/10 bg-gradient-to-br from-secondary/40 via-secondary/30 to-background/50 hover:bg-secondary/40 transition-all backdrop-blur-xl"
+                  >
+                    {/* Stock Info - Left side */}
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                      {stock.logo ? (
+                        <div className="relative w-8 h-8 flex-shrink-0">
+                          <Image
+                            src={stock.logo}
+                            alt={stock.ticker}
+                            fill
+                            className="object-contain"
+                          />
+                        </div>
+                      ) : (
+                        <div className="w-8 h-8 bg-accent/20 rounded flex items-center justify-center text-xs font-bold text-accent flex-shrink-0">
+                          {stock.ticker[0]}
+                        </div>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-bold text-white">{stock.ticker}</p>
+                        <p className="text-xs text-white/50 truncate">{stock.companyName.substring(0, 20)}</p>
+                      </div>
+                    </div>
 
-                        {/* Price */}
-                        <td className="px-4 py-3 text-right whitespace-nowrap">
-                          <p className="font-semibold text-white">${stock.price.toFixed(2)}</p>
-                        </td>
+                    {/* Price & Change - Center (hidden on very small screens) */}
+                    <div className="hidden xs:flex items-center gap-2 text-right flex-shrink-0">
+                      <div>
+                        <p className="text-xs text-white/50">Price</p>
+                        <p className="font-semibold text-white text-sm">${stock.price.toFixed(2)}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-white/50">Change</p>
+                        <p className={`font-semibold text-sm ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
+                          {isPositive ? '+' : ''}{stock.percentChange.toFixed(2)}%
+                        </p>
+                      </div>
+                    </div>
 
-                        {/* Change */}
-                        <td className="px-4 py-3 text-right whitespace-nowrap">
-                          <p className={`font-semibold ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
-                            {isPositive ? '+' : ''}{stock.percentChange.toFixed(2)}%
-                          </p>
-                        </td>
-
-                        {/* Action Button */}
-                        <td className="px-4 py-3 text-center whitespace-nowrap">
-                          {inPortfolio ? (
-                            <span className="inline-block px-3 py-1 rounded-lg bg-green-500/20 text-green-400 border border-green-500/30 text-xs font-bold">
-                              ✓
-                            </span>
-                          ) : (
-                            <button
-                              onClick={() => handleAddStock(stock)}
-                              disabled={addingStock === stock.ticker}
-                              className="inline-block px-3 py-1 rounded-lg bg-accent/20 text-accent border border-accent/50 hover:bg-accent/30 disabled:opacity-50 transition-all font-bold text-sm"
-                            >
-                              {addingStock === stock.ticker ? '...' : '+'}
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                    {/* Action Button - Always visible on right */}
+                    <div className="flex-shrink-0">
+                      {inPortfolio ? (
+                        <span className="inline-flex items-center justify-center px-3 py-2 rounded-lg bg-green-500/20 text-green-400 border border-green-500/30 text-sm font-bold min-w-[50px]">
+                          ✓
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => handleAddStock(stock)}
+                          disabled={addingStock === stock.ticker}
+                          className="inline-flex items-center justify-center px-3 py-2 rounded-lg bg-accent/20 text-accent border border-accent/50 hover:bg-accent/30 disabled:opacity-50 transition-all font-bold text-sm min-w-[50px]"
+                        >
+                          {addingStock === stock.ticker ? '...' : '+'}
+                        </button>
+                      )}
+                    </div>
+                  </motion.div>
+                );
+              })}
             </div>
           )}
         </div>
