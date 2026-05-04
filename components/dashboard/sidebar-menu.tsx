@@ -40,7 +40,7 @@ export function SidebarMenu({ isOpen, onClose, userEmail = '', userName = '' }: 
     setIsLoggingOut(true);
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
-      router.push('/auth');
+      router.push('/login');
     } catch (error) {
       console.error('[v0] Logout error:', error);
       setIsLoggingOut(false);
