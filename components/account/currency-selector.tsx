@@ -1,35 +1,37 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { staggerContainer, staggerItem } from '@/lib/animations';
-import { Check } from 'lucide-react';
+import { Check, Search, X as XIcon } from 'lucide-react';
+import { useCurrency } from '@/app/providers/currency-provider';
+import { CURRENCIES } from '@/lib/currency';
 
-interface CurrencySelectorProps {
-  onCurrencyChange?: (currency: string) => void;
-}
-
-const currencies = [
-  { code: 'USD', symbol: '$', name: 'US Dollar' },
-  { code: 'EUR', symbol: '€', name: 'Euro' },
-  { code: 'GBP', symbol: '£', name: 'British Pound' },
-  { code: 'NGN', symbol: '₦', name: 'Nigerian Naira' },
-  { code: 'CAD', symbol: 'C$', name: 'Canadian Dollar' },
-  { code: 'AUD', symbol: 'A$', name: 'Australian Dollar' },
-  { code: 'JPY', symbol: '¥', name: 'Japanese Yen' },
-];
-
-export function CurrencySelector({ onCurrencyChange }: CurrencySelectorProps) {
-  const [selectedCurrency, setSelectedCurrency] = useState('USD');
+export function CurrencySelector() {
+  const { selectedCurrency, setSelectedCurrency } = useCurrency();
   const [isOpen, setIsOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filteredCurrencies, setFilteredCurrencies] = useState(CURRENCIES);
+
+  useEffect(() => {
+    const filtered = CURRENCIES.filter((currency) => {
+      const query = searchQuery.toLowerCase();
+      return (
+        currency.code.toLowerCase().includes(query) ||
+        currency.name.toLowerCase().includes(query) ||
+        currency.symbol.toLowerCase().includes(query)
+      );
+    });
+    setFilteredCurrencies(filtered);
+  }, [searchQuery]);
 
   const handleSelect = (code: string) => {
     setSelectedCurrency(code);
-    onCurrencyChange?.(code);
     setIsOpen(false);
+    setSearchQuery('');
   };
 
-  const currentCurrency = currencies.find((c) => c.code === selectedCurrency);
+  const currentCurrency = CURRENCIES.find((c) => c.code === selectedCurrency);
 
   return (
     <motion.div
@@ -55,7 +57,7 @@ export function CurrencySelector({ onCurrencyChange }: CurrencySelectorProps) {
             >
               <span className="flex items-center gap-2">
                 <span className="text-lg font-semibold text-accent">{currentCurrency?.symbol}</span>
-                <span>{selectedCurrency}</span>
+                <span>{selectedCurrency} — {currentCurrency?.name}</span>
               </span>
               <svg
                 className={`w-4 h-4 text-muted-foreground transition-transform ${isOpen ? 'rotate-180' : ''}`}
@@ -74,24 +76,56 @@ export function CurrencySelector({ onCurrencyChange }: CurrencySelectorProps) {
                 exit={{ opacity: 0, y: -10 }}
                 className="absolute top-full left-0 right-0 mt-2 bg-secondary border border-border rounded-xl shadow-xl z-10 overflow-hidden"
               >
-                {currencies.map((currency) => (
-                  <button
-                    key={currency.code}
-                    onClick={() => handleSelect(currency.code)}
-                    className="w-full flex items-center justify-between px-4 py-3 hover:bg-secondary/50 transition-colors text-foreground text-left border-b border-border/50 last:border-b-0"
-                  >
-                    <span className="flex items-center gap-3">
-                      <span className="text-lg font-semibold text-accent w-8">{currency.symbol}</span>
-                      <div>
-                        <p className="font-semibold">{currency.code}</p>
-                        <p className="text-xs text-muted-foreground">{currency.name}</p>
-                      </div>
-                    </span>
-                    {selectedCurrency === currency.code && (
-                      <Check className="w-5 h-5 text-accent" />
+                {/* Search Input */}
+                <div className="p-3 border-b border-border/50 sticky top-0 bg-secondary z-20">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+                    <input
+                      type="text"
+                      placeholder="Search currencies..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full pl-10 pr-3 py-2 bg-input border border-border rounded-lg text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:border-accent/50 transition-colors"
+                      autoFocus
+                    />
+                    {searchQuery && (
+                      <button
+                        onClick={() => setSearchQuery('')}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        <XIcon className="w-4 h-4" />
+                      </button>
                     )}
-                  </button>
-                ))}
+                  </div>
+                </div>
+
+                {/* Currency List */}
+                <div className="max-h-80 overflow-y-auto">
+                  {filteredCurrencies.length > 0 ? (
+                    filteredCurrencies.map((currency) => (
+                      <button
+                        key={currency.code}
+                        onClick={() => handleSelect(currency.code)}
+                        className="w-full flex items-center justify-between px-4 py-3 hover:bg-secondary/50 transition-colors text-foreground text-left border-b border-border/50 last:border-b-0"
+                      >
+                        <span className="flex items-center gap-3">
+                          <span className="text-lg font-semibold text-accent w-8">{currency.symbol}</span>
+                          <div>
+                            <p className="font-semibold">{currency.code}</p>
+                            <p className="text-xs text-muted-foreground">{currency.name}</p>
+                          </div>
+                        </span>
+                        {selectedCurrency === currency.code && (
+                          <Check className="w-5 h-5 text-accent" />
+                        )}
+                      </button>
+                    ))
+                  ) : (
+                    <div className="p-6 text-center text-muted-foreground">
+                      <p className="text-sm">No currencies found</p>
+                    </div>
+                  )}
+                </div>
               </motion.div>
             )}
           </div>
@@ -104,3 +138,4 @@ export function CurrencySelector({ onCurrencyChange }: CurrencySelectorProps) {
     </motion.div>
   );
 }
+
