@@ -10,21 +10,21 @@ export function SelfieUpload() {
       variants={staggerContainer}
       initial="hidden"
       animate="visible"
-      className="bg-gradient-to-br from-secondary/40 via-secondary/30 to-background/50 border border-white/10 rounded-2xl p-6 backdrop-blur-sm"
+      className="bg-gradient-to-br from-secondary/40 via-secondary/30 to-background/50 border border-white/10 rounded-lg p-4 backdrop-blur-sm"
     >
-      <motion.h2 variants={staggerItem} className="text-lg font-bold text-foreground mb-2">
+      <motion.h2 variants={staggerItem} className="text-base font-bold text-foreground mb-1">
         Selfie Verification
       </motion.h2>
-      <motion.p variants={staggerItem} className="text-xs text-muted-foreground mb-4">
+      <motion.p variants={staggerItem} className="text-xs text-muted-foreground mb-3">
         Take a selfie for identity verification. Your photo must match your ID document.
       </motion.p>
 
       {/* Guidelines */}
-      <motion.div variants={staggerItem} className="mb-4 p-4 bg-blue-400/10 border border-blue-400/30 rounded-xl">
+      <motion.div variants={staggerItem} className="mb-3 p-3 bg-blue-400/10 border border-blue-400/30 rounded-lg">
         <div className="flex gap-2">
-          <AlertCircle className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
+          <AlertCircle className="w-3.5 h-3.5 text-blue-400 flex-shrink-0 mt-0.5" />
           <div className="text-xs text-blue-400/90">
-            <p className="font-semibold mb-1">Selfie Guidelines:</p>
+            <p className="font-semibold mb-0.5">Selfie Guidelines:</p>
             <ul className="space-y-0.5 text-blue-400/80">
               <li>• Face must be clearly visible and lit</li>
               <li>• No glasses or hat obscuring face</li>
@@ -36,27 +36,27 @@ export function SelfieUpload() {
       </motion.div>
 
       {/* Upload Options */}
-      <motion.div variants={staggerContainer} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <motion.div variants={staggerContainer} className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {/* Webcam Option */}
-        <motion.div variants={staggerItem} className="border-2 border-dashed border-white/20 rounded-xl p-6 text-center hover:border-accent/50 transition-all">
-          <Camera className="w-8 h-8 text-accent mx-auto mb-2" />
-          <p className="text-sm font-semibold text-foreground mb-1">Take Selfie</p>
-          <p className="text-xs text-muted-foreground mb-3">Use your webcam</p>
-          <button className="px-4 py-2 bg-accent text-background font-semibold rounded-lg hover:bg-accent/90 transition-colors text-xs">
+        <motion.div variants={staggerItem} className="border-2 border-dashed border-white/20 rounded-lg p-4 text-center hover:border-accent/50 transition-all">
+          <Camera className="w-6 h-6 text-accent mx-auto mb-1" />
+          <p className="text-xs font-semibold text-foreground mb-0.5">Take Selfie</p>
+          <p className="text-xs text-muted-foreground mb-2">Use your webcam</p>
+          <button className="px-3 py-1.5 bg-accent text-background font-semibold rounded hover:bg-accent/90 transition-colors text-xs">
             Open Camera
           </button>
         </motion.div>
 
         {/* Upload Option */}
-        <motion.div variants={staggerItem} className="border-2 border-dashed border-white/20 rounded-xl p-6 text-center hover:border-accent/50 transition-all">
-          <svg className="w-8 h-8 text-accent mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <motion.div variants={staggerItem} className="border-2 border-dashed border-white/20 rounded-lg p-4 text-center hover:border-accent/50 transition-all">
+          <svg className="w-6 h-6 text-accent mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
           </svg>
-          <p className="text-sm font-semibold text-foreground mb-1">Upload Selfie</p>
-          <p className="text-xs text-muted-foreground mb-3">From your device</p>
+          <p className="text-xs font-semibold text-foreground mb-0.5">Upload Selfie</p>
+          <p className="text-xs text-muted-foreground mb-2">From your device</p>
           <label className="inline-block">
             <input type="file" accept="image/*" className="hidden" />
-            <span className="px-4 py-2 bg-accent text-background font-semibold rounded-lg hover:bg-accent/90 transition-colors text-xs inline-block cursor-pointer">
+            <span className="px-3 py-1.5 bg-accent text-background font-semibold rounded hover:bg-accent/90 transition-colors text-xs inline-block cursor-pointer">
               Choose Photo
             </span>
           </label>

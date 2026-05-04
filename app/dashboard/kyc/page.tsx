@@ -64,18 +64,18 @@ export default function KYCPage() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24">
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4 pb-20">
         {/* Page Title */}
         <motion.div
           variants={staggerContainer}
           initial="hidden"
           animate={isLoaded ? 'visible' : 'hidden'}
-          className="mb-6"
+          className="mb-4"
         >
-          <motion.h1 variants={staggerItem} className="text-2xl md:text-3xl font-bold text-foreground mb-1">
+          <motion.h1 variants={staggerItem} className="text-xl md:text-2xl font-bold text-foreground mb-1">
             KYC Verification
           </motion.h1>
-          <motion.p variants={staggerItem} className="text-xs md:text-sm text-muted-foreground">
+          <motion.p variants={staggerItem} className="text-xs text-muted-foreground">
             Complete your identity verification to unlock all features and increase your withdrawal limits
           </motion.p>
         </motion.div>
@@ -85,7 +85,7 @@ export default function KYCPage() {
           variants={staggerContainer}
           initial="hidden"
           animate={isLoaded ? 'visible' : 'hidden'}
-          className="mb-6"
+          className="mb-4"
         >
           <KYCStatusCard status={kycStatus} />
         </motion.div>
@@ -95,7 +95,7 @@ export default function KYCPage() {
           variants={staggerContainer}
           initial="hidden"
           animate={isLoaded ? 'visible' : 'hidden'}
-          className="space-y-4"
+          className="space-y-3"
         >
           {/* Personal Information */}
           <PersonalInfoForm />

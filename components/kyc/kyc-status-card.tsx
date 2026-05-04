@@ -56,26 +56,26 @@ export function KYCStatusCard({ status }: KYCStatusCardProps) {
       variants={staggerContainer}
       initial="hidden"
       animate="visible"
-      className={`bg-gradient-to-br ${config.bgColor} border border-white/10 rounded-2xl p-6 backdrop-blur-sm`}
+      className={`bg-gradient-to-br ${config.bgColor} border border-white/10 rounded-lg p-4 backdrop-blur-sm`}
     >
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Status Info */}
         <motion.div variants={staggerItem} className="md:col-span-2">
-          <div className="flex items-start gap-4">
-            <div className={`p-3 rounded-xl bg-white/10 border border-white/20 ${config.color}`}>
-              <Icon className="w-6 h-6" />
+          <div className="flex items-start gap-3">
+            <div className={`p-2 rounded-lg bg-white/10 border border-white/20 ${config.color}`}>
+              <Icon className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-foreground mb-2">{config.title}</h2>
-              <p className="text-sm text-muted-foreground mb-4">{config.description}</p>
+              <h2 className="text-base font-bold text-foreground mb-1">{config.title}</h2>
+              <p className="text-xs text-muted-foreground mb-2">{config.description}</p>
               
               {/* Progress Bar */}
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-muted-foreground">Completion</span>
                   <span className={`font-semibold ${config.color}`}>{config.progress}%</span>
                 </div>
-                <div className="w-full bg-white/10 rounded-full h-2">
+                <div className="w-full bg-white/10 rounded-full h-1.5">
                   <div
                     className={`h-full rounded-full bg-gradient-to-r from-${config.color.split('-')[1]}-400 to-${config.color.split('-')[1]}-500 transition-all duration-500`}
                     style={{
@@ -91,9 +91,9 @@ export function KYCStatusCard({ status }: KYCStatusCardProps) {
 
         {/* Estimated Time */}
         <motion.div variants={staggerItem} className="flex flex-col justify-center">
-          <div className="p-4 bg-white/5 border border-white/10 rounded-xl text-center">
-            <p className="text-xs text-muted-foreground mb-2">Estimated Time</p>
-            <p className="text-lg font-bold text-foreground">{config.estimatedTime}</p>
+          <div className="p-3 bg-white/5 border border-white/10 rounded-lg text-center">
+            <p className="text-xs text-muted-foreground mb-1">Estimated Time</p>
+            <p className="text-sm font-bold text-foreground">{config.estimatedTime}</p>
           </div>
         </motion.div>
       </div>

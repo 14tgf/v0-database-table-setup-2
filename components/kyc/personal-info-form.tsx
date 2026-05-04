@@ -22,22 +22,22 @@ export function PersonalInfoForm() {
       variants={staggerContainer}
       initial="hidden"
       animate="visible"
-      className="bg-gradient-to-br from-secondary/40 via-secondary/30 to-background/50 border border-white/10 rounded-2xl p-6 backdrop-blur-sm"
+      className="bg-gradient-to-br from-secondary/40 via-secondary/30 to-background/50 border border-white/10 rounded-lg p-4 backdrop-blur-sm"
     >
-      <motion.h2 variants={staggerItem} className="text-lg font-bold text-foreground mb-4">
+      <motion.h2 variants={staggerItem} className="text-base font-bold text-foreground mb-3">
         Personal Information
       </motion.h2>
 
-      <motion.div variants={staggerContainer} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <motion.div variants={staggerContainer} className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {fields.map((field, idx) => (
           <motion.div key={field.label} variants={staggerItem}>
-            <label className="block text-xs font-semibold text-muted-foreground mb-2">
+            <label className="block text-xs font-semibold text-muted-foreground mb-1">
               {field.label} {field.required && <span className="text-red-400">*</span>}
             </label>
             <input
               type={field.type || 'text'}
               placeholder={field.placeholder}
-              className="w-full px-4 py-2.5 bg-input border border-border rounded-lg text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 transition-all text-sm"
+              className="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 transition-all text-xs"
             />
           </motion.div>
         ))}
