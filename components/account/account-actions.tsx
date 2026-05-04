@@ -23,6 +23,7 @@ export function AccountActions({ onSave, onReset, selectedCurrency }: AccountAct
 
     try {
       const currencyToSave = selectedCurrency || contextCurrency;
+      console.log('[v0] Saving currency:', currencyToSave);
 
       const response = await fetch('/api/user/preferences', {
         method: 'PUT',
@@ -30,9 +31,12 @@ export function AccountActions({ onSave, onReset, selectedCurrency }: AccountAct
         body: JSON.stringify({ preferredCurrency: currencyToSave }),
       });
 
+      console.log('[v0] Save response status:', response.status);
+      const data = await response.json();
+      console.log('[v0] Save response data:', data);
+
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Failed to save preferences');
+        throw new Error(data.error || data.message || 'Failed to save preferences');
       }
 
       onSave?.();

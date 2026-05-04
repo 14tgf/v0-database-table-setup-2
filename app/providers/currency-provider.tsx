@@ -18,15 +18,21 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const fetchCurrency = async () => {
       try {
+        console.log('[v0] Currency Provider: Fetching user preferences');
         const res = await fetch('/api/user/preferences');
+        console.log('[v0] Currency Provider: Fetch response status:', res.status);
+        
         if (res.ok) {
           const data = await res.json();
+          console.log('[v0] Currency Provider: Received data:', data);
           if (data.preferredCurrency) {
             setSelectedCurrencyState(data.preferredCurrency);
           }
+        } else {
+          console.log('[v0] Currency Provider: Response not OK, using default');
         }
       } catch (error) {
-        console.error('[v0] Failed to fetch currency preference:', error);
+        console.error('[v0] Currency Provider: Failed to fetch currency preference:', error);
       } finally {
         setIsReady(true);
       }
