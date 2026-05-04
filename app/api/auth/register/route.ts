@@ -50,11 +50,11 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      // Create new user
+      // Create new user (without preferred_currency for now)
       console.log('[v0] REGISTER: Creating new user');
       const result = await sql`
-        INSERT INTO users (id, email, password_hash, full_name, account_type, status, wallet_balance, preferred_currency)
-        VALUES (${userId}, ${email}, ${passwordHash}, ${fullName}, 'standard', 'active', 0, 'USD')
+        INSERT INTO users (id, email, password_hash, full_name, account_type, status, wallet_balance)
+        VALUES (${userId}, ${email}, ${passwordHash}, ${fullName}, 'standard', 'active', 0)
         RETURNING id, email, full_name
       `;
 
@@ -64,6 +64,16 @@ export async function POST(request: NextRequest) {
 
       const user = result[0];
       console.log('[v0] REGISTER: User created:', user.id);
+
+      // Try to update preferred_currency if column exists
+      try {
+        console.log('[v0] REGISTER: Setting default currency');
+        await sql`
+          UPDATE users SET preferred_currency = 'USD' WHERE id = ${userId}
+        `;
+      } catch (currencyError) {
+        console.log('[v0] REGISTER: Currency column may not exist yet, skipping');
+      }
 
       // Create JWT token
       const jwtToken = await new SignJWT({
