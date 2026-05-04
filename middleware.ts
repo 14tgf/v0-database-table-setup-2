@@ -21,8 +21,8 @@ const PROTECTED_USER_ROUTES = [
   '/checkout-history',
 ];
 
-// Protected admin routes
-const PROTECTED_ADMIN_ROUTES = ['/admin'];
+// Protected admin routes (excluding /admin/login which is public)
+const PROTECTED_ADMIN_ROUTES = ['/admin/users', '/admin/reports', '/admin/settings'];
 
 // Public auth routes
 const PUBLIC_AUTH_ROUTES = ['/auth', '/login', '/register', '/admin/login'];
@@ -77,8 +77,16 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Protect admin routes
+  // Protect admin routes (but not /admin/login)
   if (isProtectedAdminRoute) {
+    if (!adminValid) {
+      return NextResponse.redirect(new URL('/admin/login', request.url));
+    }
+    return NextResponse.next();
+  }
+
+  // Protect admin dashboard root
+  if (pathname === '/admin') {
     if (!adminValid) {
       return NextResponse.redirect(new URL('/admin/login', request.url));
     }
