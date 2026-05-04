@@ -38,10 +38,17 @@ export function StockCard({ stock, index }: StockCardProps) {
 
     if (isInPortfolio) return;
 
+    // Validate price before adding
+    if (!price || price <= 0) {
+      setAddError('Invalid stock price');
+      return;
+    }
+
     setIsAdding(true);
     setAddError(null);
 
     try {
+      console.log('[v0] Adding stock with:', { ticker: stock.ticker, companyName: stock.companyName, logo: stock.logo, price });
       await addStock(stock.ticker, stock.companyName, stock.logo, price);
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Failed to add stock';
