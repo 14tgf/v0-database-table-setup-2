@@ -97,11 +97,11 @@ export default function AccountPage() {
           {/* Profile Overview */}
           <ProfileCard />
 
-          {/* Currency Preferences */}
-          <CurrencySelector />
-
           {/* Security Settings */}
           <PasswordSettings onPasswordChange={handleSave} />
+
+          {/* Currency Preferences */}
+          <CurrencySelector />
         </div>
       </main>
 
