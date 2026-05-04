@@ -25,16 +25,37 @@ export function useAuth(): UseAuthReturn {
 
   // Check if user has valid session on mount
   useEffect(() => {
+    const checkSession = async () => {
+      try {
+        console.log('[v0] Checking session...');
+        const response = await fetch('/api/auth/verify');
+        if (response.ok) {
+          const data = await response.json();
+          console.log('[v0] Session verified, user:', data.user);
+          setUser(data.user);
+        } else {
+          console.log('[v0] No valid session');
+          setUser(null);
+        }
+      } catch (error) {
+        console.error('[v0] Session check error:', error);
+        setUser(null);
+      }
+    };
+    
     checkSession();
   }, []);
 
   const checkSession = useCallback(async () => {
     try {
+      console.log('[v0] Manually checking session...');
       const response = await fetch('/api/auth/verify');
       if (response.ok) {
         const data = await response.json();
+        console.log('[v0] Session verified, user:', data.user);
         setUser(data.user);
       } else {
+        console.log('[v0] No valid session');
         setUser(null);
       }
     } catch (error) {

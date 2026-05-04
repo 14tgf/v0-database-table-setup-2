@@ -22,7 +22,9 @@ export function StockCard({ stock, index }: StockCardProps) {
   const [isAdding, setIsAdding] = useState(false);
   const [inPortfolio, setInPortfolio] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
+
+  console.log('[v0] StockCard render - user:', user, 'isLoading:', isLoading, 'stock:', stock.ticker);
 
   // Defensive checks for undefined values
   const price = typeof stock.price === 'number' ? stock.price : 0;
@@ -202,14 +204,14 @@ export function StockCard({ stock, index }: StockCardProps) {
       {/* Add to Portfolio Button */}
       <button
         onClick={handleAddToPortfolio}
-        disabled={inPortfolio || isAdding || !user}
+        disabled={inPortfolio || isAdding || !user || isLoading}
         className={`w-full py-2 rounded-lg font-semibold text-sm transition-all ${
           inPortfolio
             ? 'bg-green-500/20 text-green-400 border border-green-500/30 cursor-default'
             : 'bg-accent/20 text-accent border border-accent/50 hover:bg-accent/30 disabled:opacity-50'
         }`}
       >
-        {!user ? 'Login to Add' : isAdding ? '...' : inPortfolio ? '✓ Added' : '+ Add'}
+        {isLoading ? 'Loading...' : !user ? 'Login to Add' : isAdding ? '...' : inPortfolio ? '✓ Added' : '+ Add'}
       </button>
     </motion.div>
   );
