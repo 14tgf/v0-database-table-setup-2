@@ -161,13 +161,13 @@ export default function Home() {
                 style={{ transitionDelay: '900ms' }}
               >
                 <Link
-                  href="/auth"
+                  href="/login"
                   className="px-6 py-2 bg-accent text-accent-foreground font-semibold rounded-lg hover:shadow-lg hover:shadow-accent/50 transition-all duration-300 transform hover:scale-105 text-sm text-center"
                 >
                   Start Trading
                 </Link>
                 <Link
-                  href="/auth"
+                  href="/dashboard/withdraw"
                   className="px-6 py-2 border border-accent text-accent font-semibold rounded-lg hover:bg-accent/10 transition-all duration-300 text-sm text-center"
                 >
                   Learn More
