@@ -61,22 +61,6 @@ export function Preloader() {
           className="w-40 h-40"
         />
       </motion.div>
-
-      {/* Inner pulsing ring around logo */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <motion.div
-          animate={{
-            scale: [1, 1.08, 1],
-            opacity: [0.2, 1, 0.2],
-          }}
-          transition={{
-            duration: 2.5,
-            repeat: Infinity,
-            ease: 'easeInOut',
-          }}
-          className="absolute w-52 h-52 rounded-full border-2 border-accent/60"
-        />
-      </div>
     </div>
   );
 }
