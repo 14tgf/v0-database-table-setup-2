@@ -48,6 +48,38 @@ export function usePortfolio() {
     { revalidateOnFocus: false, revalidateOnReconnect: true }
   );
 
+  // Update portfolio prices from live market data
+  const updatePrices = useCallback(async () => {
+    if (!userId) return;
+
+    try {
+      const response = await fetch('/api/portfolio/update-prices', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId }),
+      });
+
+      if (response.ok) {
+        // Revalidate portfolio to show updated prices
+        mutate(`/api/portfolio/stocks?userId=${userId}`);
+      }
+    } catch (error) {
+      console.error('[v0] Update prices error:', error);
+    }
+  }, [userId]);
+
+  // Update prices on mount and periodically
+  useEffect(() => {
+    if (!userId) return;
+
+    // Update immediately on mount
+    updatePrices();
+
+    // Update every 30 seconds
+    const interval = setInterval(updatePrices, 30000);
+    return () => clearInterval(interval);
+  }, [userId, updatePrices]);
+
   // Add stock to portfolio
   const addStock = useCallback(
     async (symbol: string, companyName: string, companyLogo: string, initialPrice: number) => {

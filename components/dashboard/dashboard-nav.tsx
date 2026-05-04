@@ -7,8 +7,8 @@ export function DashboardNav() {
   const navItems = [
     { icon: LayoutGrid, label: 'Dashboard', href: '/dashboard' },
     { icon: Wallet, label: 'Wallet', href: '/dashboard/wallet' },
-    { icon: TrendingUp, label: 'Invest', href: '/dashboard/invest' },
-    { icon: BarChart3, label: 'Stocks', href: '/stocks' },
+    { icon: TrendingUp, label: 'Invest', href: '/market' },
+    { icon: BarChart3, label: 'Stocks', href: '/market' },
     { icon: PieChart, label: 'Portfolio', href: '/portfolio' },
   ];
 

@@ -19,10 +19,9 @@ export function SidebarMenu({ isOpen, onClose, userEmail = '', userName = '' }: 
   const menuItems = [
     { icon: LayoutGrid, label: 'Dashboard', href: '/dashboard' },
     { icon: Wallet, label: 'Wallet', href: '/dashboard/wallet' },
-    { icon: TrendingUp, label: 'Investments', href: '/dashboard/invest' },
-    { icon: BarChart3, label: 'Stocks', href: '/stocks' },
+    { icon: TrendingUp, label: 'Investments', href: '/market' },
+    { icon: BarChart3, label: 'Stocks', href: '/market' },
     { icon: Clock, label: 'Portfolio', href: '/portfolio' },
-    { icon: BarChart3, label: 'Investment Dashboard', href: '/dashboard/investments' },
     { icon: Car, label: 'Inventory', href: '/inventory' },
     { icon: CreditCard, label: 'VIP Membership', href: '/vip-membership' },
     { icon: Gift, label: 'Giveaways', href: '/giveaway' },

@@ -138,7 +138,7 @@ export default function PortfolioPage() {
           <p className="text-white/70 text-sm mb-4">Manage your portfolio</p>
 
           <div className="space-y-2">
-            <Link href="/stock" className="block rounded-lg bg-secondary/30 border border-white/10 p-4 hover:bg-secondary/40 transition-all group">
+            <Link href="/market" className="block rounded-lg bg-secondary/30 border border-white/10 p-4 hover:bg-secondary/40 transition-all group">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-white font-semibold">Add Stocks</p>
@@ -194,7 +194,7 @@ export default function PortfolioPage() {
               <h2 className="text-lg font-bold text-white">Your Holdings</h2>
               <p className="text-white/70 text-sm">{portfolioStocks?.length || 0} stock{portfolioStocks?.length !== 1 ? 's' : ''}</p>
             </div>
-            <Link href="/stock" className="text-accent/60 hover:text-accent text-sm font-semibold transition-colors">
+            <Link href="/market" className="text-accent/60 hover:text-accent text-sm font-semibold transition-colors">
               Add More →
             </Link>
           </div>
@@ -211,7 +211,7 @@ export default function PortfolioPage() {
               </div>
               <h3 className="text-white font-semibold mb-2">No holdings yet</h3>
               <p className="text-white/60 text-sm text-center mb-4">Start building your portfolio by adding stocks</p>
-              <Link href="/stock" className="px-6 py-2 rounded-lg border border-accent/50 bg-accent/20 text-accent hover:bg-accent/30 transition-colors font-semibold">
+              <Link href="/market" className="px-6 py-2 rounded-lg border border-accent/50 bg-accent/20 text-accent hover:bg-accent/30 transition-colors font-semibold">
                 + Add Stocks
               </Link>
             </div>
