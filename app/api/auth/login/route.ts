@@ -11,29 +11,38 @@ const SESSION_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('[v0] Login request received');
     const body = await request.json();
     const { email, password } = body;
 
+    console.log('[v0] Login attempt for email:', email);
+
     // Validate input
     if (!email || !password) {
+      console.log('[v0] Missing email or password');
       return NextResponse.json(
-        { error: 'Email and password are required' },
+        { error: 'Email and password are required', message: 'Email and password are required' },
         { status: 400 }
       );
     }
 
     if (!validateEmail(email)) {
+      console.log('[v0] Invalid email format:', email);
       return NextResponse.json(
-        { error: 'Invalid email format' },
+        { error: 'Invalid email format', message: 'Invalid email format' },
         { status: 400 }
       );
     }
 
     // Login user
+    console.log('[v0] Calling loginUser function');
     const result = await loginUser(email, password);
+    console.log('[v0] loginUser result:', result);
+    
     if (!result) {
+      console.log('[v0] Login failed - invalid credentials');
       return NextResponse.json(
-        { error: 'Invalid email or password' },
+        { error: 'Invalid email or password', message: 'Invalid email or password' },
         { status: 401 }
       );
     }
@@ -41,6 +50,7 @@ export async function POST(request: NextRequest) {
     const { user, token } = result;
 
     // Create JWT token
+    console.log('[v0] Creating JWT token for user:', user.id);
     const jwtToken = await new SignJWT({
       sub: user.id,
       email: user.email,
@@ -54,6 +64,7 @@ export async function POST(request: NextRequest) {
     const response = NextResponse.json(
       {
         success: true,
+        message: 'Login successful',
         user: {
           id: user.id,
           email: user.email,
@@ -73,11 +84,13 @@ export async function POST(request: NextRequest) {
       path: '/',
     });
 
+    console.log('[v0] Login successful for:', email);
     return response;
   } catch (error) {
-    console.error('[v0] Login error:', error);
+    console.error('[v0] Login error details:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Login failed';
     return NextResponse.json(
-      { error: 'Login failed' },
+      { error: errorMessage, message: 'Login failed' },
       { status: 500 }
     );
   }
