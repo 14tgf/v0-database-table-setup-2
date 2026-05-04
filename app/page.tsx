@@ -73,7 +73,7 @@ export default function Home() {
             { name: 'BUY', href: '#' },
             { name: 'SELL', href: '#' },
             { name: 'EXPLORE', href: '#' },
-            { name: 'VIP MEME ERA', href: '/vip-meme-era' },
+            { name: 'VIP MEMBERSHIP', href: '/vip-membership' },
             { name: 'CONTACT', href: '#' },
           ].map((item, idx) => (
             <Link
