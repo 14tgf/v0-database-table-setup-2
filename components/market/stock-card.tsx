@@ -2,7 +2,9 @@
 
 import { motion } from 'framer-motion';
 import Image from 'next/image';
-import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, Plus } from 'lucide-react';
+import { useState } from 'react';
+import { usePortfolioStocks } from '@/hooks/usePortfolioStocks';
 
 interface StockCardProps {
   stock: {
@@ -17,6 +19,10 @@ interface StockCardProps {
 }
 
 export function StockCard({ stock, index }: StockCardProps) {
+  const { addStock, isStockInPortfolio } = usePortfolioStocks();
+  const [isAdding, setIsAdding] = useState(false);
+  const [addError, setAddError] = useState<string | null>(null);
+
   // Defensive checks for undefined values
   const price = typeof stock.price === 'number' ? stock.price : 0;
   const change = typeof stock.change === 'number' ? stock.change : 0;
@@ -24,6 +30,27 @@ export function StockCard({ stock, index }: StockCardProps) {
   
   const isPositive = changePercent >= 0;
   const isNegative = changePercent < 0;
+  const isInPortfolio = isStockInPortfolio(stock.symbol);
+
+  const handleAddStock = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (isInPortfolio) return;
+
+    setIsAdding(true);
+    setAddError(null);
+
+    try {
+      await addStock(stock.symbol, stock.name, stock.logo, price);
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Failed to add stock';
+      setAddError(errorMsg);
+      console.error('[v0] Add stock error:', error);
+    } finally {
+      setIsAdding(false);
+    }
+  };
 
   const glowClass = isPositive ? 'glow-green' : isNegative ? 'glow-red' : 'glow-white';
   const borderClass = isPositive ? 'border-green-500/30 hover:border-green-500/50' : isNegative ? 'border-red-500/30 hover:border-red-500/50' : 'border-white/10 hover:border-accent/50';
@@ -97,7 +124,7 @@ export function StockCard({ stock, index }: StockCardProps) {
       </div>
 
       {/* Mini sparkline indicator */}
-      <div className="mt-2 h-0.5 w-full bg-white/10 rounded-full overflow-hidden">
+      <div className="mt-2 h-0.5 w-full bg-white/10 rounded-full overflow-hidden mb-3">
         <motion.div
           layoutId={`sparkline-${stock.symbol}`}
           className={`h-full ${isPositive ? 'bg-green-500' : isNegative ? 'bg-red-500' : 'bg-white/30'}`}
@@ -106,6 +133,38 @@ export function StockCard({ stock, index }: StockCardProps) {
           transition={{ duration: 0.5 }}
         />
       </div>
+
+      {/* Add to Portfolio Button */}
+      <button
+        onClick={handleAddStock}
+        disabled={isInPortfolio || isAdding}
+        className={`w-full py-2 px-3 rounded-lg font-medium text-xs flex items-center justify-center gap-2 transition-all ${
+          isInPortfolio
+            ? 'bg-green-500/20 text-green-400 border border-green-500/30 cursor-default'
+            : 'bg-accent/20 text-accent border border-accent/50 hover:bg-accent/30 disabled:opacity-50 disabled:cursor-not-allowed'
+        }`}
+      >
+        {isAdding ? (
+          <>
+            <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+            <span>Adding...</span>
+          </>
+        ) : isInPortfolio ? (
+          <>
+            <Plus className="w-3 h-3" />
+            <span>Already Added</span>
+          </>
+        ) : (
+          <>
+            <Plus className="w-3 h-3" />
+            <span>Add to Portfolio</span>
+          </>
+        )}
+      </button>
+
+      {addError && (
+        <p className="text-xs text-red-400 mt-2 text-center">{addError}</p>
+      )}
     </motion.div>
   );
 }

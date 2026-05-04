@@ -17,6 +17,7 @@ import { QuickActionCard } from '@/components/dashboard/quick-action-card';
 import { RecentOrders } from '@/components/dashboard/recent-orders';
 import { MarketOverview } from '@/components/dashboard/market-overview';
 import { StockPerformance } from '@/components/dashboard/stock-performance';
+import { PortfolioWidget } from '@/components/dashboard/portfolio-widget';
 import { DashboardNav } from '@/components/dashboard/dashboard-nav';
 import { SidebarMenu } from '@/components/dashboard/sidebar-menu';
 import { useWallet } from '@/hooks/useWallet';
@@ -151,6 +152,11 @@ export default function DashboardPage() {
         {/* Stock Performance */}
         <div className="mb-6">
           <StockPerformance />
+        </div>
+
+        {/* Portfolio Widget */}
+        <div className="mb-6">
+          <PortfolioWidget />
         </div>
       </main>
 

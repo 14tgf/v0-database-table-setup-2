@@ -1,97 +1,58 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Bell, Sun, TrendingUp, TrendingDown, Activity, ArrowUpRight, Plus } from 'lucide-react';
-import { useMarketData } from '@/hooks/use-market-data';
+import { ArrowLeft, TrendingUp, TrendingDown, ArrowUpRight, ArrowDownLeft, RefreshCw, Trash2 } from 'lucide-react';
 import { SidebarMenu } from '@/components/dashboard/sidebar-menu';
 import { DashboardNav } from '@/components/dashboard/dashboard-nav';
-
-interface PortfolioHolding {
-  symbol: string;
-  name: string;
-  logo: string;
-  shares: number;
-  buyPrice: number;
-}
+import { usePortfolioStocks } from '@/hooks/usePortfolioStocks';
+import { motion } from 'framer-motion';
 
 export default function PortfolioPage() {
-  const { stocks, loading } = useMarketData();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const { stocks, portfolio, isLoading, refreshPrices, removeStock } = usePortfolioStocks();
 
-  // Portfolio holdings - using real stock data from API
-  const portfolioSymbols = ['AAPL', 'MSFT', 'GOOGL', 'TSLA', 'NVDA'];
-  
-  // Map real stock data to portfolio holdings
-  const holdings = useMemo(() => {
-    return portfolioSymbols
-      .map((symbol) => {
-        const stock = stocks.find(s => s.symbol === symbol);
-        if (!stock) return null;
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await refreshPrices();
+    } catch (error) {
+      console.error('[v0] Refresh failed:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
-        // Simulate holding data based on stock data
-        const shares = [50, 30, 25, 15, 20][portfolioSymbols.indexOf(symbol)];
-        const buyPrices = [180.25, 445.0, 165.5, 250.0, 420.0];
-        const buyPrice = buyPrices[portfolioSymbols.indexOf(symbol)];
-        const currentPrice = stock.price;
-        const totalValue = shares * currentPrice;
-        const gain = totalValue - (shares * buyPrice);
-        const gainPercent = (gain / (shares * buyPrice)) * 100;
+  const handleRemoveStock = async (symbol: string) => {
+    if (window.confirm(`Remove ${symbol} from portfolio?`)) {
+      try {
+        await removeStock(symbol);
+      } catch (error) {
+        console.error('[v0] Remove failed:', error);
+      }
+    }
+  };
 
-        return {
-          symbol: stock.symbol,
-          name: stock.name,
-          logo: stock.logo,
-          shares,
-          buyPrice,
-          currentPrice,
-          totalValue,
-          gain,
-          gainPercent
-        };
-      })
-      .filter((h) => h !== null) as PortfolioHolding[];
-  }, [stocks]);
-
-  // Calculate totals
-  const totalInvested = useMemo(() => {
-    return holdings.reduce((sum, h) => sum + (h.shares * h.buyPrice), 0);
-  }, [holdings]);
-
-  const totalValue = useMemo(() => {
-    return holdings.reduce((sum, h) => sum + h.totalValue, 0);
-  }, [holdings]);
-
-  const totalGain = useMemo(() => {
-    return holdings.reduce((sum, h) => sum + h.gain, 0);
-  }, [holdings]);
-
-  const totalGainPercent = useMemo(() => {
-    return totalInvested > 0 ? (totalGain / totalInvested) * 100 : 0;
-  }, [totalGain, totalInvested]);
-
-  const gainersCount = holdings.filter(h => h.gain > 0).length;
-  const losersCount = holdings.filter(h => h.gain < 0).length;
+  const totalStocks = portfolio?.totalStocks || 0;
 
   return (
-    <div className="min-h-screen bg-background pb-24">
-      {/* Top Navigation */}
+    <div className="min-h-screen bg-background">
+      {/* Header */}
       <nav className="sticky top-0 z-40 border-b border-white/10 bg-background/80 backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto px-4 py-3 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
           <div className="flex items-center justify-between">
-            <Link href="/dashboard">
-              <Image 
-                src="/logo.png" 
-                alt="X Holding" 
-                width={80} 
-                height={40}
-                className="w-auto h-10 cursor-pointer hover:opacity-80 transition-opacity"
-              />
+            <Link
+              href="/dashboard"
+              className="flex items-center gap-2 text-accent hover:text-accent/80 transition-colors text-xs font-semibold"
+            >
+              <ArrowLeft className="w-3 h-3" />
+              Back to Dashboard
             </Link>
             <button 
               onClick={() => setSidebarOpen(true)}
-              className="p-1.5 rounded-lg hover:bg-white/10 transition-colors"
+              className="p-1.5 rounded-lg hover:bg-white/10 transition-all"
             >
               <svg className="w-5 h-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -102,239 +63,207 @@ export default function PortfolioPage() {
       </nav>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-        
-        {/* Portfolio Overview Header */}
-        <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-secondary/40 via-secondary/30 to-background/50 p-6 backdrop-blur-xl glow-cyan-hover">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <h1 className="text-2xl font-bold text-white">Portfolio Overview</h1>
-                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-900/30 border border-green-600/50">
-                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                  <span className="text-xs font-semibold text-green-400">Live</span>
-                </div>
-              </div>
-              <p className="text-white/70 text-sm mb-1">Track your investment performance and holdings</p>
-              <p className="text-white/50 text-xs">Last updated: {new Date().toLocaleTimeString()}</p>
-            </div>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24">
+        {/* Page Title */}
+        <div className="mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1">Stock Portfolio</h1>
+          <p className="text-white/70 text-sm">Track your stock investments and monitor performance</p>
+        </div>
+
+        {isLoading && totalStocks === 0 ? (
+          <div className="text-center py-12">
+            <div className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+            <p className="text-white/60">Loading portfolio...</p>
           </div>
+        ) : totalStocks === 0 ? (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="rounded-2xl border border-white/10 bg-gradient-to-br from-secondary/40 via-secondary/30 to-background/50 p-12 text-center backdrop-blur-xl"
+          >
+            <TrendingUp className="w-12 h-12 text-white/30 mx-auto mb-4" />
+            <h2 className="text-xl font-bold text-white mb-2">No Stocks Yet</h2>
+            <p className="text-white/60 text-sm mb-6">Start building your portfolio by adding stocks from the market.</p>
+            <Link
+              href="/market"
+              className="inline-block px-6 py-2 bg-accent text-background rounded-lg font-medium text-sm hover:bg-accent/90 transition-colors"
+            >
+              Browse Stocks
+            </Link>
+          </motion.div>
+        ) : (
+          <>
+            {/* Portfolio Metrics */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className="rounded-2xl border border-white/10 bg-gradient-to-br from-secondary/40 via-secondary/30 to-background/50 p-4 backdrop-blur-xl"
+              >
+                <p className="text-white/70 text-xs mb-2">Active Stocks</p>
+                <p className="text-3xl font-bold text-white">{portfolio?.totalStocks || 0}</p>
+              </motion.div>
 
-          {/* Main Stats Card */}
-          <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-            <div className="flex items-start justify-between mb-6">
-              <div>
-                <p className="text-white/60 text-xs mb-1">Total Value</p>
-                <p className="text-3xl font-bold text-white">${totalValue.toFixed(2)}</p>
-              </div>
-              <TrendingUp className="w-6 h-6 text-green-400" />
-            </div>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="rounded-2xl border border-white/10 bg-gradient-to-br from-secondary/40 via-secondary/30 to-background/50 p-4 backdrop-blur-xl"
+              >
+                <p className="text-white/70 text-xs mb-2">Total Invested</p>
+                <p className="text-2xl font-bold text-white">${(portfolio?.totalInvested || 0).toLocaleString('en-US', { maximumFractionDigits: 0 })}</p>
+              </motion.div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex flex-col">
-                <p className="text-white/60 text-xs mb-1">Invested</p>
-                <p className="text-lg font-semibold text-white">${totalInvested.toFixed(2)}</p>
-              </div>
-              <div className="flex flex-col">
-                <p className="text-white/60 text-xs mb-1">Gain/Loss</p>
-                <p className={`text-lg font-semibold ${totalGain >= 0 ? 'text-green-400' : 'text-primary'}`}>
-                  {totalGain >= 0 ? '+' : ''}${totalGain.toFixed(2)}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="rounded-2xl border border-white/10 bg-gradient-to-br from-secondary/40 via-secondary/30 to-background/50 p-4 backdrop-blur-xl"
+              >
+                <p className="text-white/70 text-xs mb-2">Current Value</p>
+                <p className="text-2xl font-bold text-white">${(portfolio?.totalCurrentValue || 0).toLocaleString('en-US', { maximumFractionDigits: 0 })}</p>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="rounded-2xl border border-white/10 bg-gradient-to-br from-secondary/40 via-secondary/30 to-background/50 p-4 backdrop-blur-xl"
+              >
+                <p className="text-white/70 text-xs mb-2">Total Return</p>
+                <p className={`text-2xl font-bold ${portfolio && portfolio.totalProfitLoss >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                  {portfolio && portfolio.totalProfitLoss >= 0 ? '+' : ''}${(portfolio?.totalProfitLoss || 0).toFixed(2)}
                 </p>
-              </div>
+              </motion.div>
             </div>
-          </div>
-        </div>
 
-        {/* Portfolio Tools */}
-        <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-secondary/40 via-secondary/30 to-background/50 p-6 backdrop-blur-xl">
-          <h2 className="text-lg font-bold text-white mb-1">Portfolio Tools</h2>
-          <p className="text-white/70 text-sm mb-4">Access detailed portfolio analysis and management</p>
-
-          <div className="space-y-2">
-            <Link href="#" className="block rounded-lg bg-secondary/30 border border-white/10 p-4 hover:bg-secondary/40 transition-all group">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-white font-semibold">Holdings</p>
-                  <p className="text-white/50 text-sm">Detailed holdings breakdown</p>
-                </div>
-                <ArrowUpRight className="w-5 h-5 text-white/40 group-hover:text-white/60 transition-colors" />
-              </div>
-            </Link>
-
-            <Link href="#" className="block rounded-lg bg-secondary/30 border border-white/10 p-4 hover:bg-secondary/40 transition-all group">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-white font-semibold">Analytics</p>
-                  <p className="text-white/50 text-sm">Performance charts & analysis</p>
-                </div>
-                <ArrowUpRight className="w-5 h-5 text-white/40 group-hover:text-white/60 transition-colors" />
-              </div>
-            </Link>
-
-            <Link href="#" className="block rounded-lg bg-secondary/30 border border-white/10 p-4 hover:bg-secondary/40 transition-all group">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-white font-semibold">Dashboard</p>
-                  <p className="text-white/50 text-sm">Investment dashboard overview</p>
-                </div>
-                <ArrowUpRight className="w-5 h-5 text-white/40 group-hover:text-white/60 transition-colors" />
-              </div>
-            </Link>
-
-            <Link href="#" className="block rounded-lg bg-secondary/30 border border-white/10 p-4 hover:bg-secondary/40 transition-all group">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-white font-semibold">Transactions</p>
-                  <p className="text-white/50 text-sm">Complete transaction history</p>
-                </div>
-                <ArrowUpRight className="w-5 h-5 text-white/40 group-hover:text-white/60 transition-colors" />
-              </div>
-            </Link>
-          </div>
-        </div>
-
-        {/* Stats Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Total Invested */}
-          <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-secondary/40 via-secondary/30 to-background/50 p-6 backdrop-blur-xl glow-cyan-hover">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-white font-semibold">Total Invested</p>
-              <svg className="w-5 h-5 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <p className="text-3xl font-bold text-white">${totalInvested.toFixed(2)}</p>
-          </div>
-
-          {/* Current Value */}
-          <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-secondary/40 via-secondary/30 to-background/50 p-6 backdrop-blur-xl glow-cyan-hover">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-white font-semibold">Current Value</p>
-              <TrendingUp className="w-5 h-5 text-green-400" />
-            </div>
-            <p className="text-3xl font-bold text-white">${totalValue.toFixed(2)}</p>
-          </div>
-
-          {/* Total Gain/Loss */}
-          <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-secondary/40 via-secondary/30 to-background/50 p-6 backdrop-blur-xl glow-cyan-hover">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-white font-semibold">Total Gain/Loss</p>
-              <TrendingUp className={`w-5 h-5 ${totalGain >= 0 ? 'text-green-400' : 'text-primary'}`} />
-            </div>
-            <p className={`text-3xl font-bold ${totalGain >= 0 ? 'text-green-400' : 'text-primary'}`}>
-              {totalGain >= 0 ? '+' : ''}{totalGain.toFixed(2)}
-            </p>
-            <p className={`text-sm ${totalGain >= 0 ? 'text-green-400' : 'text-primary'}`}>
-              {totalGain >= 0 ? '+' : ''}{totalGainPercent.toFixed(2)}%
-            </p>
-          </div>
-        </div>
-
-        {/* Your Holdings */}
-        <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-secondary/40 via-secondary/30 to-background/50 p-6 backdrop-blur-xl">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="text-lg font-bold text-white">Your Holdings</h2>
-              <p className="text-white/70 text-sm">{holdings.length} investment plans</p>
-            </div>
-            <Link href="#" className="text-primary/60 hover:text-primary text-sm font-semibold transition-colors">
-              Browse More →
-            </Link>
-          </div>
-
-          {loading ? (
-            <div className="flex flex-col items-center justify-center py-12">
-              <div className="w-12 h-12 rounded-full bg-white/10 animate-pulse mb-3" />
-              <p className="text-white/60">Loading holdings...</p>
-            </div>
-          ) : holdings.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12">
-              <div className="w-16 h-16 rounded-full bg-secondary/30 flex items-center justify-center mb-4">
-                <TrendingUp className="w-8 h-8 text-primary/60" />
-              </div>
-              <h3 className="text-white font-semibold mb-2">No holdings yet</h3>
-              <p className="text-white/60 text-sm text-center mb-4">Start building your portfolio by investing in our plans</p>
-              <button className="px-6 py-2 rounded-lg border border-white/20 text-white hover:bg-white/10 transition-colors font-semibold">
-                + Start Investing
-              </button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {holdings.map((holding) => {
-                const isPositive = holding.gain >= 0;
-                return (
-                  <div
-                    key={holding.symbol}
-                    className="rounded-lg bg-secondary/20 border border-white/10 p-4 hover:bg-secondary/30 transition-all glow-cyan-hover"
-                  >
-                    <div className="flex items-center gap-3 mb-4">
-                      {holding.logo ? (
-                        <Image
-                          src={holding.logo}
-                          alt={holding.symbol}
-                          width={40}
-                          height={40}
-                          className="w-10 h-10 rounded bg-white/10 flex-shrink-0 object-contain"
-                          unoptimized
-                        />
-                      ) : (
-                        <div className="w-10 h-10 rounded bg-black flex items-center justify-center flex-shrink-0">
-                          <span className="text-white text-xs font-bold">{holding.symbol[0]}</span>
-                        </div>
-                      )}
-                      <div>
-                        <p className="text-white font-semibold text-sm">{holding.symbol}</p>
-                        <p className="text-white/50 text-xs">{holding.name}</p>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <p className="text-white/60">Shares:</p>
-                        <p className="text-white font-semibold">{holding.shares}</p>
-                      </div>
-                      <div className="flex justify-between">
-                        <p className="text-white/60">Price:</p>
-                        <p className="text-white font-semibold">${holding.currentPrice.toFixed(2)}</p>
-                      </div>
-                      <div className="flex justify-between">
-                        <p className="text-white/60">Value:</p>
-                        <p className="text-white font-semibold">${holding.totalValue.toFixed(2)}</p>
-                      </div>
-                      <div className="pt-2 border-t border-white/10 flex justify-between">
-                        <p className="text-white/60">Gain/Loss:</p>
-                        <p className={`font-semibold ${isPositive ? 'text-green-400' : 'text-primary'}`}>
-                          {isPositive ? '+' : ''}{holding.gainPercent.toFixed(2)}%
-                        </p>
-                      </div>
-                    </div>
+            {/* Portfolio Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+                className="rounded-2xl border border-white/10 bg-gradient-to-br from-secondary/40 via-secondary/30 to-background/50 p-4 backdrop-blur-xl"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-white/70 text-xs mb-1">Portfolio Return</p>
+                    <p className={`text-2xl font-bold ${portfolio && portfolio.portfolioPercentChange >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                      {portfolio && portfolio.portfolioPercentChange >= 0 ? '+' : ''}{portfolio?.portfolioPercentChange.toFixed(2)}%
+                    </p>
                   </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
+                  {portfolio && portfolio.portfolioPercentChange >= 0 ? (
+                    <ArrowUpRight className="w-8 h-8 text-green-400" />
+                  ) : (
+                    <ArrowDownLeft className="w-8 h-8 text-red-400" />
+                  )}
+                </div>
+              </motion.div>
 
-        {/* Recent Transactions */}
-        <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-secondary/40 via-secondary/30 to-background/50 p-6 backdrop-blur-xl">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="text-lg font-bold text-white">Recent Transactions</h2>
-              <p className="text-white/70 text-sm">Your latest investment activity</p>
-            </div>
-            <Link href="#" className="text-primary/60 hover:text-primary text-sm font-semibold transition-colors">
-              View All →
-            </Link>
-          </div>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6 }}
+                className="rounded-2xl border border-white/10 bg-gradient-to-br from-secondary/40 via-secondary/30 to-background/50 p-4 backdrop-blur-xl"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-white/70 text-xs mb-1">Winning Stocks</p>
+                    <p className="text-2xl font-bold text-green-400">{portfolio?.winningStocks || 0}</p>
+                  </div>
+                  <TrendingUp className="w-8 h-8 text-green-400" />
+                </div>
+              </motion.div>
 
-          <div className="flex flex-col items-center justify-center py-12">
-            <div className="w-16 h-16 rounded-full bg-secondary/30 flex items-center justify-center mb-4">
-              <Activity className="w-8 h-8 text-primary/60" />
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.7 }}
+                className="rounded-2xl border border-white/10 bg-gradient-to-br from-secondary/40 via-secondary/30 to-background/50 p-4 backdrop-blur-xl"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-white/70 text-xs mb-1">Losing Stocks</p>
+                    <p className="text-2xl font-bold text-red-400">{portfolio?.losingStocks || 0}</p>
+                  </div>
+                  <TrendingDown className="w-8 h-8 text-red-400" />
+                </div>
+              </motion.div>
             </div>
-            <h3 className="text-white font-semibold mb-1">No recent transactions</h3>
-            <p className="text-white/60 text-sm">Your transactions will appear here</p>
-          </div>
-        </div>
+
+            {/* Stocks Table */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.8 }}
+              className="rounded-2xl border border-white/10 bg-gradient-to-br from-secondary/40 via-secondary/30 to-background/50 backdrop-blur-xl overflow-hidden"
+            >
+              <div className="p-4 sm:p-6 border-b border-white/10 flex items-center justify-between">
+                <h2 className="text-lg font-bold text-white">Your Holdings</h2>
+                <button
+                  onClick={handleRefresh}
+                  disabled={isRefreshing}
+                  className="p-2 rounded-lg bg-accent/20 hover:bg-accent/30 transition-colors disabled:opacity-50"
+                >
+                  <RefreshCw className={`w-4 h-4 text-accent ${isRefreshing ? 'animate-spin' : ''}`} />
+                </button>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs sm:text-sm">
+                  <thead>
+                    <tr className="border-b border-white/10">
+                      <th className="text-left py-3 px-4 text-white/70 font-medium">Symbol</th>
+                      <th className="text-left py-3 px-4 text-white/70 font-medium">Company</th>
+                      <th className="text-left py-3 px-4 text-white/70 font-medium">Entry Price</th>
+                      <th className="text-left py-3 px-4 text-white/70 font-medium">Current Price</th>
+                      <th className="text-left py-3 px-4 text-white/70 font-medium">Qty</th>
+                      <th className="text-left py-3 px-4 text-white/70 font-medium">Invested</th>
+                      <th className="text-left py-3 px-4 text-white/70 font-medium">Current Value</th>
+                      <th className="text-left py-3 px-4 text-white/70 font-medium">P/L</th>
+                      <th className="text-left py-3 px-4 text-white/70 font-medium">Return %</th>
+                      <th className="text-center py-3 px-4 text-white/70 font-medium">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {stocks.map((stock) => {
+                      const isPositive = stock.profitLoss >= 0;
+                      const currentValue = stock.currentPrice * stock.quantity;
+
+                      return (
+                        <tr key={stock.symbol} className="border-b border-white/10 hover:bg-white/5 transition-colors">
+                          <td className="py-3 px-4 text-white font-semibold">{stock.symbol}</td>
+                          <td className="py-3 px-4 text-white/70">{stock.companyName}</td>
+                          <td className="py-3 px-4 text-white">${stock.initialPrice.toFixed(2)}</td>
+                          <td className="py-3 px-4 text-white">${stock.currentPrice.toFixed(2)}</td>
+                          <td className="py-3 px-4 text-white">{stock.quantity}</td>
+                          <td className="py-3 px-4 text-white">${stock.investedAmount.toFixed(2)}</td>
+                          <td className="py-3 px-4 text-white">${currentValue.toFixed(2)}</td>
+                          <td className={`py-3 px-4 font-semibold ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
+                            {isPositive ? '+' : ''}${stock.profitLoss.toFixed(2)}
+                          </td>
+                          <td className={`py-3 px-4 font-semibold ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
+                            {isPositive ? '+' : ''}{stock.percentChange.toFixed(2)}%
+                          </td>
+                          <td className="py-3 px-4 text-center">
+                            <button
+                              onClick={() => handleRemoveStock(stock.symbol)}
+                              className="p-1 rounded-lg hover:bg-red-500/20 text-white/60 hover:text-red-400 transition-colors"
+                              title="Remove stock"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </motion.div>
+          </>
+        )}
       </main>
 
       {/* Sidebar Menu */}
@@ -350,3 +279,5 @@ export default function PortfolioPage() {
     </div>
   );
 }
+
+
