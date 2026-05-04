@@ -6,7 +6,10 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { userId, symbol, companyName, companyLogo, initialPrice, currentPrice } = body;
 
+    console.log('[v0] Portfolio add request:', { userId, symbol, companyName, initialPrice });
+
     if (!userId || !symbol || !companyName || !initialPrice) {
+      console.log('[v0] Missing required fields');
       return NextResponse.json(
         { message: 'Missing required fields' },
         { status: 400 }
@@ -22,6 +25,7 @@ export async function POST(request: NextRequest) {
     `) as any[];
 
     if (existing.length > 0) {
+      console.log('[v0] Stock already in portfolio:', symbol);
       return NextResponse.json(
         { message: 'Stock already in portfolio' },
         { status: 409 }
@@ -36,13 +40,15 @@ export async function POST(request: NextRequest) {
       RETURNING *
     `) as any[];
 
+    console.log('[v0] Stock added successfully:', result[0]);
     return NextResponse.json(result[0], { status: 201 });
   } catch (error) {
     console.error('[v0] Add stock error:', error);
     return NextResponse.json(
-      { message: 'Internal server error' },
+      { message: error instanceof Error ? error.message : 'Internal server error' },
       { status: 500 }
     );
   }
 }
+
 

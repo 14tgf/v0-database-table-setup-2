@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
-import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus, AlertCircle, CheckCircle } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
 interface StockCardProps {
@@ -21,6 +21,7 @@ interface StockCardProps {
 export function StockCard({ stock, index }: StockCardProps) {
   const [isAdding, setIsAdding] = useState(false);
   const [inPortfolio, setInPortfolio] = useState(false);
+  const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const { user } = useAuth();
 
   // Defensive checks for undefined values
@@ -40,12 +41,17 @@ export function StockCard({ stock, index }: StockCardProps) {
 
   const handleAddToPortfolio = async () => {
     if (!user) {
-      console.error('[v0] User not authenticated');
+      console.log('[v0] User not authenticated');
+      setMessage({ type: 'error', text: 'Please log in to add stocks' });
       return;
     }
 
     setIsAdding(true);
+    setMessage(null);
+    
     try {
+      console.log('[v0] Attempting to add stock:', stock.symbol, 'User ID:', user.id);
+      
       const response = await fetch('/api/portfolio/add', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -59,16 +65,28 @@ export function StockCard({ stock, index }: StockCardProps) {
         }),
       });
 
+      console.log('[v0] API Response status:', response.status);
+      const data = await response.json();
+      console.log('[v0] API Response data:', data);
+
       if (!response.ok) {
-        const error = await response.json();
-        console.error('[v0] Error adding stock:', error.message);
+        const errorMsg = data.message || `Error: ${response.statusText}`;
+        console.error('[v0] Error adding stock:', errorMsg);
+        setMessage({ type: 'error', text: errorMsg });
+        setIsAdding(false);
         return;
       }
 
       setInPortfolio(true);
-      console.log('[v0] Stock added to portfolio:', stock.symbol);
+      setMessage({ type: 'success', text: `${stock.symbol} added to portfolio!` });
+      console.log('[v0] Stock added successfully:', stock.symbol);
+      
+      // Clear message after 3 seconds
+      setTimeout(() => setMessage(null), 3000);
     } catch (error) {
-      console.error('[v0] Error adding stock:', error);
+      const errorMsg = error instanceof Error ? error.message : 'Failed to add stock';
+      console.error('[v0] Error adding stock:', errorMsg);
+      setMessage({ type: 'error', text: errorMsg });
     } finally {
       setIsAdding(false);
     }
@@ -148,6 +166,27 @@ export function StockCard({ stock, index }: StockCardProps) {
           transition={{ duration: 0.5 }}
         />
       </div>
+
+      {/* Message Display */}
+      {message && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0 }}
+          className={`mb-2 p-2 rounded flex items-center gap-2 text-xs ${
+            message.type === 'success'
+              ? 'bg-green-500/20 text-green-300 border border-green-500/30'
+              : 'bg-red-500/20 text-red-300 border border-red-500/30'
+          }`}
+        >
+          {message.type === 'success' ? (
+            <CheckCircle className="w-4 h-4 flex-shrink-0" />
+          ) : (
+            <AlertCircle className="w-4 h-4 flex-shrink-0" />
+          )}
+          <span>{message.text}</span>
+        </motion.div>
+      )}
 
       {/* Add to Portfolio Button */}
       <button
