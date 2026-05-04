@@ -1,28 +1,40 @@
 'use client';
 
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { Menu, Grid3x3, List } from 'lucide-react';
+import { Menu, Grid3x3, List, X as XIcon, Search } from 'lucide-react';
 import { ProductCard } from '@/components/inventory/product-card';
 import { SidebarMenu } from '@/components/dashboard/sidebar-menu';
 import { DashboardNav } from '@/components/dashboard/dashboard-nav';
 import { PRODUCTS } from '@/lib/products';
 
+const CATEGORIES = ['All', 'Vehicles', 'Solar Energy', 'Robotics'];
+
 export default function InventoryPage() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchQuery, setSearchQuery] = useState('');
-  const [filteredProducts, setFilteredProducts] = useState(PRODUCTS);
+  const [selectedCategory, setSelectedCategory] = useState('All');
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // Handle search filtering
+  // Filter products based on search and category
+  const filteredProducts = useMemo(() => {
+    return PRODUCTS.filter(product => {
+      const matchesSearch = 
+        product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.description.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      const matchesCategory = selectedCategory === 'All' || 
+        (selectedCategory === 'Vehicles' && product.category === 'Vehicles') ||
+        (selectedCategory === 'Solar Energy' && product.category === 'Solar Energy') ||
+        (selectedCategory === 'Robotics' && product.category === 'Robotics');
+      
+      return matchesSearch && matchesCategory;
+    });
+  }, [searchQuery, selectedCategory]);
+
   const handleSearch = (query: string) => {
     setSearchQuery(query);
-    const filtered = PRODUCTS.filter(product =>
-      product.name.toLowerCase().includes(query.toLowerCase()) ||
-      product.description.toLowerCase().includes(query.toLowerCase())
-    );
-    setFilteredProducts(filtered);
   };
 
   return (
@@ -72,27 +84,55 @@ export default function InventoryPage() {
         </div>
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-center">
-          <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">Browse Inventory</h1>
-          <p className="text-sm md:text-base text-white/70">Explore premium electric vehicles ready for delivery.</p>
+          <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">Browse Full <span className="text-accent">Inventory</span></h1>
+          <p className="text-sm md:text-base text-white/70">Explore our complete catalog of premium products.</p>
         </div>
       </header>
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Search Bar */}
-        <div className="mb-6">
-          <input
-            type="text"
-            placeholder="Search vehicles by name or model..."
-            value={searchQuery}
-            onChange={(e) => handleSearch(e.target.value)}
-            className="w-full px-4 py-2.5 rounded-lg border border-white/10 bg-white/5 text-white placeholder-white/40 focus:outline-none focus:border-accent/50 focus:bg-white/10 transition-all text-sm"
-          />
+        <div className="mb-6 flex items-center gap-2">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 pointer-events-none" />
+            <input
+              type="text"
+              placeholder="Search products by name or description..."
+              value={searchQuery}
+              onChange={(e) => handleSearch(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-white/10 bg-white/5 text-white placeholder-white/40 focus:outline-none focus:border-accent/50 focus:bg-white/10 transition-all text-sm"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-white/10 rounded transition-colors"
+              >
+                <XIcon className="w-4 h-4 text-white/60" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Category Filter */}
+        <div className="mb-6 flex flex-wrap gap-2">
+          {CATEGORIES.map((category) => (
+            <button
+              key={category}
+              onClick={() => setSelectedCategory(category)}
+              className={`px-4 py-2 rounded-lg font-semibold transition-all text-sm ${
+                selectedCategory === category
+                  ? 'bg-accent text-background'
+                  : 'bg-white/5 border border-white/10 text-white/70 hover:border-accent/50 hover:text-white'
+              }`}
+            >
+              {category}
+            </button>
+          ))}
         </div>
 
         {/* Results Header */}
         <div className="mb-4 flex items-center justify-between">
-          <p className="text-white/60 text-xs">Showing {filteredProducts.length} of {PRODUCTS.length} vehicles</p>
+          <p className="text-white/60 text-xs">Showing {filteredProducts.length} of {PRODUCTS.length} products</p>
           
           <div className="flex items-center gap-2">
             <span className="text-white/60 text-xs">View:</span>
@@ -137,7 +177,16 @@ export default function InventoryPage() {
         {/* Empty State */}
         {filteredProducts.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-white/60 text-sm">No vehicles found matching your search.</p>
+            <p className="text-white/60 text-sm">No products found matching your criteria.</p>
+            <button
+              onClick={() => {
+                setSearchQuery('');
+                setSelectedCategory('All');
+              }}
+              className="mt-4 px-4 py-2 bg-accent/20 border border-accent/50 text-accent rounded-lg hover:bg-accent/30 transition-all text-sm font-semibold"
+            >
+              Reset Filters
+            </button>
           </div>
         )}
       </main>

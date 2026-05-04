@@ -63,20 +63,35 @@ const INVENTORY_ITEMS: InventoryItem[] = [
 export function InventorySection() {
   return (
     <section className="space-y-6 py-8">
-      {/* Header */}
+      {/* Header with View Inventory Link */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         viewport={{ once: true, margin: '-100px' }}
-        className="space-y-3"
+        className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4"
       >
-        <h2 className="text-3xl md:text-4xl font-bold text-white">
-          Featured <span className="text-accent">Inventory</span>
-        </h2>
-        <p className="text-base text-white/60 max-w-2xl">
-          Explore our premium selection of Tesla vehicles, energy solutions, and next-generation robotics products.
-        </p>
+        <div className="space-y-3 flex-1">
+          <h2 className="text-3xl md:text-4xl font-bold text-white">
+            Featured <span className="text-accent">Inventory</span>
+          </h2>
+          <p className="text-base text-white/60 max-w-2xl">
+            Explore our premium selection of Tesla vehicles, energy solutions, and next-generation robotics products.
+          </p>
+        </div>
+        <motion.a
+          href="/inventory"
+          initial={{ opacity: 0, x: 20 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.2, duration: 0.5 }}
+          viewport={{ once: true, margin: '-100px' }}
+          className="group flex items-center gap-2 text-accent font-semibold hover:gap-3 transition-all duration-300 whitespace-nowrap"
+        >
+          View Inventory
+          <svg className="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+          </svg>
+        </motion.a>
       </motion.div>
 
       {/* Inventory Grid */}

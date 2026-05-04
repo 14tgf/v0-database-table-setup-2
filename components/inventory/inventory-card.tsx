@@ -86,12 +86,12 @@ export function InventoryCard({ item, index }: InventoryCardProps) {
                 <span className="text-base font-bold text-accent">${item.price.toLocaleString()}</span>
               </div>
             )}
-            <a
-              href="/inventory"
+            <Link
+              href={`/checkout?productId=${item.id}`}
               className="ml-auto px-3 py-1.5 bg-accent/20 border border-accent/50 text-accent font-semibold rounded-lg hover:bg-accent/30 hover:border-accent transition-all duration-300 transform hover:scale-105 text-xs whitespace-nowrap"
             >
               Order Now
-            </a>
+            </Link>
           </div>
         </div>
       </div>
