@@ -20,8 +20,8 @@ export default function PortfolioPage() {
   const { stocks, loading } = useMarketData();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // Portfolio holdings - removed mock data (database-ready)
-  const portfolioSymbols: string[] = [];
+  // Portfolio holdings - using real stock data from API
+  const portfolioSymbols = ['AAPL', 'MSFT', 'GOOGL', 'TSLA', 'NVDA'];
   
   // Map real stock data to portfolio holdings
   const holdings = useMemo(() => {
@@ -341,6 +341,8 @@ export default function PortfolioPage() {
       <SidebarMenu 
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
+        userName="Carl"
+        userEmail="cedoe70@gmail.com"
       />
 
       {/* Bottom Navigation */}

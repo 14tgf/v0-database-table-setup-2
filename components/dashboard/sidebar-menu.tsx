@@ -11,7 +11,7 @@ interface SidebarMenuProps {
   userName?: string;
 }
 
-export function SidebarMenu({ isOpen, onClose, userEmail = '', userName = '' }: SidebarMenuProps) {
+export function SidebarMenu({ isOpen, onClose, userEmail = 'cedoe70@gmail.com', userName = 'Carl' }: SidebarMenuProps) {
   const menuItems = [
     { icon: LayoutGrid, label: 'Dashboard', href: '/dashboard' },
     { icon: Wallet, label: 'Wallet', href: '/dashboard/wallet' },

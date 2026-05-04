@@ -25,13 +25,19 @@ const staggerItem = {
 
 export default function AdminDashboard() {
   const stats = [
-    { icon: Users, label: 'Total Users', value: '0', color: 'text-accent' },
-    { icon: Clock, label: 'Pending KYC', value: '0', color: 'text-yellow-400' },
-    { icon: CreditCard, label: 'Pending Payments', value: '0', color: 'text-orange-400' },
-    { icon: CheckCircle2, label: 'Active Members', value: '0', color: 'text-green-400' },
+    { icon: Users, label: 'Total Users', value: '1,284', color: 'text-accent' },
+    { icon: Clock, label: 'Pending KYC', value: '42', color: 'text-yellow-400' },
+    { icon: CreditCard, label: 'Pending Payments', value: '18', color: 'text-orange-400' },
+    { icon: CheckCircle2, label: 'Active Members', value: '856', color: 'text-green-400' },
   ];
 
-  const recentActivity: any[] = [];
+  const recentActivity = [
+    { type: 'signup', user: 'John Smith', action: 'New user signup', time: '5 mins ago' },
+    { type: 'kyc', user: 'Alice Johnson', action: 'KYC submitted', time: '12 mins ago' },
+    { type: 'payment', user: 'Bob Wilson', action: 'Membership payment submitted', time: '28 mins ago' },
+    { type: 'approval', user: 'Sarah Davis', action: 'KYC approved', time: '1 hour ago' },
+    { type: 'signup', user: 'Mike Brown', action: 'New user signup', time: '2 hours ago' },
+  ];
 
   return (
     <motion.div

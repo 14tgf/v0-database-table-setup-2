@@ -257,6 +257,8 @@ export default function GiveawayPage() {
       <SidebarMenu 
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
+        userName="Carl"
+        userEmail="cedoe70@gmail.com"
       />
     </div>
   )

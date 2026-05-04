@@ -240,6 +240,8 @@ export default function CarDetailPage() {
       <SidebarMenu 
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
+        userName="Carl"
+        userEmail="cedoe70@gmail.com"
       />
 
       {/* Footer */}
