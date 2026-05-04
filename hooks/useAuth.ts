@@ -99,7 +99,7 @@ export function useAuth(): UseAuthReturn {
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
       setUser(null);
-      router.push('/auth');
+      router.push('/login');
     } catch (error) {
       console.error('[v0] Logout error:', error);
     }

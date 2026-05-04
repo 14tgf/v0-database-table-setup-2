@@ -1,9 +1,8 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { AuthForm } from './auth-form';
 
-export function AuthLayout() {
+export function AuthLayout({ children }: { children: React.ReactNode }) {
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -113,26 +112,20 @@ export function AuthLayout() {
 
           {/* Card */}
           <div className="relative rounded-2xl border border-white/10 bg-gradient-to-br from-white/10 to-white/5 p-6 backdrop-blur-xl">
-            {/* Header */}
-            <div className="mb-6 space-y-2 text-center">
-              <h2 className="text-2xl font-bold text-white">Welcome Back</h2>
-              <p className="text-sm text-white/60">Secure access to your X Holding account</p>
-            </div>
+            {/* Form Content */}
+            {children}
 
-            {/* Auth Form */}
-            <AuthForm />
+            {/* Security Badge */}
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              className="mt-6 flex items-center justify-center gap-2 text-xs text-white/50"
+            >
+              <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z" />
+              </svg>
+              <span>Enterprise-grade security</span>
+            </motion.div>
           </div>
-
-          {/* Security Badge */}
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            className="mt-4 flex items-center justify-center gap-2 text-xs text-white/50"
-          >
-            <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z" />
-            </svg>
-            <span>Enterprise-grade security</span>
-          </motion.div>
         </div>
       </motion.div>
     </motion.div>

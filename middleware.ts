@@ -25,7 +25,7 @@ const PROTECTED_USER_ROUTES = [
 const PROTECTED_ADMIN_ROUTES = ['/admin'];
 
 // Public auth routes
-const PUBLIC_AUTH_ROUTES = ['/auth', '/admin/login'];
+const PUBLIC_AUTH_ROUTES = ['/auth', '/login', '/register', '/admin/login'];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -72,7 +72,7 @@ export async function middleware(request: NextRequest) {
   // Protect user dashboard routes
   if (isProtectedUserRoute) {
     if (!userValid) {
-      return NextResponse.redirect(new URL('/auth', request.url));
+      return NextResponse.redirect(new URL('/login', request.url));
     }
     return NextResponse.next();
   }
@@ -87,7 +87,7 @@ export async function middleware(request: NextRequest) {
 
   // Redirect authenticated users away from auth pages
   if (isPublicAuthRoute) {
-    if (userValid && pathname === '/auth') {
+    if (userValid && (pathname === '/auth' || pathname === '/login' || pathname === '/register')) {
       return NextResponse.redirect(new URL('/dashboard', request.url));
     }
     if (adminValid && pathname === '/admin/login') {
