@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Zap, Gauge, Battery } from 'lucide-react';
+import { useCurrencyFormatter } from '@/hooks/useCurrencyFormatter';
 
 interface Product {
   id: string;
@@ -23,6 +24,7 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, viewMode }: ProductCardProps) {
+  const { format } = useCurrencyFormatter();
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -128,7 +130,7 @@ export function ProductCard({ product, viewMode }: ProductCardProps) {
           <div className="flex items-center justify-between pt-3 border-t border-white/10 mt-auto">
             <div>
               <p className="text-xs text-white/60">From</p>
-              <p className="text-lg font-bold text-white">${(product.price / 1000).toFixed(0)}K</p>
+              <p className="text-lg font-bold text-white">{format(product.price)}</p>
             </div>
             <Link href={`/inventory/${product.id}`} className="px-3 py-1.5 rounded-lg bg-accent/20 border border-accent/50 text-accent hover:bg-accent/30 transition-all text-xs font-semibold">
               Details

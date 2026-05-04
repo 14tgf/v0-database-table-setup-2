@@ -2,8 +2,12 @@
 
 import { motion } from 'framer-motion';
 import { Wallet } from 'lucide-react';
+import { useCurrencyFormatter } from '@/hooks/useCurrencyFormatter';
 
 export function BalanceCard() {
+  const { format } = useCurrencyFormatter();
+  const balanceAmount = 0;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -28,7 +32,7 @@ export function BalanceCard() {
           <div className="flex items-center justify-between mb-3">
             <div>
               <p className="text-xs text-white/60 mb-0.5">Available Balance</p>
-              <p className="text-2xl font-bold text-white">$0.00</p>
+              <p className="text-2xl font-bold text-white">{format(balanceAmount)}</p>
             </div>
             <div className="w-12 h-12 rounded-xl bg-accent/20 border border-accent/50 flex items-center justify-center">
               <Wallet className="w-5 h-5 text-accent" />

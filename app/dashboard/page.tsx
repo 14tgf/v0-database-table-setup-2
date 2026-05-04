@@ -25,19 +25,19 @@ export default function DashboardPage() {
   const statCards = [
     {
       title: 'Portfolio Value',
-      value: '$0.00',
+      value: 0,
       subtitle: '+0.0% this month',
       icon: TrendingUp,
     },
     {
       title: 'Investments',
-      value: '$0.00',
+      value: 0,
       subtitle: '0 active investments',
       icon: BarChart3,
     },
     {
       title: 'Stock Holdings',
-      value: '$0.00',
+      value: 0,
       subtitle: '0 stock positions',
       icon: Zap,
     },
