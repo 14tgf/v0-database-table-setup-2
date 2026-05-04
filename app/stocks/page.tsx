@@ -3,14 +3,19 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Bell, Sun, TrendingUp, TrendingDown, Activity } from 'lucide-react';
+import { Bell, Sun, TrendingUp, TrendingDown, Activity, Plus } from 'lucide-react';
 import { useMarketData } from '@/hooks/use-market-data';
+import { usePortfolioStocks } from '@/hooks/usePortfolioStocks';
 import { SidebarMenu } from '@/components/dashboard/sidebar-menu';
 import { DashboardNav } from '@/components/dashboard/dashboard-nav';
+import { motion } from 'framer-motion';
 
 export default function StocksPage() {
   const { stocks, loading } = useMarketData();
+  const { addStock, isStockInPortfolio } = usePortfolioStocks();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [addingStock, setAddingStock] = useState<string | null>(null);
+  const [addError, setAddError] = useState<string | null>(null);
   
   // Get featured stocks (first 3)
   const featuredStocks = stocks.slice(0, 3);
@@ -23,6 +28,21 @@ export default function StocksPage() {
   const losers = stocks.filter(s => s.change < 0).length;
   const topGainerChange = stocks.length > 0 ? Math.max(...stocks.map(s => s.changePercent)) : 0;
   const topLoserChange = stocks.length > 0 ? Math.min(...stocks.map(s => s.changePercent)) : 0;
+
+  const handleAddStock = async (stock: typeof stocks[0]) => {
+    setAddingStock(stock.ticker);
+    setAddError(null);
+
+    try {
+      await addStock(stock.ticker, stock.companyName, stock.logo, stock.price);
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Failed to add stock';
+      setAddError(errorMsg);
+      console.error('[v0] Add stock error:', error);
+    } finally {
+      setAddingStock(null);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -135,21 +155,63 @@ export default function StocksPage() {
                 const isPositive = stock.change >= 0;
                 return (
                   <div key={stock.symbol} className="rounded-lg bg-secondary/30 border border-white/10 p-4 hover:bg-secondary/40 transition-all glow-cyan-hover">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3 flex-1">
-                        {stock.logo ? (
-                          <Image
-                            src={stock.logo}
-                            alt={stock.name}
-                            width={40}
-                            height={40}
-                            className="w-10 h-10 rounded bg-white/10 flex-shrink-0 object-contain p-1"
-                            unoptimized
-                          />
-                        ) : (
-                          <div className="w-10 h-10 rounded bg-white/10 flex items-center justify-center flex-shrink-0">
-                            <span className="text-white text-xs font-bold">{stock.symbol[0]}</span>
-                          </div>
+                    <div className="flex items-center gap-3 mb-3">
+                      {stock.logo ? (
+                        <Image
+                          src={stock.logo}
+                          alt={stock.name}
+                          width={40}
+                          height={40}
+                          className="w-10 h-10 rounded bg-white/10 flex-shrink-0 object-contain p-1"
+                          unoptimized
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded bg-white/10 flex items-center justify-center flex-shrink-0">
+                          <span className="text-white text-xs font-bold">{stock.symbol[0]}</span>
+                        </div>
+                      )}
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-base font-bold text-white">{stock.symbol}</h3>
+                          <p className="text-white/50 text-xs">{stock.name}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mb-3">
+                      <p className="text-lg font-bold text-white">${stock.price.toFixed(2)}</p>
+                      <p className={`text-sm font-semibold ${stock.change >= 0 ? 'text-green-400' : 'text-destructive'}`}>
+                        {stock.change >= 0 ? '+' : ''}{stock.change.toFixed(2)} ({stock.changePercent.toFixed(2)}%)
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={() => handleAddStock(stock)}
+                      disabled={isStockInPortfolio(stock.ticker) || addingStock === stock.ticker}
+                      className={`w-full py-2 px-3 rounded-lg font-medium text-xs flex items-center justify-center gap-2 transition-all ${
+                        isStockInPortfolio(stock.ticker)
+                          ? 'bg-green-500/20 text-green-400 border border-green-500/30 cursor-default'
+                          : 'bg-accent/20 text-accent border border-accent/50 hover:bg-accent/30 disabled:opacity-50 disabled:cursor-not-allowed'
+                      }`}
+                    >
+                      {addingStock === stock.ticker ? (
+                        <>
+                          <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                          <span>Adding...</span>
+                        </>
+                      ) : isStockInPortfolio(stock.ticker) ? (
+                        <>
+                          <Plus className="w-3 h-3" />
+                          <span>Added</span>
+                        </>
+                      ) : (
+                        <>
+                          <Plus className="w-3 h-3" />
+                          <span>Add to Portfolio</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
                         )}
                         <div>
                           <div className="flex items-center gap-2">
@@ -178,10 +240,11 @@ export default function StocksPage() {
           <p className="text-white/70 text-sm mb-4">{allStocks.length} stocks available</p>
 
           {/* Table Header */}
-          <div className="grid grid-cols-3 gap-4 mb-2 px-4 py-2 text-xs font-semibold text-white/60 uppercase">
+          <div className="grid grid-cols-4 gap-4 mb-2 px-4 py-2 text-xs font-semibold text-white/60 uppercase">
             <div>Stock</div>
             <div className="text-right">Price</div>
             <div className="text-right">Change</div>
+            <div className="text-right">Action</div>
           </div>
 
           {/* Table Body */}
@@ -196,7 +259,7 @@ export default function StocksPage() {
               allStocks.map((stock, index) => {
                 const isPositive = stock.change >= 0;
                 return (
-                  <div key={stock.symbol} className={`grid grid-cols-3 gap-4 px-4 py-3 rounded-lg hover:bg-white/5 transition-all ${
+                  <div key={stock.symbol} className={`grid grid-cols-4 gap-4 px-4 py-3 rounded-lg hover:bg-white/5 transition-all ${
                     index % 2 === 0 ? 'bg-secondary/20' : ''
                   }`}>
                     <div className="flex items-center gap-3">
@@ -229,6 +292,30 @@ export default function StocksPage() {
                       <p className={`text-xs ${isPositive ? 'text-green-400' : 'text-destructive'}`}>
                         {isPositive ? '+' : ''}{stock.changePercent.toFixed(2)}%
                       </p>
+                    </div>
+                    <div className="flex items-center justify-end">
+                      <button
+                        onClick={() => handleAddStock(stock)}
+                        disabled={isStockInPortfolio(stock.ticker) || addingStock === stock.ticker}
+                        className={`px-3 py-1 rounded text-xs font-semibold whitespace-nowrap flex items-center gap-1 transition-all ${
+                          isStockInPortfolio(stock.ticker)
+                            ? 'bg-green-500/20 text-green-400 border border-green-500/30 cursor-default'
+                            : 'bg-accent/20 text-accent border border-accent/50 hover:bg-accent/30 disabled:opacity-50'
+                        }`}
+                      >
+                        {addingStock === stock.ticker ? (
+                          <>
+                            <div className="w-2 h-2 border border-current border-t-transparent rounded-full animate-spin" />
+                          </>
+                        ) : isStockInPortfolio(stock.ticker) ? (
+                          <>✓ Added</>
+                        ) : (
+                          <>
+                            <Plus className="w-3 h-3" />
+                            Add
+                          </>
+                        )}
+                      </button>
                     </div>
                   </div>
                 );

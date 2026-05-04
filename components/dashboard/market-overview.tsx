@@ -25,7 +25,7 @@ export function MarketOverview() {
             <h2 className="text-xl font-bold text-white">Market Overview</h2>
             <p className="text-sm text-white/60">Live market data</p>
           </div>
-          <Link href="/market" className="text-accent text-sm font-semibold hover:underline">
+          <Link href="/stocks" className="text-accent text-sm font-semibold hover:underline">
             View All →
           </Link>
         </div>
@@ -49,7 +49,7 @@ export function MarketOverview() {
               return (
                 <Link
                   key={stock.symbol}
-                  href="/market"
+                  href="/stocks"
                   className="block"
                 >
                   <div className="rounded-lg border border-white/10 bg-white/5 p-4 hover:bg-white/10 hover:border-accent/50 transition-all duration-300 cursor-pointer">
