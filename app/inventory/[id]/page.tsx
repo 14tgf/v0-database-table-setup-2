@@ -58,9 +58,9 @@ export default function CarDetailPage() {
               <a href="#" className="text-white/70 hover:text-white underline text-xs transition-colors">Edit Terms & Savings</a>
               <a href="#" className="text-white/70 hover:text-white underline text-xs transition-colors">Learn About Financing</a>
             </div>
-            <button className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2 rounded-lg transition-colors text-sm">
+            <Link href={`/checkout?productId=${product.id}`} className="block w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2 rounded-lg transition-colors text-sm text-center">
               Order Now
-            </button>
+            </Link>
             <p className="text-white/60 text-xs text-center">Secure checkout • Free delivery • 30-day return policy</p>
           </div>
         </div>
@@ -215,9 +215,9 @@ export default function CarDetailPage() {
               </div>
 
               {/* Order Button */}
-              <button className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2 rounded-lg transition-colors text-xs">
+              <Link href={`/checkout?productId=${product.id}`} className="block w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2 rounded-lg transition-colors text-xs text-center">
                 Order Now
-              </button>
+              </Link>
             </div>
 
             {/* Key Features */}
