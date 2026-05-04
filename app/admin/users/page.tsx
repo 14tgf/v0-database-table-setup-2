@@ -42,7 +42,7 @@ export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isAdjusting, setIsAdjusting] = useState(false);
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string; details?: string } | null>(null);
 
   // Fetch users on mount and when search changes
   useEffect(() => {
@@ -54,13 +54,19 @@ export default function UsersPage() {
         const data = await response.json();
         
         if (!response.ok) {
-          throw new Error(data.error || 'Failed to fetch users');
+          const errorMsg = data.error || data.message || 'Failed to fetch users';
+          throw new Error(errorMsg);
         }
         
         setUsers(data.users || []);
       } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
         console.error('[v0] Fetch users error:', error);
-        setMessage({ type: 'error', text: 'Failed to load users' });
+        setMessage({ 
+          type: 'error', 
+          text: 'Failed to load users',
+          details: errorMessage
+        });
         setUsers([]);
       } finally {
         setIsLoading(false);
@@ -92,7 +98,12 @@ export default function UsersPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        setMessage({ type: 'error', text: data.error || 'Failed to adjust balance' });
+        const errorMsg = data.error || data.message || 'Failed to adjust balance';
+        setMessage({ 
+          type: 'error', 
+          text: 'Failed to adjust balance',
+          details: errorMsg
+        });
         return;
       }
 
@@ -114,8 +125,13 @@ export default function UsersPage() {
       // Clear message after 3 seconds
       setTimeout(() => setMessage(null), 3000);
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
       console.error('[v0] Adjustment error:', error);
-      setMessage({ type: 'error', text: 'An error occurred while adjusting balance' });
+      setMessage({ 
+        type: 'error', 
+        text: 'An error occurred while adjusting balance',
+        details: errorMessage
+      });
     } finally {
       setIsAdjusting(false);
     }
@@ -153,18 +169,23 @@ export default function UsersPage() {
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0 }}
-          className={`p-3 rounded-lg border flex items-center gap-3 ${
+          className={`p-4 rounded-lg border flex items-start gap-3 ${
             message.type === 'success'
               ? 'bg-green-400/10 border-green-400/30 text-green-400'
               : 'bg-red-400/10 border-red-400/30 text-red-400'
           }`}
         >
           {message.type === 'success' ? (
-            <CheckCircle className="w-4 h-4 flex-shrink-0" />
+            <CheckCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
           ) : (
-            <AlertCircle className="w-4 h-4 flex-shrink-0" />
+            <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
           )}
-          <p className="text-sm">{message.text}</p>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold">{message.text}</p>
+            {message.details && (
+              <p className="text-xs mt-1.5 opacity-90 break-words">{message.details}</p>
+            )}
+          </div>
         </motion.div>
       )}
 

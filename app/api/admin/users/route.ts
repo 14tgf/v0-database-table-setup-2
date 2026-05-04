@@ -61,8 +61,9 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('[v0] Fetch users error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown database error';
     return NextResponse.json(
-      { error: 'Failed to fetch users' },
+      { error: `Failed to fetch users: ${errorMessage}` },
       { status: 500 }
     );
   }
