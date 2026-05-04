@@ -195,8 +195,6 @@ export default function OrdersPage() {
       <SidebarMenu
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
-        userName="Carl"
-        userEmail="cedoe70@gmail.com"
       />
     </div>
   )

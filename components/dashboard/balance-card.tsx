@@ -25,7 +25,7 @@ export function BalanceCard() {
         <div className="relative z-10">
           {/* Welcome Message */}
           <div className="mb-3">
-            <h3 className="text-lg font-bold text-white">Welcome back, Carl</h3>
+            <h3 className="text-lg font-bold text-white">Welcome to X Holding</h3>
             <p className="text-xs text-white/60">Track your investments, manage your portfolio, and explore opportunities.</p>
           </div>
 

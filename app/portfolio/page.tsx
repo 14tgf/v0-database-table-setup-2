@@ -341,8 +341,6 @@ export default function PortfolioPage() {
       <SidebarMenu 
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
-        userName="Carl"
-        userEmail="cedoe70@gmail.com"
       />
 
       {/* Bottom Navigation */}

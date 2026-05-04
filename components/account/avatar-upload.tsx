@@ -12,7 +12,7 @@ interface AvatarUploadProps {
   userName?: string;
 }
 
-export function AvatarUpload({ onImageChange, initialImage, userName = 'C' }: AvatarUploadProps) {
+export function AvatarUpload({ onImageChange, initialImage, userName = '' }: AvatarUploadProps) {
   const [preview, setPreview] = useState<string | null>(initialImage || null);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -90,7 +90,7 @@ export function AvatarUpload({ onImageChange, initialImage, userName = 'C' }: Av
           >
             <Upload className="w-6 h-6 text-accent" />
             <span className="text-xs text-muted-foreground text-center px-2">
-              {userName[0].toUpperCase()}
+              {userName && userName[0] ? userName[0].toUpperCase() : 'U'}
             </span>
           </div>
         )}
