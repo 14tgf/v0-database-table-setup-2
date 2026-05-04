@@ -259,7 +259,7 @@ export default function StockPage() {
                     </div>
 
                     {/* Price & Change - Center (hidden on very small screens) */}
-                    <div className="hidden xs:flex items-center gap-2 text-right flex-shrink-0">
+                    <div className="hidden sm:flex items-center gap-2 text-right flex-shrink-0">
                       <div>
                         <p className="text-xs text-white/50">Price</p>
                         <p className="font-semibold text-white text-sm">${stock.price.toFixed(2)}</p>
@@ -272,17 +272,17 @@ export default function StockPage() {
                       </div>
                     </div>
 
-                    {/* Action Button - Always visible on right */}
-                    <div className="flex-shrink-0">
+                    {/* Action Button - Always visible on right with proper sizing */}
+                    <div className="flex-shrink-0 ml-1">
                       {inPortfolio ? (
-                        <span className="inline-flex items-center justify-center px-3 py-2 rounded-lg bg-green-500/20 text-green-400 border border-green-500/30 text-sm font-bold min-w-[50px]">
+                        <span className="inline-flex items-center justify-center px-3 py-2 rounded-lg bg-green-500/20 text-green-400 border border-green-500/30 text-xs font-bold whitespace-nowrap">
                           ✓
                         </span>
                       ) : (
                         <button
                           onClick={() => handleAddStock(stock)}
                           disabled={addingStock === stock.ticker}
-                          className="inline-flex items-center justify-center px-3 py-2 rounded-lg bg-accent/20 text-accent border border-accent/50 hover:bg-accent/30 disabled:opacity-50 transition-all font-bold text-sm min-w-[50px]"
+                          className="inline-flex items-center justify-center px-3 py-2 rounded-lg bg-accent/20 text-accent border border-accent/50 hover:bg-accent/30 active:scale-95 disabled:opacity-50 transition-all font-bold text-sm whitespace-nowrap"
                         >
                           {addingStock === stock.ticker ? '...' : '+'}
                         </button>
