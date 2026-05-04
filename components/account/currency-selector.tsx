@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { staggerContainer, staggerItem } from '@/lib/animations';
 import { Check, Search, X as XIcon } from 'lucide-react';
 import { useCurrency } from '@/app/providers/currency-provider';
@@ -12,6 +12,8 @@ export function CurrencySelector() {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredCurrencies, setFilteredCurrencies] = useState(CURRENCIES);
+  const [dropdownStyle, setDropdownStyle] = useState({ top: 0, left: 0, width: 0 });
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const filtered = CURRENCIES.filter((currency) => {
@@ -24,6 +26,17 @@ export function CurrencySelector() {
     });
     setFilteredCurrencies(filtered);
   }, [searchQuery]);
+
+  useEffect(() => {
+    if (isOpen && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setDropdownStyle({
+        top: rect.bottom + window.scrollY + 8,
+        left: rect.left + window.scrollX,
+        width: rect.width,
+      });
+    }
+  }, [isOpen]);
 
   const handleSelect = (code: string) => {
     setSelectedCurrency(code);
@@ -50,8 +63,9 @@ export function CurrencySelector() {
             Preferred Currency
           </label>
 
-          <div className="relative">
+          <div>
             <button
+              ref={buttonRef}
               onClick={() => setIsOpen(!isOpen)}
               className="w-full flex items-center justify-between px-4 py-3 bg-input border border-border rounded-xl hover:border-accent/50 transition-colors text-foreground"
             >
@@ -70,63 +84,77 @@ export function CurrencySelector() {
             </button>
 
             {isOpen && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="absolute top-full left-0 right-0 mt-2 bg-secondary border border-border rounded-xl shadow-2xl z-50 overflow-hidden"
-              >
-                {/* Search Input */}
-                <div className="p-3 border-b border-border/50 sticky top-0 bg-secondary z-50">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-                    <input
-                      type="text"
-                      placeholder="Search currencies..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full pl-10 pr-3 py-2 bg-input border border-border rounded-lg text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:border-accent/50 transition-colors"
-                      autoFocus
-                    />
-                    {searchQuery && (
-                      <button
-                        onClick={() => setSearchQuery('')}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                      >
-                        <XIcon className="w-4 h-4" />
-                      </button>
+              <>
+                {/* Backdrop to close dropdown */}
+                <div
+                  className="fixed inset-0 z-40"
+                  onClick={() => setIsOpen(false)}
+                />
+                
+                {/* Fixed Position Dropdown */}
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="fixed bg-secondary border border-border rounded-xl shadow-2xl z-50 overflow-hidden"
+                  style={{
+                    top: `${dropdownStyle.top}px`,
+                    left: `${dropdownStyle.left}px`,
+                    width: `${dropdownStyle.width}px`,
+                  }}
+                >
+                  {/* Search Input */}
+                  <div className="p-3 border-b border-border/50 sticky top-0 bg-secondary">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+                      <input
+                        type="text"
+                        placeholder="Search currencies..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full pl-10 pr-3 py-2 bg-input border border-border rounded-lg text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:border-accent/50 transition-colors"
+                        autoFocus
+                      />
+                      {searchQuery && (
+                        <button
+                          onClick={() => setSearchQuery('')}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                          <XIcon className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Currency List */}
+                  <div className="max-h-80 overflow-y-auto">
+                    {filteredCurrencies.length > 0 ? (
+                      filteredCurrencies.map((currency) => (
+                        <button
+                          key={currency.code}
+                          onClick={() => handleSelect(currency.code)}
+                          className="w-full flex items-center justify-between px-4 py-3 hover:bg-secondary/50 transition-colors text-foreground text-left border-b border-border/50 last:border-b-0"
+                        >
+                          <span className="flex items-center gap-3">
+                            <span className="text-lg font-semibold text-accent w-8">{currency.symbol}</span>
+                            <div>
+                              <p className="font-semibold">{currency.code}</p>
+                              <p className="text-xs text-muted-foreground">{currency.name}</p>
+                            </div>
+                          </span>
+                          {selectedCurrency === currency.code && (
+                            <Check className="w-5 h-5 text-accent" />
+                          )}
+                        </button>
+                      ))
+                    ) : (
+                      <div className="p-6 text-center text-muted-foreground">
+                        <p className="text-sm">No currencies found</p>
+                      </div>
                     )}
                   </div>
-                </div>
-
-                {/* Currency List */}
-                <div className="max-h-80 overflow-y-auto">
-                  {filteredCurrencies.length > 0 ? (
-                    filteredCurrencies.map((currency) => (
-                      <button
-                        key={currency.code}
-                        onClick={() => handleSelect(currency.code)}
-                        className="w-full flex items-center justify-between px-4 py-3 hover:bg-secondary/50 transition-colors text-foreground text-left border-b border-border/50 last:border-b-0"
-                      >
-                        <span className="flex items-center gap-3">
-                          <span className="text-lg font-semibold text-accent w-8">{currency.symbol}</span>
-                          <div>
-                            <p className="font-semibold">{currency.code}</p>
-                            <p className="text-xs text-muted-foreground">{currency.name}</p>
-                          </div>
-                        </span>
-                        {selectedCurrency === currency.code && (
-                          <Check className="w-5 h-5 text-accent" />
-                        )}
-                      </button>
-                    ))
-                  ) : (
-                    <div className="p-6 text-center text-muted-foreground">
-                      <p className="text-sm">No currencies found</p>
-                    </div>
-                  )}
-                </div>
-              </motion.div>
+                </motion.div>
+              </>
             )}
           </div>
 

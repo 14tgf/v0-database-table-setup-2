@@ -63,7 +63,7 @@ export default function AccountPage() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-28">
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-28 overflow-visible">
         {/* Page Title */}
         <motion.div
           variants={staggerContainer}
