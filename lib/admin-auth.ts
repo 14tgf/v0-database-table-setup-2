@@ -1,4 +1,4 @@
-import { sql } from './db';
+import { sql as getSql } from './db';
 import bcrypt from 'bcryptjs';
 import { randomBytes, createHash } from 'crypto';
 
@@ -41,6 +41,7 @@ export function hashToken(token: string): string {
 
 export async function createAdmin(email: string, password: string, fullName: string): Promise<Admin> {
   const passwordHash = await hashPassword(password);
+  const sql = getSql();
   
   const result = await sql`
     INSERT INTO admins (email, password_hash, full_name)
@@ -56,6 +57,7 @@ export async function createAdmin(email: string, password: string, fullName: str
 }
 
 export async function getAdminByEmail(email: string): Promise<Admin | null> {
+  const sql = getSql();
   const result = await sql`
     SELECT id, email, full_name, status, last_login, created_at
     FROM admins
@@ -66,6 +68,7 @@ export async function getAdminByEmail(email: string): Promise<Admin | null> {
 }
 
 export async function getAdminById(id: string): Promise<Admin | null> {
+  const sql = getSql();
   const result = await sql`
     SELECT id, email, full_name, status, last_login, created_at
     FROM admins
@@ -76,6 +79,7 @@ export async function getAdminById(id: string): Promise<Admin | null> {
 }
 
 export async function getAdminPasswordHash(email: string): Promise<string | null> {
+  const sql = getSql();
   const result = await sql`
     SELECT password_hash FROM admins
     WHERE email = ${email} AND status = 'active'
@@ -89,6 +93,7 @@ export async function createAdminSession(
   userAgent?: string,
   ipAddress?: string
 ): Promise<{ token: string; sessionId: string }> {
+  const sql = getSql();
   const token = generateSessionToken();
   const tokenHash = hashToken(token);
   const sessionId = randomBytes(16).toString('hex');
@@ -103,6 +108,7 @@ export async function createAdminSession(
 }
 
 export async function getAdminSession(tokenHash: string): Promise<AdminSession | null> {
+  const sql = getSql();
   const result = await sql`
     SELECT id, admin_id, token_hash, expires_at, user_agent, ip_address
     FROM admin_sessions
@@ -113,12 +119,14 @@ export async function getAdminSession(tokenHash: string): Promise<AdminSession |
 }
 
 export async function invalidateAdminSession(sessionId: string): Promise<void> {
+  const sql = getSql();
   await sql`
     DELETE FROM admin_sessions WHERE id = ${sessionId}
   `;
 }
 
 export async function updateAdminLastLogin(adminId: string): Promise<void> {
+  const sql = getSql();
   await sql`
     UPDATE admins SET last_login = NOW() WHERE id = ${adminId}
   `;
