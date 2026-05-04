@@ -21,6 +21,10 @@ export interface StockData extends StockQuote {
 const FINNHUB_API_KEY = process.env.FINNHUB_API_KEY;
 const BASE_URL = 'https://finnhub.io/api/v1';
 
+if (!FINNHUB_API_KEY) {
+  console.warn('[Finnhub] WARNING: FINNHUB_API_KEY is not set. Stock data will not be available.');
+}
+
 const STOCK_TICKERS = [
   'AAPL', 'MSFT', 'TSLA', 'NVDA', 'AMZN',
   'GOOGL', 'META', 'NFLX', 'AMD', 'INTC',
