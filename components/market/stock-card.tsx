@@ -17,15 +17,20 @@ interface StockCardProps {
 }
 
 export function StockCard({ stock, index }: StockCardProps) {
-  const isPositive = stock.changePercent >= 0;
-  const isNegative = stock.changePercent < 0;
+  // Defensive checks for undefined values
+  const price = typeof stock.price === 'number' ? stock.price : 0;
+  const change = typeof stock.change === 'number' ? stock.change : 0;
+  const changePercent = typeof stock.changePercent === 'number' ? stock.changePercent : 0;
+  
+  const isPositive = changePercent >= 0;
+  const isNegative = changePercent < 0;
 
   const glowClass = isPositive ? 'glow-green' : isNegative ? 'glow-red' : 'glow-white';
   const borderClass = isPositive ? 'border-green-500/30 hover:border-green-500/50' : isNegative ? 'border-red-500/30 hover:border-red-500/50' : 'border-white/10 hover:border-accent/50';
   const changeColor = isPositive ? 'text-green-400' : isNegative ? 'text-red-400' : 'text-white/60';
   const bgColor = isPositive ? 'bg-green-500/5' : isNegative ? 'bg-red-500/5' : 'bg-white/5';
 
-  const trend = stock.change > 0.5 ? 'up' : stock.change < -0.5 ? 'down' : 'flat';
+  const trend = change > 0.5 ? 'up' : change < -0.5 ? 'down' : 'flat';
 
   return (
     <motion.div
@@ -74,19 +79,19 @@ export function StockCard({ stock, index }: StockCardProps) {
 
       {/* Price */}
       <div className="mb-2">
-        <p className="text-lg font-bold text-white">${stock.price.toFixed(2)}</p>
+        <p className="text-lg font-bold text-white">${price.toFixed(2)}</p>
       </div>
 
       {/* Change */}
       <div className="flex items-center justify-between pt-2 border-t border-white/10">
         <div>
           <p className={`text-xs font-semibold ${changeColor}`}>
-            {stock.change >= 0 ? '+' : ''}{stock.change.toFixed(2)}
+            {change >= 0 ? '+' : ''}{change.toFixed(2)}
           </p>
         </div>
         <div>
           <p className={`text-xs font-bold ${changeColor}`}>
-            {stock.changePercent >= 0 ? '+' : ''}{stock.changePercent.toFixed(2)}%
+            {changePercent >= 0 ? '+' : ''}{changePercent.toFixed(2)}%
           </p>
         </div>
       </div>

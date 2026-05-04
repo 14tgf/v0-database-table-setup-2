@@ -86,6 +86,12 @@ async function fetchStockData(symbol: string): Promise<StockData | null> {
 
     const quote: FinnhubQuote = await response.json();
 
+    // Validate quote data - ensure all required fields exist
+    if (!quote || typeof quote.c !== 'number' || typeof quote.pc !== 'number') {
+      console.error(`[v0] Invalid quote data for ${symbol}:`, quote);
+      return null;
+    }
+
     // Fetch company profile for name and logo
     const profile = await fetchCompanyProfile(symbol);
 
@@ -99,10 +105,10 @@ async function fetchStockData(symbol: string): Promise<StockData | null> {
       price: parseFloat(quote.c.toFixed(2)),
       change: parseFloat(change.toFixed(2)),
       changePercent: parseFloat(changePercent.toFixed(2)),
-      high: parseFloat(quote.h.toFixed(2)),
-      low: parseFloat(quote.l.toFixed(2)),
-      open: parseFloat(quote.o.toFixed(2)),
-      timestamp: quote.t,
+      high: parseFloat((quote.h || 0).toFixed(2)),
+      low: parseFloat((quote.l || 0).toFixed(2)),
+      open: parseFloat((quote.o || 0).toFixed(2)),
+      timestamp: quote.t || Date.now(),
     };
 
     // Cache the result

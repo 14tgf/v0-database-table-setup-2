@@ -35,7 +35,11 @@ export function TickerRibbon({ stocks }: TickerRibbonProps) {
           className="flex gap-2 py-2 pl-4"
         >
           {duplicatedStocks.map((stock, idx) => {
-            const isPositive = stock.change >= 0;
+            // Defensive checks for undefined values
+            const price = typeof stock.price === 'number' ? stock.price : 0;
+            const changePercent = typeof stock.changePercent === 'number' ? stock.changePercent : 0;
+            const change = typeof stock.change === 'number' ? stock.change : 0;
+            const isPositive = change >= 0;
             const colorClass = STOCK_COLORS[stock.symbol] || 'from-blue-500/80 to-blue-600/80';
 
             return (
@@ -46,14 +50,14 @@ export function TickerRibbon({ stocks }: TickerRibbonProps) {
               >
                 <span className="text-xs font-bold text-white">{stock.symbol}</span>
                 <span className="text-xs font-medium text-white">
-                  ${stock.price.toFixed(2)}
+                  ${price.toFixed(2)}
                 </span>
                 <span
                   className={`text-xs font-semibold ${
                     isPositive ? 'text-green-300' : 'text-red-300'
                   }`}
                 >
-                  {isPositive ? '▲' : '▼'} {Math.abs(stock.changePercent).toFixed(2)}%
+                  {isPositive ? '▲' : '▼'} {Math.abs(changePercent).toFixed(2)}%
                 </span>
               </motion.div>
             );
