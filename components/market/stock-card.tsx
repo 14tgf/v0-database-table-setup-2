@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
 interface StockCardProps {
   stock: {
@@ -20,7 +21,7 @@ interface StockCardProps {
 export function StockCard({ stock, index }: StockCardProps) {
   const [isAdding, setIsAdding] = useState(false);
   const [inPortfolio, setInPortfolio] = useState(false);
-  const [userId, setUserId] = useState<string | null>(null);
+  const { user } = useAuth();
 
   // Defensive checks for undefined values
   const price = typeof stock.price === 'number' ? stock.price : 0;
@@ -37,25 +38,8 @@ export function StockCard({ stock, index }: StockCardProps) {
 
   const trend = change > 0.5 ? 'up' : change < -0.5 ? 'down' : 'flat';
 
-  // Get current user on mount
-  useEffect(() => {
-    const getCurrentUser = async () => {
-      try {
-        const response = await fetch('/api/auth/me');
-        if (response.ok) {
-          const data = await response.json();
-          setUserId(data.userId);
-        }
-      } catch (error) {
-        console.error('[v0] Failed to get current user:', error);
-      }
-    };
-
-    getCurrentUser();
-  }, []);
-
   const handleAddToPortfolio = async () => {
-    if (!userId) {
+    if (!user) {
       console.error('[v0] User not authenticated');
       return;
     }
@@ -66,7 +50,7 @@ export function StockCard({ stock, index }: StockCardProps) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId,
+          userId: user.id,
           symbol: stock.symbol,
           companyName: stock.name,
           companyLogo: stock.logo,
@@ -168,14 +152,14 @@ export function StockCard({ stock, index }: StockCardProps) {
       {/* Add to Portfolio Button */}
       <button
         onClick={handleAddToPortfolio}
-        disabled={inPortfolio || isAdding || !userId}
+        disabled={inPortfolio || isAdding || !user}
         className={`w-full py-2 rounded-lg font-semibold text-sm transition-all ${
           inPortfolio
             ? 'bg-green-500/20 text-green-400 border border-green-500/30 cursor-default'
             : 'bg-accent/20 text-accent border border-accent/50 hover:bg-accent/30 disabled:opacity-50'
         }`}
       >
-        {!userId ? 'Login to Add' : isAdding ? '...' : inPortfolio ? '✓ Added' : '+ Add'}
+        {!user ? 'Login to Add' : isAdding ? '...' : inPortfolio ? '✓ Added' : '+ Add'}
       </button>
     </motion.div>
   );
