@@ -13,11 +13,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const db = sql();
+
     // Check if stock already exists in portfolio
-    const existing = await sql(
-      'SELECT id FROM user_portfolio_stocks WHERE user_id = $1 AND symbol = $2',
-      [userId, symbol]
-    );
+    const existing = (await db`
+      SELECT id FROM user_portfolio_stocks 
+      WHERE user_id = ${userId} AND symbol = ${symbol}
+    `) as any[];
 
     if (existing.length > 0) {
       return NextResponse.json(
@@ -27,13 +29,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Add stock to portfolio
-    const result = await sql(
-      `INSERT INTO user_portfolio_stocks 
-       (user_id, symbol, company_name, company_logo, initial_price, current_price, quantity, invested_amount, profit_loss, percent_change, status)
-       VALUES ($1, $2, $3, $4, $5, $6, 1, $7, 0, 0, 'active')
-       RETURNING *`,
-      [userId, symbol, companyName, companyLogo || '', initialPrice, currentPrice || initialPrice, initialPrice]
-    );
+    const result = (await db`
+      INSERT INTO user_portfolio_stocks 
+       (user_id, symbol, company_name, company_logo, initial_price, current_price, quantity, invested_amount, profit_loss, percent_change, status, created_at, updated_at)
+      VALUES (${userId}, ${symbol}, ${companyName}, ${companyLogo || ''}, ${initialPrice}, ${currentPrice || initialPrice}, 1, ${initialPrice}, 0, 0, 'active', NOW(), NOW())
+      RETURNING *
+    `) as any[];
 
     return NextResponse.json(result[0], { status: 201 });
   } catch (error) {
@@ -44,3 +45,4 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+

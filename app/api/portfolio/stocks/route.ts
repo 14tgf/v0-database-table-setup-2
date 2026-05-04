@@ -12,12 +12,13 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const stocks = await sql(
-      `SELECT * FROM user_portfolio_stocks 
-       WHERE user_id = $1 AND status = 'active'
-       ORDER BY created_at DESC`,
-      [userId]
-    );
+    const db = sql();
+
+    const stocks = (await db`
+      SELECT * FROM user_portfolio_stocks 
+       WHERE user_id = ${userId} AND status = 'active'
+       ORDER BY created_at DESC
+    `) as any[];
 
     return NextResponse.json(stocks, { status: 200 });
   } catch (error) {

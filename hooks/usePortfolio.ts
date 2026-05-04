@@ -3,30 +3,18 @@
 import { useState, useEffect, useCallback } from 'react';
 import useSWR, { mutate } from 'swr';
 
-export interface PortfolioStock {
-  id: string;
-  symbol: string;
-  companyName: string;
-  companyLogo: string;
-  initialPrice: number;
-  currentPrice: number;
-  quantity: number;
-  investedAmount: number;
-  profitLoss: number;
-  percentChange: number;
-  status: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-const fetcher = (url: string) => fetch(url).then(res => res.json());
+const fetcher = (url: string) => fetch(url).then(res => {
+  if (!res.ok) throw new Error('Failed to fetch');
+  return res.json();
+});
 
 export function usePortfolio() {
   const [userId, setUserId] = useState<string | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
 
-  // Get user ID from auth (from session/cookie)
+  // Get user ID from auth (from JWT cookie)
   useEffect(() => {
-    const getUserId = async () => {
+    const getCurrentUser = async () => {
       try {
         const response = await fetch('/api/auth/me');
         if (response.ok) {
@@ -35,17 +23,19 @@ export function usePortfolio() {
         }
       } catch (error) {
         console.error('[v0] Failed to fetch user:', error);
+      } finally {
+        setIsInitialized(true);
       }
     };
 
-    getUserId();
+    getCurrentUser();
   }, []);
 
   // Fetch portfolio stocks
-  const { data: stocks = [], isLoading, error } = useSWR(
-    userId ? `/api/portfolio/stocks?userId=${userId}` : null,
+  const { data: stocks = [], isLoading, error, mutate: mutateStocks } = useSWR(
+    isInitialized && userId ? `/api/portfolio/stocks?userId=${userId}` : null,
     fetcher,
-    { revalidateOnFocus: false, revalidateOnReconnect: true }
+    { revalidateOnFocus: false, revalidateOnReconnect: true, dedupingInterval: 5000 }
   );
 
   // Update portfolio prices from live market data
@@ -61,24 +51,25 @@ export function usePortfolio() {
 
       if (response.ok) {
         // Revalidate portfolio to show updated prices
-        mutate(`/api/portfolio/stocks?userId=${userId}`);
+        await mutateStocks();
+        console.log('[v0] Portfolio prices updated');
       }
     } catch (error) {
       console.error('[v0] Update prices error:', error);
     }
-  }, [userId]);
+  }, [userId, mutateStocks]);
 
-  // Update prices on mount and periodically
+  // Update prices on mount and periodically (every 45 seconds)
   useEffect(() => {
-    if (!userId) return;
+    if (!userId || !isInitialized) return;
 
     // Update immediately on mount
     updatePrices();
 
-    // Update every 30 seconds
-    const interval = setInterval(updatePrices, 30000);
+    // Update every 45 seconds
+    const interval = setInterval(updatePrices, 45000);
     return () => clearInterval(interval);
-  }, [userId, updatePrices]);
+  }, [userId, isInitialized, updatePrices]);
 
   // Add stock to portfolio
   const addStock = useCallback(
@@ -105,14 +96,15 @@ export function usePortfolio() {
         }
 
         // Revalidate portfolio
-        mutate(`/api/portfolio/stocks?userId=${userId}`);
+        await mutateStocks();
+        console.log('[v0] Stock added:', symbol);
         return await response.json();
       } catch (error) {
         console.error('[v0] Add stock error:', error);
         throw error;
       }
     },
-    [userId]
+    [userId, mutateStocks]
   );
 
   // Remove stock from portfolio
@@ -133,27 +125,28 @@ export function usePortfolio() {
         }
 
         // Revalidate portfolio
-        mutate(`/api/portfolio/stocks?userId=${userId}`);
+        await mutateStocks();
+        console.log('[v0] Stock removed:', symbol);
         return await response.json();
       } catch (error) {
         console.error('[v0] Remove stock error:', error);
         throw error;
       }
     },
-    [userId]
+    [userId, mutateStocks]
   );
 
   // Check if stock is in portfolio
   const isStockInPortfolio = useCallback(
     (symbol: string) => {
-      return stocks.some((stock: PortfolioStock) => stock.symbol === symbol);
+      return stocks.some((stock: any) => stock.symbol === symbol);
     },
     [stocks]
   );
 
   return {
     stocks,
-    isLoading,
+    isLoading: !isInitialized || isLoading,
     error,
     userId,
     addStock,
@@ -161,3 +154,4 @@ export function usePortfolio() {
     isStockInPortfolio,
   };
 }
+

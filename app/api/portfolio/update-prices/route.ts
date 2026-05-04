@@ -14,6 +14,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const db = sql();
+
     // If symbol provided, update just that stock
     if (symbol) {
       try {
@@ -29,11 +31,10 @@ export async function POST(request: NextRequest) {
         const currentPrice = quote.price;
 
         // Get the stock entry
-        const stocks = await sql(
-          `SELECT * FROM user_portfolio_stocks 
-           WHERE user_id = $1 AND symbol = $2 AND status = 'active'`,
-          [userId, symbol]
-        );
+        const stocks = (await db`
+          SELECT * FROM user_portfolio_stocks 
+           WHERE user_id = ${userId} AND symbol = ${symbol} AND status = 'active'
+        `) as any[];
 
         if (stocks.length === 0) {
           return NextResponse.json(
@@ -48,13 +49,12 @@ export async function POST(request: NextRequest) {
         const percentChange = (profitLoss / stock.invested_amount) * 100;
 
         // Update the stock with new price and calculations
-        const updated = await sql(
-          `UPDATE user_portfolio_stocks 
-           SET current_price = $1, profit_loss = $2, percent_change = $3, updated_at = NOW()
-           WHERE user_id = $4 AND symbol = $5
-           RETURNING *`,
-          [currentPrice, profitLoss, percentChange, userId, symbol]
-        );
+        const updated = (await db`
+          UPDATE user_portfolio_stocks 
+           SET current_price = ${currentPrice}, profit_loss = ${profitLoss}, percent_change = ${percentChange}, updated_at = NOW()
+           WHERE user_id = ${userId} AND symbol = ${symbol}
+           RETURNING *
+        `) as any[];
 
         return NextResponse.json(updated[0], { status: 200 });
       } catch (error) {
@@ -67,11 +67,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Otherwise, update all stocks for the user
-    const userStocks = await sql(
-      `SELECT * FROM user_portfolio_stocks 
-       WHERE user_id = $1 AND status = 'active'`,
-      [userId]
-    );
+    const userStocks = (await db`
+      SELECT * FROM user_portfolio_stocks 
+       WHERE user_id = ${userId} AND status = 'active'
+    `) as any[];
 
     const updated = [];
     for (const stock of userStocks) {
@@ -84,13 +83,12 @@ export async function POST(request: NextRequest) {
           const profitLoss = newValue - stock.invested_amount;
           const percentChange = (profitLoss / stock.invested_amount) * 100;
 
-          const result = await sql(
-            `UPDATE user_portfolio_stocks 
-             SET current_price = $1, profit_loss = $2, percent_change = $3, updated_at = NOW()
-             WHERE id = $4
-             RETURNING *`,
-            [currentPrice, profitLoss, percentChange, stock.id]
-          );
+          const result = (await db`
+            UPDATE user_portfolio_stocks 
+             SET current_price = ${currentPrice}, profit_loss = ${profitLoss}, percent_change = ${percentChange}, updated_at = NOW()
+             WHERE id = ${stock.id}
+             RETURNING *
+          `) as any[];
 
           updated.push(result[0]);
         }

@@ -13,14 +13,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const db = sql();
+
     // Mark stock as removed
-    const result = await sql(
-      `UPDATE user_portfolio_stocks 
+    const result = (await db`
+      UPDATE user_portfolio_stocks 
        SET status = 'removed', updated_at = NOW()
-       WHERE user_id = $1 AND symbol = $2
-       RETURNING *`,
-      [userId, symbol]
-    );
+       WHERE user_id = ${userId} AND symbol = ${symbol}
+       RETURNING *
+    `) as any[];
 
     if (result.length === 0) {
       return NextResponse.json(
