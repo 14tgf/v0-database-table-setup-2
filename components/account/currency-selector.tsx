@@ -1,19 +1,17 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { staggerContainer, staggerItem } from '@/lib/animations';
 import { Check, Search, X as XIcon } from 'lucide-react';
 import { useCurrency } from '@/app/providers/currency-provider';
 import { CURRENCIES } from '@/lib/currency';
+import { motion } from 'framer-motion';
 
 export function CurrencySelector() {
   const { selectedCurrency, setSelectedCurrency } = useCurrency();
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredCurrencies, setFilteredCurrencies] = useState(CURRENCIES);
-  const [dropdownStyle, setDropdownStyle] = useState({ top: 0, left: 0, width: 0 });
-  const buttonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const filtered = CURRENCIES.filter((currency) => {
@@ -26,17 +24,6 @@ export function CurrencySelector() {
     });
     setFilteredCurrencies(filtered);
   }, [searchQuery]);
-
-  useEffect(() => {
-    if (isOpen && buttonRef.current) {
-      const rect = buttonRef.current.getBoundingClientRect();
-      setDropdownStyle({
-        top: rect.bottom + window.scrollY + 8,
-        left: rect.left + window.scrollX,
-        width: rect.width,
-      });
-    }
-  }, [isOpen]);
 
   const handleSelect = (code: string) => {
     setSelectedCurrency(code);
@@ -51,7 +38,7 @@ export function CurrencySelector() {
       variants={staggerContainer}
       initial="hidden"
       animate="visible"
-      className="bg-gradient-to-br from-secondary/40 via-secondary/30 to-background/50 border border-border/50 rounded-2xl p-6 backdrop-blur-sm"
+      className="bg-gradient-to-br from-secondary/40 via-secondary/30 to-background/50 border border-border/50 rounded-2xl p-6 backdrop-blur-sm relative"
     >
       <motion.h2 variants={staggerItem} className="text-xl font-bold text-foreground mb-4">
         Account Preferences
@@ -63,9 +50,8 @@ export function CurrencySelector() {
             Preferred Currency
           </label>
 
-          <div>
+          <div className="relative">
             <button
-              ref={buttonRef}
               onClick={() => setIsOpen(!isOpen)}
               className="w-full flex items-center justify-between px-4 py-3 bg-input border border-border rounded-xl hover:border-accent/50 transition-colors text-foreground"
             >
@@ -85,26 +71,20 @@ export function CurrencySelector() {
 
             {isOpen && (
               <>
-                {/* Backdrop to close dropdown */}
+                {/* Backdrop */}
                 <div
                   className="fixed inset-0 z-40"
                   onClick={() => setIsOpen(false)}
+                  style={{ zIndex: 40 }}
                 />
-                
-                {/* Fixed Position Dropdown */}
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="fixed bg-secondary border border-border rounded-xl shadow-2xl z-50 overflow-hidden"
-                  style={{
-                    top: `${dropdownStyle.top}px`,
-                    left: `${dropdownStyle.left}px`,
-                    width: `${dropdownStyle.width}px`,
-                  }}
+
+                {/* Dropdown Menu */}
+                <div
+                  className="absolute top-full left-0 right-0 mt-2 bg-secondary border border-border rounded-xl shadow-2xl z-50 overflow-hidden"
+                  style={{ zIndex: 50 }}
                 >
                   {/* Search Input */}
-                  <div className="p-3 border-b border-border/50 sticky top-0 bg-secondary">
+                  <div className="p-3 border-b border-border/50 bg-secondary">
                     <div className="relative">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
                       <input
@@ -153,7 +133,7 @@ export function CurrencySelector() {
                       </div>
                     )}
                   </div>
-                </motion.div>
+                </div>
               </>
             )}
           </div>
