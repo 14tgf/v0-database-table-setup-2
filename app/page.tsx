@@ -69,18 +69,24 @@ export default function Home() {
           />
         </div>
         <nav className="hidden md:flex gap-8 text-sm font-medium">
-          {['BUY', 'SELL', 'EXPLORE', 'CONTACT'].map((item, idx) => (
-            <a
-              key={item}
-              href="#"
+          {[
+            { name: 'BUY', href: '#' },
+            { name: 'SELL', href: '#' },
+            { name: 'EXPLORE', href: '#' },
+            { name: 'VIP MEME ERA', href: '/vip-meme-era' },
+            { name: 'CONTACT', href: '#' },
+          ].map((item, idx) => (
+            <Link
+              key={item.name}
+              href={item.href}
               className={`text-muted-foreground hover:text-accent transition-all duration-300 relative group ${
                 isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'
               }`}
               style={{ transitionDelay: `${200 + idx * 80}ms` }}
             >
-              {item}
+              {item.name}
               <span className="absolute bottom-0 left-0 w-0 h-px bg-accent group-hover:w-full transition-all duration-300" />
-            </a>
+            </Link>
           ))}
         </nav>
         <button className="p-1.5 rounded-lg hover:bg-white/10 transition-colors md:hidden">
