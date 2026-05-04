@@ -13,7 +13,6 @@ const VIPTiers = [
     price: 99.00,
     duration: '12.2 months',
     description: 'Essential VIP benefits for new members',
-    image: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_7871-SmMy2NDABd6pueLGbAUgp9Y7fuFOH1.jpeg',
     benefits: [
       '3.00% off car purchases',
       '1.00% investment bonus',
@@ -29,7 +28,6 @@ const VIPTiers = [
     price: 249.00,
     duration: '12.2 months',
     description: 'Enhanced benefits with greater rewards',
-    image: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_7872-ILfmybnkv0TLh3bFDmyAHMeLGUhj2m.jpeg',
     benefits: [
       '5.00% off car purchases',
       '2.00% investment bonus',
@@ -48,18 +46,17 @@ const VIPTiers = [
     price: 5000.00,
     duration: '12.2 months',
     description: 'Premium tier with exclusive opportunities',
-    image: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_7874-Hrxr4trNihmY4TLr38uvJTEhmeYGTz.jpeg',
     benefits: [
       '7.00% off car purchases',
       '10.00% investment bonus',
       '3x giveaway entries',
       'Priority customer support',
-      '🔒 Access to exclusive opportunities',
-      '🤖 Advanced AI & robotics insights',
-      '📋 Private investment deals',
-      '🚗 Priority Tesla vehicle allocations',
-      '💎 VIP client priority support',
-      '⚡ Not available to all clients',
+      'Access to exclusive opportunities',
+      'Advanced AI & robotics insights',
+      'Private investment deals',
+      'Priority Tesla vehicle allocations',
+      'VIP client priority support',
+      'Not available to all clients',
     ],
     glowColor: 'glow-cyan',
     featured: true,
@@ -69,7 +66,6 @@ const VIPTiers = [
     price: 999.00,
     duration: '12.2 months',
     description: 'Ultimate VIP experience with maximum benefits',
-    image: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/IMG_7875-HawkTez2vJMiiU72pWZqeFcsY70iOU.jpeg',
     benefits: [
       '10.00% off car purchases',
       '5.00% investment bonus',
@@ -87,7 +83,7 @@ const VIPTiers = [
   },
 ]
 
-export default function VIPMemeEraPage() {
+export default function VIPMembershipPage() {
   const [isLoaded, setIsLoaded] = useState(false)
 
   useEffect(() => {
@@ -177,7 +173,7 @@ export default function VIPMemeEraPage() {
             className="text-center mb-16 space-y-4"
           >
             <motion.div variants={staggerItem} className="inline-flex items-center gap-2 px-4 py-2 bg-secondary border border-accent/30 rounded-full w-fit mx-auto">
-              <span className="text-xs font-semibold text-accent tracking-widest">VIP MEME ERA</span>
+              <span className="text-xs font-semibold text-accent tracking-widest">VIP MEMBERSHIP</span>
             </motion.div>
 
             <motion.h1 variants={staggerItem} className="text-4xl md:text-6xl font-bold leading-tight text-foreground">
@@ -221,18 +217,6 @@ export default function VIPMemeEraPage() {
                       </div>
                     </div>
                   )}
-
-                  {/* Tier Image */}
-                  <div className="relative w-full h-48 mb-6 -mx-6 -mt-6 rounded-t-2xl overflow-hidden">
-                    <Image
-                      src={tier.image}
-                      alt={tier.name}
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-secondary/80 to-transparent" />
-                  </div>
 
                   {/* Tier Info */}
                   <div className="mb-6">
@@ -300,7 +284,7 @@ export default function VIPMemeEraPage() {
         </div>
       </div>
 
-      {/* Footer - reuse existing footer component pattern */}
+      {/* Footer */}
       <footer className="relative border-t border-border/50 bg-background mt-20">
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-accent/50 to-transparent" />
         <div className="max-w-7xl mx-auto px-6 py-12 text-center">
