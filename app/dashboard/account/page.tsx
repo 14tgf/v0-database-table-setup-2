@@ -11,11 +11,13 @@ import { PasswordSettings } from '@/components/account/password-settings';
 import { AccountActions } from '@/components/account/account-actions';
 import { SidebarMenu } from '@/components/dashboard/sidebar-menu';
 import { DashboardNav } from '@/components/dashboard/dashboard-nav';
+import { useCurrency } from '@/app/providers/currency-provider';
 
 export default function AccountPage() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const { selectedCurrency } = useCurrency();
 
   useEffect(() => {
     setIsLoaded(true);
@@ -106,7 +108,7 @@ export default function AccountPage() {
       </main>
 
       {/* Action Buttons */}
-      <AccountActions onSave={handleSave} />
+      <AccountActions onSave={handleSave} selectedCurrency={selectedCurrency} />
 
       {/* Sticky Navigation */}
       <DashboardNav />
