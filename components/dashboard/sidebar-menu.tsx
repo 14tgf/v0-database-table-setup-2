@@ -23,7 +23,7 @@ export function SidebarMenu({ isOpen, onClose, userEmail = 'cedoe70@gmail.com', 
     { icon: CreditCard, label: 'VIP Membership', href: '/vip-membership' },
     { icon: Gift, label: 'Giveaways', href: '/giveaway' },
     { icon: Package, label: 'Orders', href: '/dashboard/orders' },
-    { icon: User, label: 'Account', href: '#' },
+    { icon: User, label: 'Account', href: '/dashboard/account' },
     { icon: Shield, label: 'KYC Verification', href: '#' },
     { icon: HelpCircle, label: 'Support', href: '#' },
   ];
