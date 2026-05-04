@@ -3,19 +3,16 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowLeft, TrendingUp, TrendingDown, ArrowUpRight, ArrowDownLeft, RefreshCw, Trash2, Plus } from 'lucide-react';
+import { ArrowLeft, TrendingUp, TrendingDown, ArrowUpRight, ArrowDownLeft, RefreshCw, Trash2 } from 'lucide-react';
 import { SidebarMenu } from '@/components/dashboard/sidebar-menu';
 import { DashboardNav } from '@/components/dashboard/dashboard-nav';
 import { usePortfolioStocks } from '@/hooks/usePortfolioStocks';
-import { useMarketData } from '@/hooks/use-market-data';
 import { motion } from 'framer-motion';
 
 export default function PortfolioPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const { stocks, portfolio, isLoading, refreshPrices, removeStock, addStock } = usePortfolioStocks();
-  const { stocks: marketStocks, loading: marketLoading } = useMarketData();
-  const [searchQuery, setSearchQuery] = useState('');
+  const { stocks, portfolio, isLoading, refreshPrices, removeStock } = usePortfolioStocks();
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -37,25 +34,6 @@ export default function PortfolioPage() {
       }
     }
   };
-
-  const handleAddStock = async (ticker: string, companyName: string, logo: string, price: number) => {
-    try {
-      await addStock(ticker, companyName, logo, price);
-    } catch (error) {
-      console.error('[v0] Add failed:', error);
-    }
-  };
-
-  // Filter available stocks (not already in portfolio)
-  const availableStocks = marketStocks.filter(
-    (stock) => !stocks.some(s => s.symbol === stock.ticker)
-  ).filter(stock => 
-    stock.ticker.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    stock.companyName.toLowerCase().includes(searchQuery.toLowerCase())
-  ).slice(0, 8); // Show top 8 available stocks
-
-  const portfolioSymbols = stocks.map(s => s.symbol);
-  const hasAvailableStocks = availableStocks.length > 0;
 
   const totalStocks = portfolio?.totalStocks || 0;
 
@@ -283,99 +261,6 @@ export default function PortfolioPage() {
                   </tbody>
                 </table>
               </div>
-            </motion.div>
-
-            {/* Browse & Add Stocks Section */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.9 }}
-              className="rounded-2xl border border-white/10 bg-gradient-to-br from-secondary/40 via-secondary/30 to-background/50 backdrop-blur-xl p-6 mt-8"
-            >
-              <div className="mb-6">
-                <h2 className="text-lg font-bold text-white mb-2">Browse & Add More Stocks</h2>
-                <p className="text-white/70 text-sm mb-4">Search for stocks to add to your portfolio</p>
-                <input
-                  type="text"
-                  placeholder="Search by symbol or company name..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder:text-white/40 focus:outline-none focus:border-accent/50 text-sm"
-                />
-              </div>
-
-              {marketLoading ? (
-                <div className="text-center py-8">
-                  <div className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-                  <p className="text-white/60 text-sm">Loading market data...</p>
-                </div>
-              ) : availableStocks.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {availableStocks.map((stock) => (
-                    <motion.div
-                      key={stock.ticker}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="rounded-xl border border-white/10 bg-secondary/30 p-4 hover:bg-secondary/40 transition-all"
-                    >
-                      <div className="flex items-center gap-3 mb-3">
-                        {stock.logo ? (
-                          <div className="relative w-8 h-8 rounded-lg bg-white/10 overflow-hidden flex-shrink-0">
-                            <Image
-                              src={stock.logo}
-                              alt={stock.companyName}
-                              fill
-                              className="object-cover"
-                              sizes="32px"
-                            />
-                          </div>
-                        ) : (
-                          <div className="w-8 h-8 rounded-lg bg-accent/20 border border-accent/50 flex items-center justify-center text-xs font-bold text-accent flex-shrink-0">
-                            {stock.ticker.substring(0, 1)}
-                          </div>
-                        )}
-                        <div className="min-w-0">
-                          <p className="text-xs font-semibold text-white">{stock.ticker}</p>
-                          <p className="text-xs text-white/60 truncate">{stock.companyName}</p>
-                        </div>
-                      </div>
-
-                      <div className="mb-3">
-                        <p className="text-lg font-bold text-white">${stock.price.toFixed(2)}</p>
-                        <p className={`text-xs font-semibold ${stock.percentChange >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                          {stock.percentChange >= 0 ? '+' : ''}{stock.percentChange.toFixed(2)}%
-                        </p>
-                      </div>
-
-                      <button
-                        onClick={() => handleAddStock(stock.ticker, stock.companyName, stock.logo, stock.price)}
-                        className="w-full py-2 px-3 rounded-lg bg-accent/20 text-accent border border-accent/50 hover:bg-accent/30 transition-colors font-medium text-xs flex items-center justify-center gap-2"
-                      >
-                        <Plus className="w-3 h-3" />
-                        Add
-                      </button>
-                    </motion.div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  {searchQuery ? (
-                    <>
-                      <p className="text-white/60 text-sm">No matching stocks available to add</p>
-                    </>
-                  ) : (
-                    <>
-                      <p className="text-white/60 text-sm mb-4">All available stocks are in your portfolio</p>
-                      <Link
-                        href="/market"
-                        className="inline-block px-4 py-2 bg-accent/20 text-accent border border-accent/50 rounded-lg text-sm font-medium hover:bg-accent/30 transition-colors"
-                      >
-                        Browse All Stocks
-                      </Link>
-                    </>
-                  )}
-                </div>
-              )}
             </motion.div>
           </>
         )}

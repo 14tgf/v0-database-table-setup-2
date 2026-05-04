@@ -32,19 +32,9 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { symbol, companyName, companyLogo, initialPrice } = body;
 
-    console.log('[v0] Add stock request:', { symbol, companyName, companyLogo, initialPrice, type: typeof initialPrice });
-
-    if (!symbol || !companyName || initialPrice === undefined || initialPrice === null) {
+    if (!symbol || !companyName || typeof initialPrice !== 'number') {
       return NextResponse.json(
         { error: 'Missing required fields: symbol, companyName, initialPrice' },
-        { status: 400 }
-      );
-    }
-
-    const priceNum = parseFloat(initialPrice);
-    if (isNaN(priceNum) || priceNum <= 0) {
-      return NextResponse.json(
-        { error: 'Invalid price: must be a positive number' },
         { status: 400 }
       );
     }
@@ -68,7 +58,7 @@ export async function POST(request: NextRequest) {
        (user_id, symbol, company_name, company_logo, initial_price, current_price, invested_amount)
        VALUES ($1, $2, $3, $4, $5, $6, $7)
        RETURNING id, symbol, company_name, company_logo, initial_price, current_price, quantity, status, created_at`,
-      [userId, symbol, companyName, companyLogo || null, priceNum, priceNum, priceNum]
+      [userId, symbol, companyName, companyLogo || null, initialPrice, initialPrice, initialPrice]
     );
 
     if (result.length === 0) {
