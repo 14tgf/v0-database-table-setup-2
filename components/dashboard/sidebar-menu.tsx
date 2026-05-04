@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { X, LogOut, LayoutGrid, Wallet, TrendingUp, BarChart3, Clock, Car, CreditCard, Gift, Package, User, Shield, HelpCircle } from 'lucide-react';
 
@@ -12,6 +13,9 @@ interface SidebarMenuProps {
 }
 
 export function SidebarMenu({ isOpen, onClose, userEmail = '', userName = '' }: SidebarMenuProps) {
+  const router = useRouter();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
   const menuItems = [
     { icon: LayoutGrid, label: 'Dashboard', href: '/dashboard' },
     { icon: Wallet, label: 'Wallet', href: '/dashboard/wallet' },
@@ -31,6 +35,21 @@ export function SidebarMenu({ isOpen, onClose, userEmail = '', userName = '' }: 
   const handleMenuItemClick = () => {
     onClose();
   };
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      router.push('/auth');
+    } catch (error) {
+      console.error('[v0] Logout error:', error);
+      setIsLoggingOut(false);
+    }
+  };
+
+  const userInitial = userName ? userName[0].toUpperCase() : 'U';
+  const displayName = userName || 'User';
+  const displayEmail = userEmail || 'user@example.com';
 
   return (
     <>
@@ -62,11 +81,11 @@ export function SidebarMenu({ isOpen, onClose, userEmail = '', userName = '' }: 
         <div className="bg-gradient-to-br from-secondary/30 via-secondary/20 to-background/50 p-4 border-b border-white/10 backdrop-blur-sm">
           <div className="flex items-start gap-3">
             <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center flex-shrink-0">
-              <span className="text-background font-bold text-lg">{userName[0]}</span>
+              <span className="text-background font-bold text-lg">{userInitial}</span>
             </div>
             <div className="flex-1">
-              <p className="font-semibold text-white">{userName}</p>
-              <p className="text-sm text-white/70">{userEmail}</p>
+              <p className="font-semibold text-white">{displayName}</p>
+              <p className="text-sm text-white/70">{displayEmail}</p>
               <div className="mt-2 inline-flex items-center gap-1.5 bg-white/10 px-2.5 py-1 rounded-full border border-white/20">
                 <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
                 <span className="text-xs text-white/60">KYC Not Submitted</span>
@@ -92,10 +111,14 @@ export function SidebarMenu({ isOpen, onClose, userEmail = '', userName = '' }: 
 
         {/* Logout Button */}
         <div className="sticky bottom-0 left-0 right-0 bg-background/90 backdrop-blur-sm border-t border-white/10 p-4">
-          <button className="w-full flex items-center justify-between px-4 py-3 rounded-lg text-primary hover:bg-primary/20 transition-colors font-medium">
+          <button
+            onClick={handleLogout}
+            disabled={isLoggingOut}
+            className="w-full flex items-center justify-between px-4 py-3 rounded-lg text-primary hover:bg-primary/20 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          >
             <span className="flex items-center gap-2">
               <LogOut className="w-5 h-5" />
-              Logout
+              {isLoggingOut ? 'Logging out...' : 'Logout'}
             </span>
             <LogOut className="w-4 h-4 rotate-180" />
           </button>
