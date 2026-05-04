@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { CurrencyProvider } from '@/app/providers/currency-provider'
+import { PreloaderProvider } from '@/app/providers/preloader-provider'
 import './globals.css'
 
 const _geist = Geist({ subsets: ["latin"] });
@@ -38,9 +39,11 @@ export default function RootLayout({
   return (
     <html lang="en" className="bg-background dark">
       <body className="font-sans antialiased bg-background text-foreground">
-        <CurrencyProvider>
-          {children}
-        </CurrencyProvider>
+        <PreloaderProvider>
+          <CurrencyProvider>
+            {children}
+          </CurrencyProvider>
+        </PreloaderProvider>
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>
