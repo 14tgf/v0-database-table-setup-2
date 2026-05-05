@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { CheckCircle, XCircle, Clock, ChevronDown } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
 interface Deposit {
   id: string;
@@ -38,6 +39,7 @@ const staggerItem = {
 };
 
 export default function AdminDepositsPage() {
+  const { user } = useAuth();
   const [deposits, setDeposits] = useState<Deposit[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -45,20 +47,25 @@ export default function AdminDepositsPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    loadDeposits();
-  }, []);
+    if (user?.id) {
+      loadDeposits();
+    } else if (!isLoading) {
+      setError('User not authenticated. Please log in again.');
+    }
+  }, [user?.id]);
 
   const loadDeposits = async () => {
     try {
-      console.log('[v0] ADMIN - Loading deposits');
+      console.log('[v0] ADMIN - Loading deposits for user:', user?.id);
       setIsLoading(true);
       setError(null);
       
-      const userId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
-      if (!userId) {
+      if (!user?.id) {
         setError('User ID not found. Please log in again.');
         return;
       }
+      
+      const userId = user.id;
       
       const response = await fetch(`/api/admin/deposits?userId=${userId}`);
       console.log('[v0] ADMIN - API response status:', response.status);
@@ -101,8 +108,7 @@ export default function AdminDepositsPage() {
       console.log('[v0] ADMIN - Approve button clicked for deposit:', depositId);
       setActionLoading(depositId);
       
-      const userId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
-      if (!userId) {
+      if (!user?.id) {
         alert('User ID not found. Please log in again.');
         return;
       }
@@ -110,7 +116,7 @@ export default function AdminDepositsPage() {
       const response = await fetch('/api/admin/deposits/approve', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ deposit_id: depositId, action: 'approve', userId }),
+        body: JSON.stringify({ deposit_id: depositId, action: 'approve', userId: user.id }),
       });
 
       if (!response.ok) {
@@ -133,8 +139,7 @@ export default function AdminDepositsPage() {
       console.log('[v0] ADMIN - Reject button clicked for deposit:', depositId);
       setActionLoading(depositId);
       
-      const userId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
-      if (!userId) {
+      if (!user?.id) {
         alert('User ID not found. Please log in again.');
         return;
       }
@@ -142,7 +147,7 @@ export default function AdminDepositsPage() {
       const response = await fetch('/api/admin/deposits/approve', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ deposit_id: depositId, action: 'reject', userId }),
+        body: JSON.stringify({ deposit_id: depositId, action: 'reject', userId: user.id }),
       });
 
       if (!response.ok) {
