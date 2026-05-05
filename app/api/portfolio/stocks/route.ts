@@ -5,7 +5,10 @@ export async function GET(request: NextRequest) {
   try {
     const userId = request.nextUrl.searchParams.get('userId');
 
+    console.log('[v0] Fetching portfolio stocks for userId:', userId);
+
     if (!userId) {
+      console.log('[v0] Missing userId parameter');
       return NextResponse.json(
         { message: 'Missing userId' },
         { status: 400 }
@@ -19,6 +22,9 @@ export async function GET(request: NextRequest) {
        WHERE user_id = ${userId} AND status = 'active'
        ORDER BY created_at DESC
     `) as any[];
+
+    console.log('[v0] Found stocks:', stocks);
+    console.log('[v0] Stock count:', stocks.length);
 
     return NextResponse.json(stocks, { status: 200 });
   } catch (error) {

@@ -50,7 +50,17 @@ export async function POST(request: NextRequest) {
       RETURNING *
     `) as any[];
 
-    console.log('[v0] Stock added successfully:', result[0]);
+    console.log('[v0] Stock inserted into database:', result[0]);
+    console.log('[v0] Verifying insert - checking database for symbol:', symbol, 'userId:', userId);
+    
+    // Verify the insert by querying immediately
+    const verify = (await db`
+      SELECT * FROM user_portfolio_stocks 
+      WHERE user_id = ${userId} AND symbol = ${symbol}
+    `) as any[];
+    
+    console.log('[v0] Verification query result:', verify);
+    
     return NextResponse.json(result[0], { status: 201 });
   } catch (error) {
     console.error('[v0] Add stock error:', error);

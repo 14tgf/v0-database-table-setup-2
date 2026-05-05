@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import useSWR, { mutate } from 'swr';
+import useSWR from 'swr';
+import { useAuth } from './useAuth';
 
 const fetcher = (url: string) => fetch(url).then(res => {
   if (!res.ok) throw new Error('Failed to fetch');
@@ -9,44 +10,35 @@ const fetcher = (url: string) => fetch(url).then(res => {
 });
 
 export function usePortfolio() {
-  const [userId, setUserId] = useState<string | null>(null);
+  const { user } = useAuth();
   const [isInitialized, setIsInitialized] = useState(false);
 
-  // Get user ID from auth (from JWT cookie)
+  // Wait for auth to load before fetching portfolio
   useEffect(() => {
-    const getCurrentUser = async () => {
-      try {
-        const response = await fetch('/api/auth/me');
-        if (response.ok) {
-          const data = await response.json();
-          setUserId(data.userId);
-        }
-      } catch (error) {
-        console.error('[v0] Failed to fetch user:', error);
-      } finally {
-        setIsInitialized(true);
-      }
-    };
-
-    getCurrentUser();
-  }, []);
+    if (user !== undefined) {
+      setIsInitialized(true);
+    }
+  }, [user]);
 
   // Fetch portfolio stocks
   const { data: stocks = [], isLoading, error, mutate: mutateStocks } = useSWR(
-    isInitialized && userId ? `/api/portfolio/stocks?userId=${userId}` : null,
+    isInitialized && user ? `/api/portfolio/stocks?userId=${user.id}` : null,
     fetcher,
-    { revalidateOnFocus: false, revalidateOnReconnect: true, dedupingInterval: 5000 }
+    { revalidateOnFocus: false, revalidateOnReconnect: true, dedupingInterval: 2000 }
   );
+
+  console.log('[v0] usePortfolio - user:', user, 'stocks:', stocks, 'isLoading:', isLoading);
 
   // Update portfolio prices from live market data
   const updatePrices = useCallback(async () => {
-    if (!userId) return;
+    if (!user?.id) return;
 
     try {
+      console.log('[v0] Updating portfolio prices...');
       const response = await fetch('/api/portfolio/update-prices', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId }),
+        body: JSON.stringify({ userId: user.id }),
       });
 
       if (response.ok) {
@@ -57,11 +49,11 @@ export function usePortfolio() {
     } catch (error) {
       console.error('[v0] Update prices error:', error);
     }
-  }, [userId, mutateStocks]);
+  }, [user?.id, mutateStocks]);
 
   // Update prices on mount and periodically (every 45 seconds)
   useEffect(() => {
-    if (!userId || !isInitialized) return;
+    if (!user?.id || !isInitialized) return;
 
     // Update immediately on mount
     updatePrices();
@@ -69,19 +61,20 @@ export function usePortfolio() {
     // Update every 45 seconds
     const interval = setInterval(updatePrices, 45000);
     return () => clearInterval(interval);
-  }, [userId, isInitialized, updatePrices]);
+  }, [user?.id, isInitialized, updatePrices]);
 
   // Add stock to portfolio
   const addStock = useCallback(
     async (symbol: string, companyName: string, companyLogo: string, initialPrice: number) => {
-      if (!userId) throw new Error('User not authenticated');
+      if (!user?.id) throw new Error('User not authenticated');
 
       try {
+        console.log('[v0] usePortfolio.addStock called with:', { symbol, companyName, initialPrice });
         const response = await fetch('/api/portfolio/add', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            userId,
+            userId: user.id,
             symbol,
             companyName,
             companyLogo,
@@ -95,7 +88,8 @@ export function usePortfolio() {
           throw new Error(error.message || 'Failed to add stock');
         }
 
-        // Revalidate portfolio
+        // Revalidate portfolio to show the new stock
+        console.log('[v0] Stock added, revalidating portfolio...');
         await mutateStocks();
         console.log('[v0] Stock added:', symbol);
         return await response.json();
@@ -104,19 +98,19 @@ export function usePortfolio() {
         throw error;
       }
     },
-    [userId, mutateStocks]
+    [user?.id, mutateStocks]
   );
 
   // Remove stock from portfolio
   const removeStock = useCallback(
     async (symbol: string) => {
-      if (!userId) throw new Error('User not authenticated');
+      if (!user?.id) throw new Error('User not authenticated');
 
       try {
         const response = await fetch('/api/portfolio/remove', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId, symbol }),
+          body: JSON.stringify({ userId: user.id, symbol }),
         });
 
         if (!response.ok) {
@@ -133,7 +127,7 @@ export function usePortfolio() {
         throw error;
       }
     },
-    [userId, mutateStocks]
+    [user?.id, mutateStocks]
   );
 
   // Check if stock is in portfolio
@@ -148,10 +142,11 @@ export function usePortfolio() {
     stocks,
     isLoading: !isInitialized || isLoading,
     error,
-    userId,
+    userId: user?.id || null,
     addStock,
     removeStock,
     isStockInPortfolio,
   };
 }
+
 

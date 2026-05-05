@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import Image from 'next/image';
 import { TrendingUp, TrendingDown, Minus, AlertCircle, CheckCircle } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { usePortfolio } from '@/hooks/usePortfolio';
 
 interface StockCardProps {
   stock: {
@@ -20,11 +21,9 @@ interface StockCardProps {
 
 export function StockCard({ stock, index }: StockCardProps) {
   const [isAdding, setIsAdding] = useState(false);
-  const [inPortfolio, setInPortfolio] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const { user, isLoading } = useAuth();
-
-  console.log('[v0] StockCard render - user:', user, 'isLoading:', isLoading, 'stock:', stock.ticker);
+  const { addStock, isStockInPortfolio } = usePortfolio();
 
   // Defensive checks for undefined values
   const price = typeof stock.price === 'number' ? stock.price : 0;
@@ -40,10 +39,10 @@ export function StockCard({ stock, index }: StockCardProps) {
   const bgColor = isPositive ? 'bg-green-500/5' : isNegative ? 'bg-red-500/5' : 'bg-white/5';
 
   const trend = change > 0.5 ? 'up' : change < -0.5 ? 'down' : 'flat';
+  const alreadyInPortfolio = isStockInPortfolio(stock.ticker);
 
   const handleAddToPortfolio = async () => {
     if (!user) {
-      console.log('[v0] User not authenticated');
       setMessage({ type: 'error', text: 'Please log in to add stocks' });
       return;
     }
@@ -52,45 +51,9 @@ export function StockCard({ stock, index }: StockCardProps) {
     setMessage(null);
     
     try {
-      const requestData = {
-        userId: user.id,
-        symbol: stock.ticker,
-        companyName: stock.companyName,
-        companyLogo: stock.logo,
-        initialPrice: price,
-        currentPrice: price,
-      };
+      console.log('[v0] Adding stock via usePortfolio:', stock.ticker);
+      await addStock(stock.ticker, stock.companyName, stock.logo, price);
       
-      console.log('[v0] Attempting to add stock:', stock.ticker);
-      console.log('[v0] User:', user);
-      console.log('[v0] Stock object:', stock);
-      console.log('[v0] Extracted price:', price, 'Type:', typeof price);
-      console.log('[v0] Request data:', requestData);
-      console.log('[v0] Checking each field:');
-      console.log('[v0]   userId:', requestData.userId, '- Valid:', !!requestData.userId);
-      console.log('[v0]   symbol:', requestData.symbol, '- Valid:', !!requestData.symbol);
-      console.log('[v0]   companyName:', requestData.companyName, '- Valid:', !!requestData.companyName);
-      console.log('[v0]   initialPrice:', requestData.initialPrice, '- Valid:', requestData.initialPrice !== undefined && requestData.initialPrice !== null);
-      
-      const response = await fetch('/api/portfolio/add', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestData),
-      });
-
-      console.log('[v0] API Response status:', response.status);
-      const data = await response.json();
-      console.log('[v0] API Response data:', data);
-
-      if (!response.ok) {
-        const errorMsg = data.message || `Error: ${response.statusText}`;
-        console.error('[v0] Error details:', data);
-        setMessage({ type: 'error', text: errorMsg });
-        setIsAdding(false);
-        return;
-      }
-
-      setInPortfolio(true);
       setMessage({ type: 'success', text: `${stock.ticker} added to portfolio!` });
       console.log('[v0] Stock added successfully:', stock.ticker);
       
@@ -204,14 +167,14 @@ export function StockCard({ stock, index }: StockCardProps) {
       {/* Add to Portfolio Button */}
       <button
         onClick={handleAddToPortfolio}
-        disabled={inPortfolio || isAdding || !user || isLoading}
+        disabled={isAdding || !user || isLoading || alreadyInPortfolio}
         className={`w-full py-2 rounded-lg font-semibold text-sm transition-all ${
-          inPortfolio
+          alreadyInPortfolio
             ? 'bg-green-500/20 text-green-400 border border-green-500/30 cursor-default'
             : 'bg-accent/20 text-accent border border-accent/50 hover:bg-accent/30 disabled:opacity-50'
         }`}
       >
-        {isLoading ? 'Loading...' : !user ? 'Login to Add' : isAdding ? '...' : inPortfolio ? '✓ Added' : '+ Add'}
+        {isLoading ? 'Loading...' : !user ? 'Login to Add' : isAdding ? '...' : alreadyInPortfolio ? '✓ Added' : '+ Add'}
       </button>
     </motion.div>
   );
