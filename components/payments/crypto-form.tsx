@@ -152,10 +152,10 @@ export function CryptoForm({ type, onSubmit }: CryptoFormProps) {
 
       {/* Amount */}
       <div>
-        <label className="text-xs font-semibold text-muted-foreground mb-2 block">Amount ({selected})</label>
+        <label className="text-xs font-semibold text-muted-foreground mb-2 block">Amount (USD)</label>
         <input
           type="number"
-          step="0.0001"
+          step="0.01"
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
           placeholder="0.00"

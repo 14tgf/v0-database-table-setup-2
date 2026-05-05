@@ -29,36 +29,43 @@ export default function DepositPage() {
     setError(null);
 
     try {
+      // Validate amount
+      const amount = data?.amount;
+      if (!amount || amount <= 0) {
+        throw new Error('Please enter a valid deposit amount');
+      }
+
       // Determine method name and prepare payload
       let methodName = '';
       let payload: any = {};
 
       if (selectedMethod === 'crypto') {
-        methodName = data.cryptoType || 'crypto';
+        methodName = data.cryptoType || 'BTC';
+        console.log('[v0] Crypto deposit - Type:', methodName, 'Amount:', amount);
         payload = {
           method_name: methodName,
-          amount: data.amount,
-          tx_hash: data.walletAddress || null,
-          proof_upload: data.proofImage ? 'image-uploaded' : null,
-          note: `Crypto deposit for ${methodName}`,
+          amount: amount,
+          tx_hash: null,
+          proof_upload: null,
+          note: `Deposit of $${amount} USD via ${methodName}`,
         };
       } else if (selectedMethod === 'paypal') {
         methodName = 'paypal';
         payload = {
           method_name: methodName,
-          amount: data.amount,
-          tx_hash: data.paypalEmail || null,
-          proof_upload: data.proofImage ? 'image-uploaded' : null,
-          note: 'PayPal deposit',
+          amount: amount,
+          tx_hash: null,
+          proof_upload: null,
+          note: `Deposit of $${amount} USD via PayPal`,
         };
       } else if (selectedMethod === 'giftcard') {
         methodName = 'giftcard';
         payload = {
           method_name: methodName,
-          amount: data.amount,
-          tx_hash: data.cardCode || null,
-          proof_upload: data.proofImage ? 'image-uploaded' : null,
-          note: 'Gift card deposit',
+          amount: amount,
+          tx_hash: null,
+          proof_upload: null,
+          note: `Deposit of $${amount} USD via Gift Card`,
         };
       }
 
