@@ -50,21 +50,35 @@ export function StockCard({ stock, index }: StockCardProps) {
     setIsAdding(true);
     setMessage(null);
     
+    console.log('[v0] INVEST BUTTON - Starting investment:', {
+      ticker: stock.ticker,
+      userId: user.id,
+      price: price,
+      timestamp: new Date().toISOString(),
+    });
+    
     try {
-      console.log('[v0] Adding stock via usePortfolio:', stock.ticker);
+      console.log('[v0] INVEST BUTTON - Calling addStock function');
       await addStock(stock.ticker, stock.companyName, stock.logo, price);
       
+      console.log('[v0] INVEST BUTTON - Stock added successfully');
       setMessage({ type: 'success', text: `${stock.ticker} added to portfolio!` });
-      console.log('[v0] Stock added successfully:', stock.ticker);
       
       // Clear message after 3 seconds
       setTimeout(() => setMessage(null), 3000);
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Failed to add stock';
-      console.error('[v0] Error adding stock:', errorMsg);
-      setMessage({ type: 'error', text: errorMsg });
+      console.error('[v0] INVEST BUTTON - Error adding stock:', {
+        ticker: stock.ticker,
+        errorMsg,
+        error,
+        fullError: error,
+        timestamp: new Date().toISOString(),
+      });
+      setMessage({ type: 'error', text: `Error: ${errorMsg}` });
     } finally {
       setIsAdding(false);
+      console.log('[v0] INVEST BUTTON - Investment attempt completed');
     }
   };
 

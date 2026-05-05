@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
@@ -27,6 +27,25 @@ export default function DashboardPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { wallet } = useWallet();
   const { isLoading } = usePreloader();
+
+  // Debug logging for wallet updates
+  useEffect(() => {
+    console.log('[v0] DASHBOARD - Wallet data updated:', {
+      stockHoldings: wallet?.stockHoldings,
+      balance: wallet?.balance,
+      investmentCount: wallet?.investmentCount,
+      portfolioValue: wallet?.portfolioValue,
+      timestamp: new Date().toISOString(),
+    });
+  }, [wallet]);
+
+  // Log on component mount
+  useEffect(() => {
+    console.log('[v0] DASHBOARD - Page mounted');
+    return () => {
+      console.log('[v0] DASHBOARD - Page unmounted');
+    };
+  }, []);
 
   const statCards = [
     {
@@ -128,6 +147,42 @@ export default function DashboardPage() {
         {/* Balance Card */}
         <div className="mb-6">
           <BalanceCard />
+        </div>
+
+        {/* Debug Section - Shows wallet data updates */}
+        <div className="mb-6 p-4 bg-blue-500/5 border border-blue-500/20 rounded-lg">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs text-blue-400 font-semibold mb-2">WALLET DATA STATUS (Debug)</p>
+              <div className="grid grid-cols-2 gap-3 text-xs">
+                <div>
+                  <p className="text-blue-300/70">Stock Holdings:</p>
+                  <p className="text-blue-300 font-bold">{wallet?.stockHoldings ?? 'Loading...'}</p>
+                </div>
+                <div>
+                  <p className="text-blue-300/70">Balance:</p>
+                  <p className="text-blue-300 font-bold">${wallet?.balance ?? 'Loading...'}</p>
+                </div>
+                <div>
+                  <p className="text-blue-300/70">Investments:</p>
+                  <p className="text-blue-300 font-bold">{wallet?.investmentCount ?? 'Loading...'}</p>
+                </div>
+                <div>
+                  <p className="text-blue-300/70">Portfolio Value:</p>
+                  <p className="text-blue-300 font-bold">${wallet?.portfolioValue ?? 'Loading...'}</p>
+                </div>
+              </div>
+            </div>
+            <button 
+              onClick={() => {
+                console.log('[v0] DASHBOARD - Manual wallet data check:', wallet);
+                alert(`Stock Holdings: ${wallet?.stockHoldings}\nBalance: $${wallet?.balance}\n\nCheck console for full wallet data`);
+              }}
+              className="px-3 py-1.5 bg-blue-500/20 text-blue-300 border border-blue-500/50 rounded text-xs hover:bg-blue-500/30 transition-all"
+            >
+              Check Data
+            </button>
+          </div>
         </div>
 
         {/* Stat Cards Grid - 2x2 Layout */}
