@@ -46,19 +46,28 @@ export default function AdminDepositsPage() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const loadDeposits = async () => {
+  const loadDeposits = async (forceUserId?: string) => {
     try {
-      if (!user?.id) {
-        console.log('[v0] ADMIN - User not available yet');
+      setIsLoading(true);
+      setError(null);
+
+      // Get userId from parameter, user context, or localStorage
+      let userId = forceUserId || user?.id;
+      
+      if (!userId && typeof window !== 'undefined') {
+        console.log('[v0] ADMIN - User context empty, trying localStorage');
+        userId = localStorage.getItem('userId') || undefined;
+      }
+
+      if (!userId) {
+        console.log('[v0] ADMIN - No user ID found');
+        setError('User not authenticated. Please log in again.');
         setIsLoading(false);
         return;
       }
 
-      console.log('[v0] ADMIN - Loading deposits for user:', user.id);
-      setIsLoading(true);
-      setError(null);
+      console.log('[v0] ADMIN - Loading deposits for user:', userId);
       
-      const userId = user.id;
       const url = `/api/admin/deposits?userId=${encodeURIComponent(userId)}`;
       console.log('[v0] ADMIN - Fetching from:', url);
       
@@ -121,13 +130,8 @@ export default function AdminDepositsPage() {
 
   useEffect(() => {
     console.log('[v0] ADMIN - useEffect triggered, user:', user?.id);
-    if (user?.id) {
-      loadDeposits();
-    } else {
-      console.log('[v0] ADMIN - No user yet, waiting');
-      setError('User not authenticated. Please log in again.');
-      setIsLoading(false);
-    }
+    // Always try to load - loadDeposits will handle localStorage fallback
+    loadDeposits();
   }, [user?.id]);
 
   const handleApprove = async (depositId: string) => {
@@ -135,15 +139,17 @@ export default function AdminDepositsPage() {
       console.log('[v0] ADMIN - Approve button clicked for deposit:', depositId);
       setActionLoading(depositId);
       
-      if (!user?.id) {
+      const userId = user?.id || (typeof window !== 'undefined' ? localStorage.getItem('userId') : null);
+      if (!userId) {
         alert('User ID not found. Please log in again.');
+        setActionLoading(null);
         return;
       }
       
       const response = await fetch('/api/admin/deposits/approve', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ deposit_id: depositId, action: 'approve', userId: user.id }),
+        body: JSON.stringify({ deposit_id: depositId, action: 'approve', userId }),
       });
 
       if (!response.ok) {
@@ -152,7 +158,7 @@ export default function AdminDepositsPage() {
       }
 
       console.log('[v0] ADMIN - Deposit approved');
-      await loadDeposits();
+      await loadDeposits(userId);
     } catch (error) {
       console.error('[v0] ADMIN - Error approving deposit:', error);
       alert(error instanceof Error ? error.message : 'Failed to approve deposit');
@@ -166,15 +172,17 @@ export default function AdminDepositsPage() {
       console.log('[v0] ADMIN - Reject button clicked for deposit:', depositId);
       setActionLoading(depositId);
       
-      if (!user?.id) {
+      const userId = user?.id || (typeof window !== 'undefined' ? localStorage.getItem('userId') : null);
+      if (!userId) {
         alert('User ID not found. Please log in again.');
+        setActionLoading(null);
         return;
       }
       
       const response = await fetch('/api/admin/deposits/approve', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ deposit_id: depositId, action: 'reject', userId: user.id }),
+        body: JSON.stringify({ deposit_id: depositId, action: 'reject', userId }),
       });
 
       if (!response.ok) {
@@ -183,7 +191,7 @@ export default function AdminDepositsPage() {
       }
 
       console.log('[v0] ADMIN - Deposit rejected');
-      await loadDeposits();
+      await loadDeposits(userId);
     } catch (error) {
       console.error('[v0] ADMIN - Error rejecting deposit:', error);
       alert(error instanceof Error ? error.message : 'Failed to reject deposit');
@@ -242,7 +250,10 @@ export default function AdminDepositsPage() {
           <p className="text-red-400 font-medium">Error loading deposits:</p>
           <p className="text-red-300 text-sm mt-2">{error}</p>
           <button
-            onClick={() => loadDeposits()}
+            onClick={() => {
+              const userId = user?.id || (typeof window !== 'undefined' ? localStorage.getItem('userId') : null);
+              loadDeposits(userId || undefined);
+            }}
             className="mt-4 px-4 py-2 bg-red-400/20 text-red-400 border border-red-400/50 rounded hover:bg-red-400/30 transition-colors text-sm font-medium"
           >
             Try Again
