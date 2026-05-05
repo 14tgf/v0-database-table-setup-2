@@ -116,6 +116,7 @@ export function StockCard({ stock, index }: StockCardProps) {
       {/* Price */}
       <div className="mb-2">
         <p className="text-lg font-bold text-white">${price.toFixed(2)}</p>
+        <p className="text-xs text-white/50">Invest: $500.00</p>
       </div>
 
       {/* Change */}
@@ -174,7 +175,7 @@ export function StockCard({ stock, index }: StockCardProps) {
             : 'bg-accent/20 text-accent border border-accent/50 hover:bg-accent/30 disabled:opacity-50'
         }`}
       >
-        {isLoading ? 'Loading...' : !user ? 'Login to Add' : isAdding ? '...' : alreadyInPortfolio ? '✓ Added' : '+ Add'}
+        {isLoading ? 'Loading...' : !user ? 'Login to Buy' : isAdding ? 'Investing...' : alreadyInPortfolio ? '✓ Owned' : 'Invest $500'}
       </button>
     </motion.div>
   );

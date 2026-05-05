@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
+import { getStockQuote } from '@/lib/finnhub';
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,26 +16,88 @@ export async function POST(request: NextRequest) {
 
     const db = sql();
 
-    // Mark stock as removed
-    const result = (await db`
-      UPDATE user_portfolio_stocks 
-       SET status = 'removed', updated_at = NOW()
-       WHERE user_id = ${userId} AND symbol = ${symbol}
-       RETURNING *
+    // 1. Get the holding
+    const holding = (await db`
+      SELECT * FROM user_portfolio_stocks 
+      WHERE user_id = ${userId} AND symbol = ${symbol} AND status = 'active'
     `) as any[];
 
-    if (result.length === 0) {
+    if (holding.length === 0) {
       return NextResponse.json(
-        { message: 'Stock not found' },
+        { message: 'Stock not found in portfolio' },
         { status: 404 }
       );
     }
 
-    return NextResponse.json(result[0], { status: 200 });
+    const stock = holding[0];
+    const invested = parseFloat(stock.invested_amount) || 0;
+    const entryPrice = parseFloat(stock.initial_price) || 0;
+
+    // 2. Get current market price
+    const liveQuote = await getStockQuote(symbol);
+    const currentPrice = liveQuote?.price || parseFloat(stock.current_price) || entryPrice;
+
+    // 3. Calculate sale value and realized P&L
+    const saleValue = currentPrice * 1; // quantity is always 1
+    const realizedProfitLoss = saleValue - invested;
+
+    console.log('[v0] Selling stock:', {
+      symbol,
+      invested,
+      currentPrice,
+      saleValue,
+      realizedProfitLoss,
+    });
+
+    // 4. Get user's wallet
+    const user = (await db`
+      SELECT wallet_balance FROM users WHERE id = ${userId}
+    `) as any[];
+
+    if (user.length === 0) {
+      return NextResponse.json({ message: 'User not found' }, { status: 404 });
+    }
+
+    const currentBalance = parseFloat(user[0].wallet_balance) || 0;
+    const newBalance = currentBalance + saleValue;
+
+    // 5. Credit sale value to wallet
+    await db`
+      UPDATE users 
+      SET wallet_balance = ${newBalance}, updated_at = NOW()
+      WHERE id = ${userId}
+    `;
+
+    // 6. Mark stock as removed
+    const result = (await db`
+      UPDATE user_portfolio_stocks 
+      SET status = 'removed', updated_at = NOW()
+      WHERE user_id = ${userId} AND symbol = ${symbol}
+      RETURNING *
+    `) as any[];
+
+    console.log('[v0] Stock sold successfully:', {
+      symbol,
+      saleValue,
+      realizedProfitLoss,
+      newWalletBalance: newBalance,
+    });
+
+    return NextResponse.json(
+      {
+        message: `Sold at $${currentPrice.toFixed(2)}, P&L: $${realizedProfitLoss.toFixed(2)}`,
+        holding: result[0],
+        newWalletBalance: newBalance,
+        salePrice: currentPrice,
+        saleValue,
+        realizedProfitLoss,
+      },
+      { status: 200 }
+    );
   } catch (error) {
     console.error('[v0] Remove stock error:', error);
     return NextResponse.json(
-      { message: 'Internal server error' },
+      { message: error instanceof Error ? error.message : 'Internal server error' },
       { status: 500 }
     );
   }
