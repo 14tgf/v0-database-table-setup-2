@@ -1,30 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { neon } from '@neondatabase/serverless';
-
-let sql: ReturnType<typeof neon> | null = null;
-
-function getSql() {
-  if (!sql) {
-    const dbUrl = process.env.DATABASE_URL;
-    if (!dbUrl) {
-      throw new Error('DATABASE_URL environment variable is not set');
-    }
-    sql = neon(dbUrl);
-  }
-  return sql;
-}
+import { sql } from '@/lib/db';
 
 export async function GET(request: NextRequest) {
   try {
     const searchQuery = request.nextUrl.searchParams.get('search') || '';
 
+    const db = sql();
+
     let users: any[];
 
-    const dbSql = getSql();
-
     if (searchQuery) {
-      users = await dbSql(
-        `SELECT 
+      users = (await db`
+        SELECT 
           id, 
           email, 
           full_name, 
@@ -35,13 +22,12 @@ export async function GET(request: NextRequest) {
           status,
           created_at
         FROM users
-        WHERE status = 'active' AND (full_name ILIKE $1 OR email ILIKE $1)
-        ORDER BY created_at DESC LIMIT 100`,
-        [`%${searchQuery}%`]
-      );
+        WHERE status = 'active' AND (full_name ILIKE ${`%${searchQuery}%`} OR email ILIKE ${`%${searchQuery}%`})
+        ORDER BY created_at DESC LIMIT 100
+      `) as any[];
     } else {
-      users = await dbSql(
-        `SELECT 
+      users = (await db`
+        SELECT 
           id, 
           email, 
           full_name, 
@@ -53,8 +39,8 @@ export async function GET(request: NextRequest) {
           created_at
         FROM users
         WHERE status = 'active'
-        ORDER BY created_at DESC LIMIT 100`
-      );
+        ORDER BY created_at DESC LIMIT 100
+      `) as any[];
     }
 
     const formattedUsers = users.map((user: any) => ({

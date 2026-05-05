@@ -1,23 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { jwtVerify } from 'jose';
-import { neon } from '@neondatabase/serverless';
+import { sql } from '@/lib/db';
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || 'default-secret-key-change-in-production'
 );
-
-let sql: ReturnType<typeof neon> | null = null;
-
-function getSql() {
-  if (!sql) {
-    const dbUrl = process.env.DATABASE_URL;
-    if (!dbUrl) {
-      throw new Error('DATABASE_URL environment variable is not set');
-    }
-    sql = neon(dbUrl);
-  }
-  return sql;
-}
 
 export async function GET(request: NextRequest) {
   try {
@@ -40,23 +27,25 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const dbSql = getSql();
+    const db = sql();
 
     // Fetch wallet data from database
-    const user = await dbSql(
-      `SELECT 
+    const user = (await db`
+      SELECT 
         id,
         email,
         full_name,
         wallet_balance,
+        stock_balance,
+        vehicle_balance,
+        energy_balance,
         preferred_currency,
         account_type,
         status
-      FROM users WHERE id = $1`,
-      [userId]
-    );
+      FROM users WHERE id = ${userId}
+    `) as any[];
 
-    if (user.length === 0) {
+    if (!user || user.length === 0) {
       return NextResponse.json(
         { error: 'User not found' },
         { status: 404 }
@@ -64,14 +53,33 @@ export async function GET(request: NextRequest) {
     }
 
     const userData = user[0];
+    const walletBalance = typeof userData.wallet_balance === 'string'
+      ? parseFloat(userData.wallet_balance)
+      : Number(userData.wallet_balance);
+    
+    const stockBalance = typeof userData.stock_balance === 'string'
+      ? parseFloat(userData.stock_balance)
+      : Number(userData.stock_balance);
+    
+    const vehicleBalance = typeof userData.vehicle_balance === 'string'
+      ? parseFloat(userData.vehicle_balance)
+      : Number(userData.vehicle_balance);
+    
+    const energyBalance = typeof userData.energy_balance === 'string'
+      ? parseFloat(userData.energy_balance)
+      : Number(userData.energy_balance);
+
     const walletData = {
       userId: userData.id,
-      balance: parseFloat(userData.wallet_balance) || 0,
+      balance: walletBalance || 0,
+      stockBalance: stockBalance || 0,
+      vehicleBalance: vehicleBalance || 0,
+      energyBalance: energyBalance || 0,
       totalDeposits: 0,
       totalWithdrawals: 0,
       totalInvested: 0,
       currency: userData.preferred_currency || 'USD',
-      portfolioValue: parseFloat(userData.wallet_balance) || 0,
+      portfolioValue: walletBalance || 0,
       investmentCount: 0,
       stockHoldings: 0,
       teslaVehicles: 0,

@@ -1,18 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { neon } from '@neondatabase/serverless';
-
-let sql: ReturnType<typeof neon> | null = null;
-
-function getSql() {
-  if (!sql) {
-    const dbUrl = process.env.DATABASE_URL;
-    if (!dbUrl) {
-      throw new Error('DATABASE_URL environment variable is not set');
-    }
-    sql = neon(dbUrl);
-  }
-  return sql;
-}
+import { sql } from '@/lib/db';
 
 export async function PUT(request: NextRequest) {
   try {
@@ -49,13 +36,12 @@ export async function PUT(request: NextRequest) {
     };
     const columnName = columnMap[balanceType];
 
-    const dbSql = getSql();
+    const db = sql();
 
-    // Get current user balance
-    const userResult = await dbSql(
-      `SELECT id, email, ${columnName}, full_name FROM users WHERE id = $1`,
-      [userId]
-    );
+    // Get current user balance - use dynamic column in template literal
+    const userResult = (await db`
+      SELECT id, email, wallet_balance, stock_balance, vehicle_balance, energy_balance, full_name FROM users WHERE id = ${userId}
+    `) as any[];
 
     if (userResult.length === 0) {
       return NextResponse.json(
@@ -81,18 +67,13 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // Update user balance
-    await dbSql(
-      `UPDATE users SET ${columnName} = $1, updated_at = NOW() WHERE id = $2`,
-      [newBalance, userId]
-    );
+    // Update user balance - use dynamic column update
+    const updateQuery = `UPDATE users SET ${columnName} = ${newBalance}, updated_at = NOW() WHERE id = ${userId}`;
+    await db.query(updateQuery);
 
     // Log the adjustment in audit_logs
     const description = `Admin adjusted ${balanceType} balance: ${type} $${adjustmentAmount} - Reason: ${reason || 'No reason provided'}`;
-    await dbSql(
-      'INSERT INTO audit_logs (id, user_id, action, description, status) VALUES (gen_random_uuid(), $1, $2, $3, $4)',
-      [userId, 'BALANCE_ADJUSTMENT', description, 'success']
-    );
+    await db`INSERT INTO audit_logs (id, user_id, action, description, status) VALUES (gen_random_uuid(), ${userId}, 'BALANCE_ADJUSTMENT', ${description}, 'success')`;
 
     return NextResponse.json({
       success: true,
