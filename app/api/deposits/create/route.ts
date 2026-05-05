@@ -50,11 +50,22 @@ export async function POST(request: NextRequest) {
       RETURNING id, status, created_at
     `;
 
-    console.log('[v0] DEPOSITS API - Deposit created successfully:', result.rows[0]);
+    console.log('[v0] DEPOSITS API - SQL result type:', typeof result, 'Is array:', Array.isArray(result));
+    console.log('[v0] DEPOSITS API - SQL result:', result);
+
+    // neon() returns array directly, not {rows: [...]}
+    const depositRecord = Array.isArray(result) && result.length > 0 ? result[0] : null;
+    
+    console.log('[v0] DEPOSITS API - Deposit record:', depositRecord);
+
+    if (!depositRecord) {
+      console.error('[v0] DEPOSITS API - No deposit record returned', { result });
+      throw new Error('Failed to create deposit record - no data returned');
+    }
 
     return NextResponse.json({
       success: true,
-      deposit: result.rows[0],
+      deposit: depositRecord,
       message: 'Deposit submitted successfully. Pending admin approval.',
     });
   } catch (error) {
