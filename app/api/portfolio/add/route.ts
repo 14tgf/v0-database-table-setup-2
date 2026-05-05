@@ -45,17 +45,9 @@ export async function POST(request: NextRequest) {
 
     // 3. Check if user already owns this stock
     const existing = (await db`
-      SELECT id FROM user_portfolio_stocks 
+      SELECT id, quantity, initial_price, invested_amount FROM user_portfolio_stocks 
       WHERE user_id = ${userId} AND symbol = ${symbol} AND status = 'active'
     `) as any[];
-
-    if (existing.length > 0) {
-      console.log('[v0] Stock already in portfolio:', symbol);
-      return NextResponse.json(
-        { message: 'Stock already in portfolio' },
-        { status: 409 }
-      );
-    }
 
     // 4. Get user's wallet balance
     const user = (await db`
@@ -90,34 +82,67 @@ export async function POST(request: NextRequest) {
       WHERE id = ${userId}
     `;
 
-    // 7. Add stock to portfolio with 1 quantity
-    // invested_amount = the amount spent, initial_price = entry price per share
-    const result = (await db`
-      INSERT INTO user_portfolio_stocks 
-       (user_id, symbol, company_name, company_logo, initial_price, current_price, quantity, invested_amount, profit_loss, percent_change, status, created_at, updated_at)
-      VALUES (
-        ${userId}, 
-        ${symbol}, 
-        ${companyName}, 
-        ${companyLogo || ''}, 
-        ${currentPrice}, 
-        ${currentPrice}, 
-        1, 
-        ${investmentAmount}, 
-        0, 
-        0, 
-        'active', 
-        NOW(), 
-        NOW()
-      )
-      RETURNING *
-    `) as any[];
+    let result;
 
-    console.log('[v0] Stock purchased successfully:', {
+    if (existing.length > 0) {
+      // User already owns this stock - UPDATE the holding (add to quantity)
+      const existingHolding = existing[0];
+      const totalQuantity = existingHolding.quantity + 1;
+      const totalInvested = parseFloat(existingHolding.invested_amount) + investmentAmount;
+      const newAveragePrice = totalInvested / totalQuantity;
+
+      console.log('[v0] Updating existing stock holding:', {
+        symbol,
+        oldQuantity: existingHolding.quantity,
+        newQuantity: totalQuantity,
+        oldInvested: existingHolding.invested_amount,
+        newInvested: totalInvested,
+        newAveragePrice,
+      });
+
+      result = (await db`
+        UPDATE user_portfolio_stocks 
+        SET 
+          quantity = ${totalQuantity},
+          invested_amount = ${totalInvested},
+          initial_price = ${newAveragePrice},
+          current_price = ${currentPrice},
+          updated_at = NOW()
+        WHERE user_id = ${userId} AND symbol = ${symbol}
+        RETURNING *
+      `) as any[];
+    } else {
+      // New stock - INSERT into portfolio
+      console.log('[v0] Adding new stock to portfolio:', symbol);
+
+      result = (await db`
+        INSERT INTO user_portfolio_stocks 
+         (user_id, symbol, company_name, company_logo, initial_price, current_price, quantity, invested_amount, profit_loss, percent_change, status, created_at, updated_at)
+        VALUES (
+          ${userId}, 
+          ${symbol}, 
+          ${companyName}, 
+          ${companyLogo || ''}, 
+          ${currentPrice}, 
+          ${currentPrice}, 
+          1, 
+          ${investmentAmount}, 
+          0, 
+          0, 
+          'active', 
+          NOW(), 
+          NOW()
+        )
+        RETURNING *
+      `) as any[];
+    }
+
+    console.log('[v0] Stock purchase completed successfully:', {
       symbol,
       invested: investmentAmount,
       currentPrice,
       newWalletBalance,
+      wasExisting: existing.length > 0,
     });
 
     return NextResponse.json(
