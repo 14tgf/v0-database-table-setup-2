@@ -1,18 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { sql } from '@/lib/db';
+import { neon } from '@neondatabase/serverless';
 import { jwtVerify } from 'jose';
 
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'your-secret-key');
+const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'default-secret-key-change-in-production');
+
+function getSql() {
+  if (!process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL not set');
+  }
+  return neon(process.env.DATABASE_URL);
+}
 
 export async function POST(request: NextRequest) {
   try {
-    const cookie = request.cookies.get('admin_token')?.value;
+    console.log('[v0] ADMIN DEPOSITS APPROVE - Request received');
+    
+    const cookie = request.cookies.get('auth_token')?.value;
     if (!cookie) {
+      console.error('[v0] ADMIN DEPOSITS APPROVE - No auth token');
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }
 
     const { payload } = await jwtVerify(cookie, JWT_SECRET);
     const adminId = payload.sub as string;
+    console.log('[v0] ADMIN DEPOSITS APPROVE - Admin ID:', adminId);
 
     const body = await request.json();
     const { deposit_id, action } = body;
@@ -24,21 +35,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('[v0] Admin deposit action:', { deposit_id, action, adminId });
+    console.log('[v0] ADMIN DEPOSITS APPROVE - Action:', action, 'Deposit ID:', deposit_id);
+
+    const sql = getSql();
 
     // Get deposit details
     const depositResult = await sql`
       SELECT * FROM deposits WHERE id = ${deposit_id}
     `;
 
-    if (depositResult.rows.length === 0) {
+    if (!depositResult || !Array.isArray(depositResult) || depositResult.length === 0) {
+      console.error('[v0] ADMIN DEPOSITS APPROVE - Deposit not found:', deposit_id);
       return NextResponse.json(
         { error: 'Deposit not found' },
         { status: 404 }
       );
     }
 
-    const deposit = depositResult.rows[0];
+    const deposit = depositResult[0];
+    console.log('[v0] ADMIN DEPOSITS APPROVE - Deposit found:', { id: deposit.id, amount: deposit.amount, user_id: deposit.user_id });
 
     if (action === 'approve') {
       // Get user's current balance
@@ -46,8 +61,10 @@ export async function POST(request: NextRequest) {
         SELECT wallet_balance FROM users WHERE id = ${deposit.user_id}
       `;
 
-      const currentBalance = userResult.rows[0]?.wallet_balance || 0;
-      const newBalance = parseFloat(currentBalance) + parseFloat(deposit.amount);
+      const currentBalance = userResult && userResult.length > 0 ? parseFloat(userResult[0].wallet_balance || 0) : 0;
+      const newBalance = currentBalance + parseFloat(deposit.amount);
+
+      console.log('[v0] ADMIN DEPOSITS APPROVE - Updating balance:', { currentBalance, amount: deposit.amount, newBalance });
 
       // Update user wallet
       await sql`
@@ -69,7 +86,7 @@ export async function POST(request: NextRequest) {
         VALUES (${deposit.user_id}, 'deposit', ${deposit.amount}, ${currentBalance}, ${newBalance}, ${deposit_id}, 'deposit', 'Deposit approved')
       `;
 
-      console.log('[v0] Deposit approved:', { deposit_id, newBalance });
+      console.log('[v0] ADMIN DEPOSITS APPROVE - Deposit approved:', deposit_id);
 
       return NextResponse.json({
         success: true,
@@ -84,7 +101,7 @@ export async function POST(request: NextRequest) {
         WHERE id = ${deposit_id}
       `;
 
-      console.log('[v0] Deposit rejected:', { deposit_id });
+      console.log('[v0] ADMIN DEPOSITS APPROVE - Deposit rejected:', deposit_id);
 
       return NextResponse.json({
         success: true,
@@ -92,9 +109,10 @@ export async function POST(request: NextRequest) {
       });
     }
   } catch (error) {
-    console.error('[v0] Deposit approval error:', error);
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    console.error('[v0] ADMIN DEPOSITS APPROVE - Error:', errorMsg);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Deposit approval failed' },
+      { error: `Error: ${errorMsg}` },
       { status: 500 }
     );
   }

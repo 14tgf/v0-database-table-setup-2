@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { CheckCircle, XCircle, Clock, ChevronDown } from 'lucide-react';
-import { sql } from '@vercel/postgres';
 
 interface Deposit {
   id: string;
