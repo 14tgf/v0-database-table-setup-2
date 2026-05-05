@@ -69,18 +69,30 @@ export default function AdminDepositsPage() {
 
   const handleApprove = async (depositId: string) => {
     try {
+      console.log('[v0] ADMIN - Approve button clicked for deposit:', depositId);
       setActionLoading(depositId);
+      
+      console.log('[v0] ADMIN - Sending approve request to API');
       const response = await fetch('/api/admin/deposits/approve', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ deposit_id: depositId, action: 'approve' }),
       });
 
-      if (response.ok) {
-        await loadDeposits();
+      console.log('[v0] ADMIN - API response status:', response.status);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('[v0] ADMIN - API error:', errorData);
+        throw new Error(errorData.error || 'Failed to approve deposit');
       }
+
+      const data = await response.json();
+      console.log('[v0] ADMIN - Approve successful:', data);
+      await loadDeposits();
     } catch (error) {
-      console.error('Error approving deposit:', error);
+      console.error('[v0] ADMIN - Error approving deposit:', error);
     } finally {
       setActionLoading(null);
     }
@@ -88,18 +100,30 @@ export default function AdminDepositsPage() {
 
   const handleReject = async (depositId: string) => {
     try {
+      console.log('[v0] ADMIN - Reject button clicked for deposit:', depositId);
       setActionLoading(depositId);
+      
+      console.log('[v0] ADMIN - Sending reject request to API');
       const response = await fetch('/api/admin/deposits/approve', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ deposit_id: depositId, action: 'reject' }),
       });
 
-      if (response.ok) {
-        await loadDeposits();
+      console.log('[v0] ADMIN - API response status:', response.status);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('[v0] ADMIN - API error:', errorData);
+        throw new Error(errorData.error || 'Failed to reject deposit');
       }
+
+      const data = await response.json();
+      console.log('[v0] ADMIN - Reject successful:', data);
+      await loadDeposits();
     } catch (error) {
-      console.error('Error rejecting deposit:', error);
+      console.error('[v0] ADMIN - Error rejecting deposit:', error);
     } finally {
       setActionLoading(null);
     }
