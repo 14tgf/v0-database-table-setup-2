@@ -42,6 +42,7 @@ export default function AdminDepositsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadDeposits();
@@ -51,6 +52,8 @@ export default function AdminDepositsPage() {
     try {
       console.log('[v0] ADMIN - Loading deposits');
       setIsLoading(true);
+      setError(null);
+      
       const response = await fetch('/api/admin/deposits', {
         credentials: 'include',
       });
@@ -58,13 +61,38 @@ export default function AdminDepositsPage() {
       console.log('[v0] ADMIN - Deposits API response status:', response.status);
       
       if (!response.ok) {
-        console.error('[v0] ADMIN - Deposits API error, status:', response.status);
+        let errorMsg = `API Error (${response.status})`;
+        try {
+          const errorData = await response.json();
+          errorMsg = errorData.error || errorData.message || errorMsg;
+        } catch (e) {
+          // Response wasn't JSON
+        }
+        console.error('[v0] ADMIN - Deposits API error:', errorMsg);
+        setError(errorMsg);
         setDeposits([]);
         return;
       }
       
-      const data = await response.json();
+      let data;
+      try {
+        data = await response.json();
+      } catch (e) {
+        console.error('[v0] ADMIN - Failed to parse API response:', e);
+        setError('Failed to parse API response');
+        setDeposits([]);
+        return;
+      }
+      
       console.log('[v0] ADMIN - Deposits received:', data.deposits?.length || 0);
+      console.log('[v0] ADMIN - Full API response:', data);
+      
+      if (!data.deposits || data.deposits.length === 0) {
+        console.log('[v0] ADMIN - No deposits in response');
+        setError(null);
+        setDeposits([]);
+        return;
+      }
       
       // Convert amounts to numbers
       const formattedDeposits = (data.deposits || []).map((deposit: any) => ({
@@ -73,8 +101,11 @@ export default function AdminDepositsPage() {
       }));
       
       setDeposits(formattedDeposits);
+      setError(null);
     } catch (error) {
-      console.error('[v0] ADMIN - Error loading deposits:', error);
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      console.error('[v0] ADMIN - Error loading deposits:', errorMsg);
+      setError(`Failed to load deposits: ${errorMsg}`);
       setDeposits([]);
     } finally {
       setIsLoading(false);
@@ -185,6 +216,20 @@ export default function AdminDepositsPage() {
         <div className="flex items-center justify-center py-12">
           <p className="text-white/60">Loading deposits...</p>
         </div>
+      ) : error ? (
+        <motion.div
+          variants={staggerItem}
+          className="p-6 bg-red-400/10 border border-red-400/50 rounded-lg"
+        >
+          <p className="text-red-400 font-medium">Error loading deposits:</p>
+          <p className="text-red-300 text-sm mt-2">{error}</p>
+          <button
+            onClick={() => loadDeposits()}
+            className="mt-4 px-4 py-2 bg-red-400/20 text-red-400 border border-red-400/50 rounded hover:bg-red-400/30 transition-colors text-sm font-medium"
+          >
+            Try Again
+          </button>
+        </motion.div>
       ) : deposits.length === 0 ? (
         <motion.div
           variants={staggerItem}
