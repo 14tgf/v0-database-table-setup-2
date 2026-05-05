@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { sql } from '@/lib/db';
+import { neon } from '@neondatabase/serverless';
 import { jwtVerify } from 'jose';
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'default-secret-key-change-in-production');
+
+function getSql() {
+  if (!process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL not set');
+  }
+  return neon(process.env.DATABASE_URL);
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -22,10 +29,10 @@ export async function POST(request: NextRequest) {
     try {
       const { payload } = await jwtVerify(cookie, JWT_SECRET);
       userId = payload.sub as string;
-      console.log('[v0] DEPOSITS API - User ID from JWT:', userId, 'Type:', typeof userId);
+      console.log('[v0] DEPOSITS API - User ID from JWT:', userId);
       
       if (!userId) {
-        throw new Error('No user ID in JWT payload (missing "sub")');
+        throw new Error('No user ID in JWT payload');
       }
     } catch (jwtError) {
       console.error('[v0] DEPOSITS API - JWT verification failed:', jwtError);
@@ -33,14 +40,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Parse request body
-    let body;
-    try {
-      body = await request.json();
-    } catch (e) {
-      console.error('[v0] DEPOSITS API - Failed to parse JSON:', e);
-      return NextResponse.json({ error: 'Invalid request format' }, { status: 400 });
-    }
-
+    const body = await request.json();
     const { method_name, amount, tx_hash, proof_upload, note } = body;
 
     // Validate input
@@ -54,79 +54,50 @@ export async function POST(request: NextRequest) {
 
     console.log('[v0] DEPOSITS API - Validated deposit:', { userId, method_name, amount });
 
-    // SIMPLE INSERT - No user check, just insert directly
-    let insertResult;
+    // Get database connection
+    const sql = getSql();
+
+    // Insert deposit
     try {
-      console.log('[v0] DEPOSITS API - About to execute INSERT query with params:', { userId, method_name, amount });
+      console.log('[v0] DEPOSITS API - Executing INSERT query');
       
-      // Remove explicit type casting - neon handles this
-      insertResult = await sql`
+      const result = await sql`
         INSERT INTO deposits (user_id, method_name, amount, tx_hash, proof_upload, note, status)
         VALUES (${userId}, ${method_name}, ${amount}, ${tx_hash}, ${proof_upload}, ${note}, 'pending')
         RETURNING id, user_id, method_name, amount, status, created_at
       `;
       
-      console.log('[v0] DEPOSITS API - INSERT query executed');
-      console.log('[v0] DEPOSITS API - Raw result type:', typeof insertResult);
-      console.log('[v0] DEPOSITS API - Raw result is array:', Array.isArray(insertResult));
-      console.log('[v0] DEPOSITS API - Raw result length:', Array.isArray(insertResult) ? insertResult.length : 'N/A');
-      console.log('[v0] DEPOSITS API - Raw result:', JSON.stringify(insertResult));
+      console.log('[v0] DEPOSITS API - Query executed successfully');
+      console.log('[v0] DEPOSITS API - Result:', result);
+
+      if (!result || !Array.isArray(result) || result.length === 0) {
+        console.error('[v0] DEPOSITS API - Invalid result:', result);
+        throw new Error('Failed to create deposit - no rows returned');
+      }
+
+      const depositRecord = result[0];
+      console.log('[v0] DEPOSITS API - Deposit created:', depositRecord.id);
+
+      return NextResponse.json({
+        success: true,
+        deposit: depositRecord,
+        message: 'Deposit submitted successfully. Pending admin approval.',
+      }, { status: 200 });
       
     } catch (sqlError) {
-      const errorDetails = {
-        message: sqlError instanceof Error ? sqlError.message : String(sqlError),
-        code: (sqlError as any)?.code,
-        constraint: (sqlError as any)?.constraint,
-        detail: (sqlError as any)?.detail,
-      };
-      console.error('[v0] DEPOSITS API - SQL INSERT ERROR:', errorDetails);
+      const errorMsg = sqlError instanceof Error ? sqlError.message : String(sqlError);
+      console.error('[v0] DEPOSITS API - Database error:', errorMsg);
       return NextResponse.json(
-        { 
-          error: `Database error: ${errorDetails.message}`,
-          details: errorDetails,
-        },
+        { error: `Database error: ${errorMsg}` },
         { status: 500 }
       );
     }
 
-    // Handle result - neon returns array directly
-    if (!insertResult) {
-      console.error('[v0] DEPOSITS API - Query returned null/undefined');
-      return NextResponse.json({ error: 'Database query returned no result' }, { status: 500 });
-    }
-
-    if (!Array.isArray(insertResult)) {
-      console.error('[v0] DEPOSITS API - Query result is not an array:', typeof insertResult);
-      return NextResponse.json({ error: 'Unexpected database response format' }, { status: 500 });
-    }
-
-    if (insertResult.length === 0) {
-      console.error('[v0] DEPOSITS API - INSERT returned empty array (no rows)');
-      return NextResponse.json({ error: 'Database INSERT did not return any rows' }, { status: 500 });
-    }
-
-    const depositRecord = insertResult[0];
-    console.log('[v0] DEPOSITS API - SUCCESS - Deposit created:', depositRecord);
-
-    return NextResponse.json({
-      success: true,
-      deposit: depositRecord,
-      message: 'Deposit submitted successfully. Pending admin approval.',
-    }, { status: 200 });
-
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error);
-    const errorStack = error instanceof Error ? error.stack : undefined;
-    
-    console.error('[v0] DEPOSITS API - CATCH BLOCK ERROR:', {
-      message: errorMsg,
-      stack: errorStack,
-    });
-    
+    console.error('[v0] DEPOSITS API - Error:', errorMsg);
     return NextResponse.json(
-      { 
-        error: `Server error: ${errorMsg}`,
-      },
+      { error: `Server error: ${errorMsg}` },
       { status: 500 }
     );
   }
