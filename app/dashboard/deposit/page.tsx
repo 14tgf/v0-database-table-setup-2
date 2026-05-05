@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { ArrowLeft, CheckCircle } from 'lucide-react';
+import { ArrowLeft, CheckCircle, AlertCircle } from 'lucide-react';
 import { PaymentMethodSelector } from '@/components/payments/payment-method-selector';
 import { CryptoForm } from '@/components/payments/crypto-form';
 import { PayPalForm } from '@/components/payments/paypal-form';
@@ -14,6 +14,8 @@ import { staggerContainer, staggerItem } from '@/lib/animations';
 export default function DepositPage() {
   const [selectedMethod, setSelectedMethod] = useState('crypto');
   const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const methods = [
     { id: 'crypto', label: 'Cryptocurrency', description: 'BTC, USDT, ETH' },
@@ -21,13 +23,77 @@ export default function DepositPage() {
     { id: 'giftcard', label: 'Gift Card', description: 'Physical or E-Gift' },
   ];
 
-  const handleSubmit = (data: any) => {
-    console.log('[v0] Deposit submitted:', data);
-    setSubmitted(true);
-    setTimeout(() => {
-      setSubmitted(false);
-      setSelectedMethod('crypto');
-    }, 5000);
+  const handleSubmit = async (data: any) => {
+    console.log('[v0] Deposit submission started:', data);
+    setIsSubmitting(true);
+    setError(null);
+
+    try {
+      // Determine method name and prepare payload
+      let methodName = '';
+      let payload: any = {};
+
+      if (selectedMethod === 'crypto') {
+        methodName = data.cryptoType || 'crypto';
+        payload = {
+          method_name: methodName,
+          amount: data.amount,
+          tx_hash: data.walletAddress || null,
+          proof_upload: data.proofImage ? 'image-uploaded' : null,
+          note: `Crypto deposit for ${methodName}`,
+        };
+      } else if (selectedMethod === 'paypal') {
+        methodName = 'paypal';
+        payload = {
+          method_name: methodName,
+          amount: data.amount,
+          tx_hash: data.paypalEmail || null,
+          proof_upload: data.proofImage ? 'image-uploaded' : null,
+          note: 'PayPal deposit',
+        };
+      } else if (selectedMethod === 'giftcard') {
+        methodName = 'giftcard';
+        payload = {
+          method_name: methodName,
+          amount: data.amount,
+          tx_hash: data.cardCode || null,
+          proof_upload: data.proofImage ? 'image-uploaded' : null,
+          note: 'Gift card deposit',
+        };
+      }
+
+      console.log('[v0] Calling deposit API with payload:', payload);
+
+      const response = await fetch('/api/deposits/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(payload),
+      });
+
+      console.log('[v0] API response status:', response.status);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('[v0] API error:', errorData);
+        throw new Error(errorData.error || 'Failed to submit deposit');
+      }
+
+      const result = await response.json();
+      console.log('[v0] Deposit submitted successfully:', result);
+
+      setSubmitted(true);
+      setTimeout(() => {
+        setSubmitted(false);
+        setSelectedMethod('crypto');
+      }, 5000);
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+      console.error('[v0] Deposit submission error:', errorMsg);
+      setError(`Failed to submit deposit: ${errorMsg}`);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -54,6 +120,22 @@ export default function DepositPage() {
           animate="visible"
           className="space-y-4"
         >
+          {/* Error Message */}
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="p-4 bg-red-400/10 border border-red-400/30 rounded-lg flex items-start gap-3"
+            >
+              <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-xs font-bold text-red-400">Deposit Submission Failed</p>
+                <p className="text-xs text-red-400/80 mt-1">{error}</p>
+              </div>
+            </motion.div>
+          )}
+
           {/* Success Message */}
           {submitted && (
             <motion.div
