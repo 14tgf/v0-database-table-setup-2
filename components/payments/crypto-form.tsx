@@ -31,16 +31,16 @@ export function CryptoForm({ type, onSubmit }: CryptoFormProps) {
         setLoading(true);
         setError(null);
 
-        const response = await fetch('/api/admin/payments/fetch', {
+        const response = await fetch('/api/payments/methods', {
           method: 'GET',
-          credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
         });
 
         console.log('[v0] CRYPTO FORM - API response status:', response.status);
 
         if (!response.ok) {
-          console.warn('[v0] CRYPTO FORM - Failed to fetch payment methods:', response.status);
+          const errorData = await response.json();
+          console.warn('[v0] CRYPTO FORM - Failed to fetch payment methods:', response.status, errorData);
           setError('Unable to load payment methods');
           return;
         }
@@ -52,7 +52,7 @@ export function CryptoForm({ type, onSubmit }: CryptoFormProps) {
           setPaymentMethods(result.data.crypto);
           console.log('[v0] CRYPTO FORM - Payment methods loaded:', result.data.crypto);
         } else {
-          console.warn('[v0] CRYPTO FORM - Invalid response format');
+          console.warn('[v0] CRYPTO FORM - Invalid response format:', result);
           setError('Invalid payment data format');
         }
       } catch (err) {
