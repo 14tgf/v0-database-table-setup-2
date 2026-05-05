@@ -46,18 +46,11 @@ export default function AdminDepositsPage() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (user?.id) {
-      loadDeposits();
-    } else if (!isLoading) {
-      setError('User not authenticated. Please log in again.');
-    }
-  }, [user?.id]);
-
   const loadDeposits = async () => {
     try {
       if (!user?.id) {
         console.log('[v0] ADMIN - User not available yet');
+        setIsLoading(false);
         return;
       }
 
@@ -125,6 +118,17 @@ export default function AdminDepositsPage() {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    console.log('[v0] ADMIN - useEffect triggered, user:', user?.id);
+    if (user?.id) {
+      loadDeposits();
+    } else {
+      console.log('[v0] ADMIN - No user yet, waiting');
+      setError('User not authenticated. Please log in again.');
+      setIsLoading(false);
+    }
+  }, [user?.id]);
 
   const handleApprove = async (depositId: string) => {
     try {
