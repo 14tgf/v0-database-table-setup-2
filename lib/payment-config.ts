@@ -68,14 +68,52 @@ export const DEFAULT_PAYMENT_CONFIG: PaymentMethodsData = {
   },
 };
 
-// Get all payment methods
+// Get all payment methods - Fetch from database
 export async function getPaymentMethods(): Promise<PaymentMethodsData> {
-  // TODO: Replace with database call
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve(DEFAULT_PAYMENT_CONFIG);
-    }, 300);
-  });
+  try {
+    console.log('[v0] PAYMENT CONFIG - Fetching payment methods from database');
+    
+    const response = await fetch('/api/admin/payments/fetch', {
+      method: 'GET',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    console.log('[v0] PAYMENT CONFIG - API response status:', response.status);
+
+    if (!response.ok) {
+      console.warn('[v0] PAYMENT CONFIG - Failed to fetch from API, using defaults:', response.status);
+      return DEFAULT_PAYMENT_CONFIG;
+    }
+
+    const result = await response.json();
+    console.log('[v0] PAYMENT CONFIG - Fetched payment methods:', result);
+
+    if (!result.success || !result.data) {
+      console.warn('[v0] PAYMENT CONFIG - Invalid response format, using defaults');
+      return DEFAULT_PAYMENT_CONFIG;
+    }
+
+    // Build the PaymentMethodsData from database response
+    const methods: PaymentMethodsData = { ...DEFAULT_PAYMENT_CONFIG };
+
+    // Update with database values if available
+    if (result.data.crypto) {
+      methods.crypto = result.data.crypto;
+    }
+    if (result.data.paypal) {
+      methods.paypal = result.data.paypal;
+    }
+    if (result.data.bank) {
+      methods.bank = result.data.bank;
+    }
+
+    console.log('[v0] PAYMENT CONFIG - Merged methods:', methods);
+    return methods;
+  } catch (error) {
+    console.error('[v0] PAYMENT CONFIG - Error fetching payment methods:', error);
+    return DEFAULT_PAYMENT_CONFIG;
+  }
 }
 
 // Update crypto config

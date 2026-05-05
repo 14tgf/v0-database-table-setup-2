@@ -43,6 +43,13 @@ export function PayPalConfigComponent({ initialConfig, onToggle, isActive }: Pay
 
       const result = await response.json();
       console.log('[v0] PAYPAL CONFIG - Save successful:', result);
+      
+      // Update the displayed config with the saved data
+      if (result.data && result.data.config && result.data.config.email) {
+        console.log('[v0] PAYPAL CONFIG - Updating displayed email with database value');
+        setEmail(result.data.config.email);
+      }
+      
       setShowSuccess(true);
       setIsEditing(false);
       setTimeout(() => setShowSuccess(false), 3000);

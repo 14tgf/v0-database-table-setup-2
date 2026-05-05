@@ -49,6 +49,13 @@ export function BankConfigComponent({ initialConfig, onToggle, isActive }: BankC
 
       const result = await response.json();
       console.log('[v0] BANK CONFIG - Save successful:', result);
+      
+      // Update the displayed config with the saved data
+      if (result.data && result.data.config) {
+        console.log('[v0] BANK CONFIG - Updating displayed config with database values');
+        setFormData(result.data.config);
+      }
+      
       setShowSuccess(true);
       setIsEditing(false);
       setTimeout(() => setShowSuccess(false), 3000);
