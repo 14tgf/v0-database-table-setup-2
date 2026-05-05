@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useCallback } from 'react';
 import useSWR from 'swr';
 import { useAuth } from './useAuth';
 
@@ -11,79 +11,19 @@ const fetcher = (url: string) => fetch(url).then(res => {
 
 export function usePortfolio() {
   const { user } = useAuth();
-  const [isInitialized, setIsInitialized] = useState(false);
-  const updatePricesRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Wait for auth to load before fetching portfolio
-  useEffect(() => {
-    if (user !== undefined) {
-      setIsInitialized(true);
-    }
-  }, [user]);
-
-  // Fetch portfolio stocks
+  // Fetch portfolio stocks - only when user is loaded
   const { data: stocks = [], isLoading, error, mutate: mutateStocks } = useSWR(
-    isInitialized && user ? `/api/portfolio/stocks?userId=${user.id}` : null,
+    user?.id ? `/api/portfolio/stocks?userId=${user.id}` : null,
     fetcher,
-    { revalidateOnFocus: false, revalidateOnReconnect: true, dedupingInterval: 2000 }
+    { 
+      revalidateOnFocus: false,
+      revalidateOnReconnect: true,
+      dedupingInterval: 5000,
+      errorRetryCount: 2,
+      errorRetryInterval: 3000
+    }
   );
-
-  console.log('[v0] usePortfolio - user:', user, 'stocks:', stocks.length, 'isLoading:', isLoading);
-
-  // Update portfolio prices from live market data (no deps on mutateStocks to avoid circular refs)
-  const updatePrices = useCallback(async () => {
-    if (!user?.id) {
-      console.log('[v0] Skipping price update - no user');
-      return;
-    }
-
-    try {
-      console.log('[v0] Updating portfolio prices...');
-      const response = await fetch('/api/portfolio/update-prices', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user.id }),
-      });
-
-      if (response.ok) {
-        console.log('[v0] Portfolio prices updated');
-        // Revalidate portfolio to show updated prices
-        mutateStocks();
-      } else {
-        console.error('[v0] Failed to update prices:', response.statusText);
-      }
-    } catch (error) {
-      console.error('[v0] Update prices error:', error);
-    }
-  }, [user?.id, mutateStocks]);
-
-  // Update prices on mount and periodically (every 60 seconds)
-  useEffect(() => {
-    if (!user?.id || !isInitialized) {
-      console.log('[v0] Skipping price update interval - user or init not ready');
-      return;
-    }
-
-    console.log('[v0] Setting up price update interval');
-
-    // Clear existing interval
-    if (updatePricesRef.current) {
-      clearInterval(updatePricesRef.current);
-    }
-
-    // Update immediately on first load
-    updatePrices();
-
-    // Update every 60 seconds
-    updatePricesRef.current = setInterval(updatePrices, 60000);
-
-    return () => {
-      if (updatePricesRef.current) {
-        clearInterval(updatePricesRef.current);
-        updatePricesRef.current = null;
-      }
-    };
-  }, [user?.id, isInitialized, updatePrices]);
 
   // Add stock to portfolio
   const addStock = useCallback(
@@ -91,7 +31,6 @@ export function usePortfolio() {
       if (!user?.id) throw new Error('User not authenticated');
 
       try {
-        console.log('[v0] Adding stock:', { symbol, companyName, initialPrice });
         const response = await fetch('/api/portfolio/add', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -110,12 +49,9 @@ export function usePortfolio() {
           throw new Error(data.message || 'Failed to add stock');
         }
 
-        const result = await response.json();
-        console.log('[v0] Stock added, revalidating portfolio...');
         // Revalidate portfolio to show the new stock
         await mutateStocks();
-        console.log('[v0] Stock added successfully:', symbol);
-        return result;
+        return await response.json();
       } catch (error) {
         console.error('[v0] Add stock error:', error);
         throw error;
@@ -130,7 +66,6 @@ export function usePortfolio() {
       if (!user?.id) throw new Error('User not authenticated');
 
       try {
-        console.log('[v0] Removing stock:', symbol);
         const response = await fetch('/api/portfolio/remove', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -143,11 +78,8 @@ export function usePortfolio() {
         }
 
         // Revalidate portfolio
-        console.log('[v0] Stock removed, revalidating portfolio...');
         await mutateStocks();
-        const result = await response.json();
-        console.log('[v0] Stock removed successfully:', symbol);
-        return result;
+        return await response.json();
       } catch (error) {
         console.error('[v0] Remove stock error:', error);
         throw error;
@@ -166,15 +98,15 @@ export function usePortfolio() {
 
   return {
     stocks,
-    isLoading: !isInitialized || isLoading,
+    isLoading,
     error,
     userId: user?.id || null,
     addStock,
     removeStock,
     isStockInPortfolio,
-    mutateStocks,
   };
 }
+
 
 
 
