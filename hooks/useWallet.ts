@@ -16,11 +16,24 @@ interface WalletData {
 }
 
 const fetcher = async (url: string) => {
-  const res = await fetch(url);
-  if (!res.ok) {
-    throw new Error('Failed to fetch wallet data');
+  console.log('[v0] Wallet Fetcher - Fetching:', url);
+  try {
+    const res = await fetch(url);
+    if (!res.ok) {
+      console.error('[v0] Wallet Fetcher - Error:', res.status);
+      throw new Error('Failed to fetch wallet data');
+    }
+    const data = await res.json();
+    console.log('[v0] Wallet Fetcher - Success:', {
+      balance: data?.data?.balance,
+      stockHoldings: data?.data?.stockHoldings,
+      timestamp: new Date().toISOString(),
+    });
+    return data;
+  } catch (error) {
+    console.error('[v0] Wallet Fetcher - Exception:', error);
+    throw error;
   }
-  return res.json();
 };
 
 export function useWallet() {
@@ -30,13 +43,14 @@ export function useWallet() {
     {
       revalidateOnFocus: true,
       revalidateOnReconnect: true,
-      dedupingInterval: 5000,
+      dedupingInterval: 0,
       focusThrottleInterval: 30000,
     }
   );
 
   const refreshWallet = async () => {
-    return await mutate();
+    console.log('[v0] refreshWallet - Called, forcing revalidation');
+    return await mutate(undefined, { revalidate: true });
   };
 
   return {
