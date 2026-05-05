@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { TrendingUp, TrendingDown, Trash2 } from 'lucide-react';
@@ -9,10 +10,28 @@ import { SidebarMenu } from '@/components/dashboard/sidebar-menu';
 import { DashboardNav } from '@/components/dashboard/dashboard-nav';
 
 export default function PortfolioPage() {
-  const { stocks: portfolioStocks, isLoading, userId, removeStock } = usePortfolio();
+  const { stocks: portfolioStocks, isLoading, error: portfolioError, userId, removeStock } = usePortfolio();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [removingStock, setRemovingStock] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Log portfolio state changes
+  React.useEffect(() => {
+    console.log('[v0] Portfolio Page - State Update:', {
+      userId,
+      isLoading,
+      stocksCount: portfolioStocks?.length || 0,
+      portfolioError,
+      error,
+      timestamp: new Date().toISOString(),
+    });
+  }, [userId, isLoading, portfolioStocks, portfolioError, error]);
+
+  // Log component mount
+  React.useEffect(() => {
+    console.log('[v0] Portfolio Page Mounted');
+    return () => console.log('[v0] Portfolio Page Unmounted');
+  }, []);
 
   // Calculate totals from real portfolio data
   const totals = useMemo(() => {
@@ -58,19 +77,36 @@ export default function PortfolioPage() {
   }, [portfolioStocks]);
 
   const handleRemoveStock = async (symbol: string) => {
-    if (!confirm(`Remove ${symbol} from portfolio?`)) return;
+    if (!confirm(`Remove ${symbol} from portfolio?`)) {
+      console.log('[v0] Remove cancelled by user for:', symbol);
+      return;
+    }
 
+    console.log('[v0] Starting remove stock:', symbol);
     setRemovingStock(symbol);
     setError(null);
 
     try {
-      await removeStock(symbol);
+      console.log('[v0] Calling removeStock API for:', symbol);
+      const result = await removeStock(symbol);
+      console.log('[v0] Stock removed successfully:', {
+        symbol,
+        result,
+        timestamp: new Date().toISOString(),
+      });
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Failed to remove stock';
+      console.error('[v0] Remove stock error:', {
+        symbol,
+        error: err,
+        errorMsg,
+        errorType: err instanceof Error ? 'Error' : typeof err,
+        timestamp: new Date().toISOString(),
+      });
       setError(errorMsg);
-      console.error('[v0] Remove error:', err);
     } finally {
       setRemovingStock(null);
+      console.log('[v0] Remove stock operation finished for:', symbol);
     }
   };
 
