@@ -55,16 +55,26 @@ export async function GET(request: NextRequest) {
     const userData = user[0];
 
     // Get investment count
-    const investmentCountResult = (await db`
-      SELECT COUNT(*) as count FROM user_investments WHERE user_id = ${userId} AND status = 'active'
-    `) as any[];
-    const investmentCount = investmentCountResult[0]?.count || 0;
+    let investmentCount = 0;
+    try {
+      const investmentCountResult = (await db`
+        SELECT COUNT(*) as count FROM user_investments WHERE user_id = ${userId} AND status = 'active'
+      `) as any[];
+      investmentCount = investmentCountResult[0]?.count || 0;
+    } catch (err) {
+      investmentCount = 0;
+    }
 
-    // Get stock holdings count (assuming there's a user_stocks or portfolio table)
-    const stockCountResult = (await db`
-      SELECT COUNT(*) as count FROM user_stocks WHERE user_id = ${userId} AND quantity > 0
-    `) as any[];
-    const stockHoldingsCount = stockCountResult[0]?.count || 0;
+    // Get stock holdings count
+    let stockHoldingsCount = 0;
+    try {
+      const stockCountResult = (await db`
+        SELECT COUNT(*) as count FROM user_portfolio_stocks WHERE user_id = ${userId} AND quantity > 0
+      `) as any[];
+      stockHoldingsCount = stockCountResult[0]?.count || 0;
+    } catch (err) {
+      stockHoldingsCount = 0;
+    }
 
     const walletBalance = typeof userData.wallet_balance === 'string'
       ? parseFloat(userData.wallet_balance)

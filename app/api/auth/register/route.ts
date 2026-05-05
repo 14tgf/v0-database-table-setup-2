@@ -50,11 +50,11 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      // Create new user (without preferred_currency for now)
+      // Create new user with initial wallet balance
       console.log('[v0] REGISTER: Creating new user');
       const result = await sql`
-        INSERT INTO users (id, email, password_hash, full_name, account_type, status, wallet_balance)
-        VALUES (${userId}, ${email}, ${passwordHash}, ${fullName}, 'standard', 'active', 0)
+        INSERT INTO users (id, email, password_hash, full_name, account_type, status, wallet_balance, stock_balance, vehicle_balance, energy_balance)
+        VALUES (${userId}, ${email}, ${passwordHash}, ${fullName}, 'standard', 'active', 5000, 0, 0, 0)
         RETURNING id, email, full_name
       `;
 

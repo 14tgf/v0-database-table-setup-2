@@ -1,6 +1,5 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import useSWR from 'swr';
 
 interface WalletData {
@@ -31,8 +30,8 @@ export function useWallet() {
     {
       revalidateOnFocus: true,
       revalidateOnReconnect: true,
-      dedupingInterval: 5000, // 5 seconds - reduced for faster updates
-      focusThrottleInterval: 30000, // 30 seconds
+      dedupingInterval: 5000,
+      focusThrottleInterval: 30000,
     }
   );
 
