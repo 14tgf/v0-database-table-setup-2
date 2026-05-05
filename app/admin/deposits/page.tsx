@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { CheckCircle, XCircle, Clock, ChevronDown } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
 
 interface Deposit {
   id: string;
@@ -39,162 +38,125 @@ const staggerItem = {
 };
 
 export default function AdminDepositsPage() {
-  const { user } = useAuth();
   const [deposits, setDeposits] = useState<Deposit[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  const loadDeposits = async (forceUserId?: string) => {
+  useEffect(() => {
+    fetchDeposits();
+  }, []);
+
+  const fetchDeposits = async () => {
+    setIsLoading(true);
+    setMessage(null);
     try {
-      setIsLoading(true);
-      setError(null);
-
-      // Get userId from parameter, user context, or localStorage
-      let userId = forceUserId || user?.id;
+      const response = await fetch('/api/admin/deposits');
+      const data = await response.json();
       
-      if (!userId && typeof window !== 'undefined') {
-        console.log('[v0] ADMIN - User context empty, trying localStorage');
-        userId = localStorage.getItem('userId') || undefined;
-      }
-
-      if (!userId) {
-        console.log('[v0] ADMIN - No user ID found');
-        setError('User not authenticated. Please log in again.');
-        setIsLoading(false);
-        return;
-      }
-
-      console.log('[v0] ADMIN - Loading deposits for user:', userId);
-      
-      const url = `/api/admin/deposits?userId=${encodeURIComponent(userId)}`;
-      console.log('[v0] ADMIN - Fetching from:', url);
-      
-      const response = await fetch(url);
-      console.log('[v0] ADMIN - API response status:', response.status);
-      
-      let data;
-      try {
-        data = await response.json();
-      } catch (parseError) {
-        console.error('[v0] ADMIN - Failed to parse response:', parseError);
-        setError('Invalid API response');
-        setDeposits([]);
-        setIsLoading(false);
-        return;
-      }
-
       if (!response.ok) {
-        console.error('[v0] ADMIN - API error:', data.error, 'Status:', response.status);
-        setError(data.error || 'Failed to load deposits');
-        setDeposits([]);
-        setIsLoading(false);
-        return;
+        const errorMsg = data.error || data.message || 'Failed to fetch deposits';
+        throw new Error(errorMsg);
       }
       
-      console.log('[v0] ADMIN - Deposits received:', data.deposits?.length || 0);
-      
-      if (!data.deposits) {
-        console.log('[v0] ADMIN - No deposits array in response');
-        setDeposits([]);
-        setError(null);
-        setIsLoading(false);
-        return;
-      }
-
-      if (data.deposits.length === 0) {
-        console.log('[v0] ADMIN - No pending deposits');
-        setDeposits([]);
-        setError(null);
-        setIsLoading(false);
-        return;
-      }
-      
-      const formattedDeposits = data.deposits.map((deposit: any) => ({
-        ...deposit,
-        amount: typeof deposit.amount === 'string' ? parseFloat(deposit.amount) : deposit.amount,
-      }));
-      
-      setDeposits(formattedDeposits);
-      setError(null);
-      setIsLoading(false);
+      setDeposits(data.deposits || []);
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : String(error);
-      console.error('[v0] ADMIN - Error loading deposits:', errorMsg);
-      setError(`Error: ${errorMsg}`);
+      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
+      console.error('[v0] Fetch deposits error:', error);
+      setMessage({ 
+        type: 'error', 
+        text: `Failed to load deposits: ${errorMessage}`
+      });
       setDeposits([]);
+    } finally {
       setIsLoading(false);
     }
   };
 
-  useEffect(() => {
-    console.log('[v0] ADMIN - useEffect triggered, user:', user?.id);
-    // Always try to load - loadDeposits will handle localStorage fallback
-    loadDeposits();
-  }, [user?.id]);
-
   const handleApprove = async (depositId: string) => {
+    setActionLoading(depositId);
     try {
-      console.log('[v0] ADMIN - Approve button clicked for deposit:', depositId);
-      setActionLoading(depositId);
-      
-      const userId = user?.id || (typeof window !== 'undefined' ? localStorage.getItem('userId') : null);
-      if (!userId) {
-        alert('User ID not found. Please log in again.');
-        setActionLoading(null);
-        return;
-      }
-      
       const response = await fetch('/api/admin/deposits/approve', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ deposit_id: depositId, action: 'approve', userId }),
+        body: JSON.stringify({
+          deposit_id: depositId,
+          action: 'approve',
+        }),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to approve deposit');
+        const errorMsg = data.error || data.message || 'Failed to approve deposit';
+        setMessage({ 
+          type: 'error', 
+          text: errorMsg
+        });
+        return;
       }
 
-      console.log('[v0] ADMIN - Deposit approved');
-      await loadDeposits(userId);
+      setMessage({ type: 'success', text: 'Deposit approved successfully' });
+      
+      // Update local deposits list
+      const updatedDeposits = deposits.map(d => 
+        d.id === depositId ? { ...d, status: 'approved' } : d
+      );
+      setDeposits(updatedDeposits);
+      setExpandedId(null);
+
     } catch (error) {
-      console.error('[v0] ADMIN - Error approving deposit:', error);
-      alert(error instanceof Error ? error.message : 'Failed to approve deposit');
+      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
+      console.error('[v0] Approve deposit error:', error);
+      setMessage({ 
+        type: 'error', 
+        text: `Failed to approve deposit: ${errorMessage}`
+      });
     } finally {
       setActionLoading(null);
     }
   };
 
   const handleReject = async (depositId: string) => {
+    setActionLoading(depositId);
     try {
-      console.log('[v0] ADMIN - Reject button clicked for deposit:', depositId);
-      setActionLoading(depositId);
-      
-      const userId = user?.id || (typeof window !== 'undefined' ? localStorage.getItem('userId') : null);
-      if (!userId) {
-        alert('User ID not found. Please log in again.');
-        setActionLoading(null);
-        return;
-      }
-      
       const response = await fetch('/api/admin/deposits/approve', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ deposit_id: depositId, action: 'reject', userId }),
+        body: JSON.stringify({
+          deposit_id: depositId,
+          action: 'reject',
+        }),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to reject deposit');
+        const errorMsg = data.error || data.message || 'Failed to reject deposit';
+        setMessage({ 
+          type: 'error', 
+          text: errorMsg
+        });
+        return;
       }
 
-      console.log('[v0] ADMIN - Deposit rejected');
-      await loadDeposits(userId);
+      setMessage({ type: 'success', text: 'Deposit rejected successfully' });
+      
+      // Update local deposits list
+      const updatedDeposits = deposits.map(d => 
+        d.id === depositId ? { ...d, status: 'rejected' } : d
+      );
+      setDeposits(updatedDeposits);
+      setExpandedId(null);
+
     } catch (error) {
-      console.error('[v0] ADMIN - Error rejecting deposit:', error);
-      alert(error instanceof Error ? error.message : 'Failed to reject deposit');
+      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
+      console.error('[v0] Reject deposit error:', error);
+      setMessage({ 
+        type: 'error', 
+        text: `Failed to reject deposit: ${errorMessage}`
+      });
     } finally {
       setActionLoading(null);
     }
@@ -238,27 +200,23 @@ export default function AdminDepositsPage() {
         <p className="text-sm text-muted-foreground mt-1">Manage and approve user deposit requests</p>
       </motion.div>
 
+      {message && (
+        <motion.div
+          variants={staggerItem}
+          className={`p-4 rounded-lg border ${
+            message.type === 'success'
+              ? 'bg-green-400/10 border-green-400/30 text-green-300'
+              : 'bg-red-400/10 border-red-400/30 text-red-300'
+          }`}
+        >
+          {message.text}
+        </motion.div>
+      )}
+
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
           <p className="text-white/60">Loading deposits...</p>
         </div>
-      ) : error ? (
-        <motion.div
-          variants={staggerItem}
-          className="p-6 bg-red-400/10 border border-red-400/50 rounded-lg"
-        >
-          <p className="text-red-400 font-medium">Error loading deposits:</p>
-          <p className="text-red-300 text-sm mt-2">{error}</p>
-          <button
-            onClick={() => {
-              const userId = user?.id || (typeof window !== 'undefined' ? localStorage.getItem('userId') : null);
-              loadDeposits(userId || undefined);
-            }}
-            className="mt-4 px-4 py-2 bg-red-400/20 text-red-400 border border-red-400/50 rounded hover:bg-red-400/30 transition-colors text-sm font-medium"
-          >
-            Try Again
-          </button>
-        </motion.div>
       ) : deposits.length === 0 ? (
         <motion.div
           variants={staggerItem}
