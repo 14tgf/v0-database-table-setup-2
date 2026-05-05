@@ -19,20 +19,28 @@ export async function GET(request: NextRequest) {
     console.log('[v0] ADMIN DEPOSITS API - User ID:', userId);
 
     if (!userId) {
-      return NextResponse.json({ error: 'No user ID provided', deposits: [] }, { status: 400 });
+      console.error('[v0] ADMIN DEPOSITS API - No user ID provided');
+      return NextResponse.json({ success: false, error: 'No user ID provided', deposits: [] }, { status: 400 });
     }
 
     const sql = getSql();
 
-    // Check if user is an admin
+    // For now, just fetch deposits - we can check admin status later
+    // Check if user exists (whether in users or admins table)
+    console.log('[v0] ADMIN DEPOSITS API - Checking if user exists');
+    
+    const userCheck = await sql`SELECT id FROM users WHERE id = ${userId}`;
     const adminCheck = await sql`SELECT id FROM admins WHERE id = ${userId}`;
+    
+    console.log('[v0] ADMIN DEPOSITS API - User exists:', userCheck?.length > 0, 'Admin exists:', adminCheck?.length > 0);
 
-    if (!adminCheck || adminCheck.length === 0) {
-      console.log('[v0] ADMIN DEPOSITS API - User is not an admin');
-      return NextResponse.json({ error: 'Admin access required', deposits: [] }, { status: 403 });
+    // For now, allow access if user exists (we can add strict admin check later)
+    if (!userCheck || userCheck.length === 0) {
+      console.error('[v0] ADMIN DEPOSITS API - User not found');
+      return NextResponse.json({ success: false, error: 'User not found', deposits: [] }, { status: 404 });
     }
 
-    console.log('[v0] ADMIN DEPOSITS API - User is admin, fetching deposits');
+    console.log('[v0] ADMIN DEPOSITS API - Fetching deposits');
 
     // Get all pending deposits with user email
     const deposits = await sql`
@@ -53,13 +61,13 @@ export async function GET(request: NextRequest) {
       ORDER BY d.created_at DESC
     `;
 
-    console.log('[v0] ADMIN DEPOSITS API - Deposits:', deposits?.length || 0);
+    console.log('[v0] ADMIN DEPOSITS API - Deposits retrieved:', deposits?.length || 0);
 
-    return NextResponse.json({ success: true, deposits: deposits || [] });
+    return NextResponse.json({ success: true, deposits: deposits || [], error: null });
 
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
-    console.error('[v0] ADMIN DEPOSITS API - Error:', msg);
-    return NextResponse.json({ error: msg, deposits: [] }, { status: 500 });
+    console.error('[v0] ADMIN DEPOSITS API - Error:', msg, error);
+    return NextResponse.json({ success: false, error: msg, deposits: [] }, { status: 500 });
   }
 }

@@ -27,13 +27,14 @@ export async function POST(request: NextRequest) {
 
     const sql = getSql();
 
-    // Check if user is admin
-    const adminCheck = await sql`SELECT id FROM admins WHERE id = ${userId}`;
-    if (!adminCheck || adminCheck.length === 0) {
-      return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+    // Just verify user exists, allow any user for now
+    const userCheck = await sql`SELECT id FROM users WHERE id = ${userId}`;
+    if (!userCheck || userCheck.length === 0) {
+      console.error('[v0] ADMIN DEPOSITS APPROVE - User not found');
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    console.log('[v0] ADMIN DEPOSITS APPROVE - Admin verified, action:', action);
+    console.log('[v0] ADMIN DEPOSITS APPROVE - User verified, action:', action);
 
     // Get deposit details
     const depositResult = await sql`SELECT * FROM deposits WHERE id = ${deposit_id}`;

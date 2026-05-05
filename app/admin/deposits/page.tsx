@@ -56,49 +56,72 @@ export default function AdminDepositsPage() {
 
   const loadDeposits = async () => {
     try {
-      console.log('[v0] ADMIN - Loading deposits for user:', user?.id);
+      if (!user?.id) {
+        console.log('[v0] ADMIN - User not available yet');
+        return;
+      }
+
+      console.log('[v0] ADMIN - Loading deposits for user:', user.id);
       setIsLoading(true);
       setError(null);
       
-      if (!user?.id) {
-        setError('User ID not found. Please log in again.');
-        return;
-      }
-      
       const userId = user.id;
+      const url = `/api/admin/deposits?userId=${encodeURIComponent(userId)}`;
+      console.log('[v0] ADMIN - Fetching from:', url);
       
-      const response = await fetch(`/api/admin/deposits?userId=${userId}`);
+      const response = await fetch(url);
       console.log('[v0] ADMIN - API response status:', response.status);
       
-      if (!response.ok) {
-        const errorData = await response.json();
-        setError(errorData.error || 'Failed to load deposits');
+      let data;
+      try {
+        data = await response.json();
+      } catch (parseError) {
+        console.error('[v0] ADMIN - Failed to parse response:', parseError);
+        setError('Invalid API response');
         setDeposits([]);
+        setIsLoading(false);
+        return;
+      }
+
+      if (!response.ok) {
+        console.error('[v0] ADMIN - API error:', data.error, 'Status:', response.status);
+        setError(data.error || 'Failed to load deposits');
+        setDeposits([]);
+        setIsLoading(false);
         return;
       }
       
-      const data = await response.json();
       console.log('[v0] ADMIN - Deposits received:', data.deposits?.length || 0);
       
-      if (!data.deposits || data.deposits.length === 0) {
-        setError(null);
+      if (!data.deposits) {
+        console.log('[v0] ADMIN - No deposits array in response');
         setDeposits([]);
+        setError(null);
+        setIsLoading(false);
+        return;
+      }
+
+      if (data.deposits.length === 0) {
+        console.log('[v0] ADMIN - No pending deposits');
+        setDeposits([]);
+        setError(null);
+        setIsLoading(false);
         return;
       }
       
-      const formattedDeposits = (data.deposits || []).map((deposit: any) => ({
+      const formattedDeposits = data.deposits.map((deposit: any) => ({
         ...deposit,
         amount: typeof deposit.amount === 'string' ? parseFloat(deposit.amount) : deposit.amount,
       }));
       
       setDeposits(formattedDeposits);
       setError(null);
+      setIsLoading(false);
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);
       console.error('[v0] ADMIN - Error loading deposits:', errorMsg);
-      setError(`Failed to load deposits: ${errorMsg}`);
+      setError(`Error: ${errorMsg}`);
       setDeposits([]);
-    } finally {
       setIsLoading(false);
     }
   };
