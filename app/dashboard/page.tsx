@@ -74,7 +74,7 @@ export default function DashboardPage() {
       description: 'Trade individual stocks',
       actionText: 'Trade Stocks',
       icon: BarChart3,
-      href: '/stocks',
+      href: '/market',
     },
     {
       title: 'Portfolio',
