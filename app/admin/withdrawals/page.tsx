@@ -42,19 +42,31 @@ export default function AdminWithdrawalsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    console.log('[v0] Admin withdrawals page mounted');
     loadWithdrawals();
   }, []);
 
   const loadWithdrawals = async () => {
     try {
       setIsLoading(true);
+      setError(null);
+      
       const response = await fetch('/api/admin/withdrawals');
       const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fetch withdrawals');
+      }
+      
       setWithdrawals(data.withdrawals || []);
-    } catch (error) {
-      console.error('Error loading withdrawals:', error);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred';
+      console.error('[v0] Fetch withdrawals error:', err);
+      setError(errorMessage);
+      setWithdrawals([]);
     } finally {
       setIsLoading(false);
     }
@@ -69,11 +81,18 @@ export default function AdminWithdrawalsPage() {
         body: JSON.stringify({ withdrawal_id: withdrawalId, action: 'approve' }),
       });
 
-      if (response.ok) {
-        await loadWithdrawals();
+      const data = await response.json();
+      
+      if (!response.ok) {
+        alert(data.error || 'Failed to approve withdrawal');
+        return;
       }
+
+      console.log('[v0] Withdrawal approved:', data);
+      await loadWithdrawals();
     } catch (error) {
-      console.error('Error approving withdrawal:', error);
+      console.error('[v0] Error approving withdrawal:', error);
+      alert(error instanceof Error ? error.message : 'Failed to approve withdrawal');
     } finally {
       setActionLoading(null);
     }
@@ -88,11 +107,18 @@ export default function AdminWithdrawalsPage() {
         body: JSON.stringify({ withdrawal_id: withdrawalId, action: 'reject' }),
       });
 
-      if (response.ok) {
-        await loadWithdrawals();
+      const data = await response.json();
+      
+      if (!response.ok) {
+        alert(data.error || 'Failed to reject withdrawal');
+        return;
       }
+
+      console.log('[v0] Withdrawal rejected:', data);
+      await loadWithdrawals();
     } catch (error) {
-      console.error('Error rejecting withdrawal:', error);
+      console.error('[v0] Error rejecting withdrawal:', error);
+      alert(error instanceof Error ? error.message : 'Failed to reject withdrawal');
     } finally {
       setActionLoading(null);
     }
@@ -140,6 +166,20 @@ export default function AdminWithdrawalsPage() {
         <div className="flex items-center justify-center py-12">
           <p className="text-white/60">Loading withdrawals...</p>
         </div>
+      ) : error ? (
+        <motion.div
+          variants={staggerItem}
+          className="p-6 bg-red-400/10 border border-red-400/50 rounded-lg"
+        >
+          <p className="text-red-400 font-medium">Error loading withdrawals:</p>
+          <p className="text-red-400/80 text-sm mt-1">{error}</p>
+          <button
+            onClick={() => loadWithdrawals()}
+            className="mt-4 px-4 py-2 bg-red-400/20 text-red-400 border border-red-400/50 rounded hover:bg-red-400/30 transition-colors text-sm font-medium"
+          >
+            Try Again
+          </button>
+        </motion.div>
       ) : withdrawals.length === 0 ? (
         <motion.div
           variants={staggerItem}

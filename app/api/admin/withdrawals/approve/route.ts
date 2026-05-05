@@ -26,27 +26,29 @@ export async function POST(request: NextRequest) {
 
     console.log('[v0] Admin withdrawal action:', { withdrawal_id, action, adminId });
 
+    const db = sql();
+
     // Get withdrawal details
-    const withdrawalResult = await sql`
+    const withdrawalResult = await db`
       SELECT * FROM withdrawals WHERE id = ${withdrawal_id}
     `;
 
-    if (withdrawalResult.rows.length === 0) {
+    if (!withdrawalResult || withdrawalResult.length === 0) {
       return NextResponse.json(
         { error: 'Withdrawal not found' },
         { status: 404 }
       );
     }
 
-    const withdrawal = withdrawalResult.rows[0];
+    const withdrawal = withdrawalResult[0];
 
     if (action === 'approve') {
       // Get user's current balance
-      const userResult = await sql`
+      const userResult = await db`
         SELECT wallet_balance FROM users WHERE id = ${withdrawal.user_id}
       `;
 
-      const currentBalance = parseFloat(userResult.rows[0]?.wallet_balance || 0);
+      const currentBalance = parseFloat(userResult[0]?.wallet_balance || 0);
 
       // Check if user still has sufficient balance
       if (currentBalance < withdrawal.amount) {
@@ -59,21 +61,21 @@ export async function POST(request: NextRequest) {
       const newBalance = currentBalance - parseFloat(withdrawal.amount);
 
       // Update user wallet (deduct amount)
-      await sql`
+      await db`
         UPDATE users 
         SET wallet_balance = ${newBalance}, updated_at = NOW()
         WHERE id = ${withdrawal.user_id}
       `;
 
       // Update withdrawal status
-      await sql`
+      await db`
         UPDATE withdrawals 
         SET status = 'approved', approved_by = ${adminId}, approved_at = NOW(), updated_at = NOW()
         WHERE id = ${withdrawal_id}
       `;
 
       // Create wallet transaction log
-      await sql`
+      await db`
         INSERT INTO wallet_transactions (user_id, transaction_type, amount, old_balance, new_balance, related_id, related_type, description)
         VALUES (${withdrawal.user_id}, 'withdrawal', ${withdrawal.amount}, ${currentBalance}, ${newBalance}, ${withdrawal_id}, 'withdrawal', 'Withdrawal approved')
       `;
@@ -87,7 +89,7 @@ export async function POST(request: NextRequest) {
       });
     } else {
       // Reject withdrawal
-      await sql`
+      await db`
         UPDATE withdrawals 
         SET status = 'rejected', approved_by = ${adminId}, approved_at = NOW(), updated_at = NOW()
         WHERE id = ${withdrawal_id}
