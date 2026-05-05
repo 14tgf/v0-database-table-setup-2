@@ -1,43 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
-import { jwtVerify } from 'jose';
-
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'default-secret-key-change-in-production');
 
 export async function POST(request: NextRequest) {
   try {
-    const cookie = request.cookies.get('admin_token')?.value;
-    if (!cookie) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    let body;
+    try {
+      body = await request.json();
+    } catch (e) {
+      return NextResponse.json({ error: 'Invalid request format' }, { status: 400 });
     }
 
-    const { payload } = await jwtVerify(cookie, JWT_SECRET);
-    const adminId = payload.sub as string;
+    const { withdrawal_id, action, userId } = body;
 
-    const body = await request.json();
-    const { withdrawal_id, action } = body;
-
-    if (!withdrawal_id || !['approve', 'reject'].includes(action)) {
-      return NextResponse.json(
-        { error: 'Invalid request' },
-        { status: 400 }
-      );
+    if (!withdrawal_id || !action) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
-
-    console.log('[v0] Admin withdrawal action:', { withdrawal_id, action, adminId });
 
     const db = sql();
 
     // Get withdrawal details
-    const withdrawalResult = await db`
-      SELECT * FROM withdrawals WHERE id = ${withdrawal_id}
-    `;
-
+    const withdrawalResult = await db`SELECT * FROM withdrawals WHERE id = ${withdrawal_id}`;
     if (!withdrawalResult || withdrawalResult.length === 0) {
-      return NextResponse.json(
-        { error: 'Withdrawal not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Withdrawal not found' }, { status: 404 });
     }
 
     const withdrawal = withdrawalResult[0];
@@ -48,7 +32,7 @@ export async function POST(request: NextRequest) {
         SELECT wallet_balance FROM users WHERE id = ${withdrawal.user_id}
       `;
 
-      const currentBalance = parseFloat(userResult[0]?.wallet_balance || 0);
+      const currentBalance = userResult?.length > 0 ? parseFloat(userResult[0].wallet_balance || 0) : 0;
 
       // Check if user still has sufficient balance
       if (currentBalance < withdrawal.amount) {
@@ -70,7 +54,7 @@ export async function POST(request: NextRequest) {
       // Update withdrawal status
       await db`
         UPDATE withdrawals 
-        SET status = 'approved', approved_by = ${adminId}, approved_at = NOW(), updated_at = NOW()
+        SET status = 'approved', approved_by = ${userId || null}, approved_at = NOW(), updated_at = NOW()
         WHERE id = ${withdrawal_id}
       `;
 
@@ -79,8 +63,6 @@ export async function POST(request: NextRequest) {
         INSERT INTO wallet_transactions (user_id, transaction_type, amount, old_balance, new_balance, related_id, related_type, description)
         VALUES (${withdrawal.user_id}, 'withdrawal', ${withdrawal.amount}, ${currentBalance}, ${newBalance}, ${withdrawal_id}, 'withdrawal', 'Withdrawal approved')
       `;
-
-      console.log('[v0] Withdrawal approved:', { withdrawal_id, newBalance });
 
       return NextResponse.json({
         success: true,
@@ -91,11 +73,9 @@ export async function POST(request: NextRequest) {
       // Reject withdrawal
       await db`
         UPDATE withdrawals 
-        SET status = 'rejected', approved_by = ${adminId}, approved_at = NOW(), updated_at = NOW()
+        SET status = 'rejected', approved_by = ${userId || null}, approved_at = NOW(), updated_at = NOW()
         WHERE id = ${withdrawal_id}
       `;
-
-      console.log('[v0] Withdrawal rejected:', { withdrawal_id });
 
       return NextResponse.json({
         success: true,
@@ -103,10 +83,8 @@ export async function POST(request: NextRequest) {
       });
     }
   } catch (error) {
-    console.error('[v0] Withdrawal approval error:', error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Withdrawal approval failed' },
-      { status: 500 }
-    );
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error('[v0] Error approving withdrawal:', msg);
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
