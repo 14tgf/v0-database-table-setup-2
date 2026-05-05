@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
@@ -12,22 +12,19 @@ import { PayPalForm } from '@/components/payments/paypal-form';
 import { GiftCardForm } from '@/components/payments/giftcard-form';
 import { CheckoutSummary } from '@/components/payments/checkout-summary';
 import { staggerContainer, staggerItem } from '@/lib/animations';
-
-// Mock product data
-const PRODUCTS: Record<string, any> = {
-  '1': { id: '1', name: 'Tesla Model 3', price: 45000, image: '/products/model3.jpg' },
-  '2': { id: '2', name: 'Tesla Model S', price: 75000, image: '/products/models.jpg' },
-  '3': { id: '3', name: 'Tesla Model X', price: 85000, image: '/products/modelx.jpg' },
-};
+import { PRODUCTS } from '@/lib/products';
 
 function CheckoutContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const productId = searchParams.get('productId') || '1';
-  const product = PRODUCTS[productId] || PRODUCTS['1'];
+  const product = PRODUCTS.find(p => p.id === productId) || PRODUCTS[0];
 
   const [selectedMethod, setSelectedMethod] = useState('crypto');
   const [quantity, setQuantity] = useState(1);
   const [submitted, setSubmitted] = useState(false);
+  const [orderId, setOrderId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const methods = [
     { id: 'crypto', label: 'Cryptocurrency', description: 'BTC, USDT, ETH' },
@@ -35,15 +32,69 @@ function CheckoutContent() {
     { id: 'giftcard', label: 'Gift Card', description: 'Physical or E-Gift' },
   ];
 
-  const fees = product.price * quantity * 0.02; // 2% processing fee
+  const fees = product.price * quantity * 0.02;
 
-  const handleSubmit = (data: any) => {
-    console.log('[v0] Order submitted:', { product, quantity, ...data });
-    setSubmitted(true);
-    setTimeout(() => {
-      setSubmitted(false);
-      setSelectedMethod('crypto');
-    }, 5000);
+  const handleSubmit = async (data: any) => {
+    try {
+      setIsLoading(true);
+      
+      // Step 1: Create order
+      if (!orderId) {
+        console.log('[v0] Creating order...');
+        const createOrderRes = await fetch('/api/orders/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            product_id: product.id,
+            product_name: product.name,
+            quantity,
+            total_amount: product.price * quantity
+          })
+        });
+
+        const orderData = await createOrderRes.json();
+        
+        if (!createOrderRes.ok) {
+          throw new Error(orderData.error || 'Failed to create order');
+        }
+
+        setOrderId(orderData.order.id);
+        console.log('[v0] Order created:', orderData.order.id);
+
+        // Step 2: Submit payment for the order
+        console.log('[v0] Submitting payment for order...');
+        const paymentRes = await fetch('/api/orders/submit-payment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            order_id: orderData.order.id,
+            method_name: selectedMethod,
+            amount: product.price * quantity,
+            tx_hash: data.tx_hash || null,
+            proof_upload: data.proof_image || null,
+            note: data.notes || null
+          })
+        });
+
+        const paymentData = await paymentRes.json();
+        
+        if (!paymentRes.ok) {
+          throw new Error(paymentData.error || 'Failed to submit payment');
+        }
+
+        console.log('[v0] Payment submitted successfully');
+        setSubmitted(true);
+        
+        setTimeout(() => {
+          router.push('/dashboard/orders');
+        }, 3000);
+      }
+    } catch (error) {
+      console.error('[v0] Checkout error:', error);
+      alert(error instanceof Error ? error.message : 'Checkout failed');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

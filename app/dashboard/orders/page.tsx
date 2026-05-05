@@ -7,22 +7,55 @@ import { motion } from 'framer-motion'
 import { Package, ShoppingCart, Clock, DollarSign, Menu, X as XIcon, ArrowRight } from 'lucide-react'
 import { staggerContainer, staggerItem } from '@/lib/animations'
 import { SidebarMenu } from '@/components/dashboard/sidebar-menu'
+import { useCurrencyFormatter } from '@/hooks/useCurrencyFormatter'
+
+interface Order {
+  id: string
+  product_name: string
+  quantity: number
+  total_amount: number
+  payment_method: string
+  status: string
+  created_at: string
+}
 
 export default function OrdersPage() {
   const [isLoaded, setIsLoaded] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [orders, setOrders] = useState<Order[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const { format } = useCurrencyFormatter()
 
   useEffect(() => {
     setIsLoaded(true)
+    fetchOrders()
   }, [])
 
-  const orders = [
-    // Empty state - no orders yet
-  ]
+  const fetchOrders = async () => {
+    try {
+      setIsLoading(true)
+      const response = await fetch('/api/orders/list')
+      const data = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fetch orders')
+      }
+      
+      setOrders(data.orders || [])
+      setError(null)
+    } catch (err) {
+      console.error('[v0] Error fetching orders:', err)
+      setError(err instanceof Error ? err.message : 'Failed to load orders')
+      setOrders([])
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
-  const totalPurchases = 0
-  const completedPurchases = 0
-  const pendingPurchases = 0
+  const totalPurchases = orders.length
+  const completedPurchases = orders.filter(o => o.status === 'Completed').length
+  const pendingPurchases = orders.filter(o => o.status.includes('Pending') || o.status.includes('Submitted')).length
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -135,7 +168,21 @@ export default function OrdersPage() {
               <h2 className="text-2xl font-bold text-white mb-2">All Purchases</h2>
               <p className="text-white/80 mb-8">Complete history of your vehicle purchases</p>
 
-              {orders.length === 0 ? (
+              {isLoading ? (
+                <div className="text-center py-12">
+                  <p className="text-white/80">Loading orders...</p>
+                </div>
+              ) : error ? (
+                <div className="text-center py-12">
+                  <p className="text-red-400 mb-4">{error}</p>
+                  <button
+                    onClick={fetchOrders}
+                    className="px-4 py-2 bg-white text-primary font-semibold rounded-lg hover:bg-white/90 transition-colors"
+                  >
+                    Try Again
+                  </button>
+                </div>
+              ) : orders.length === 0 ? (
                 <div className="text-center py-12">
                   <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-white/20 mb-4">
                     <Package className="w-10 h-10 text-white/60" />
@@ -152,21 +199,26 @@ export default function OrdersPage() {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {orders.map((order, idx) => (
+                  {orders.map((order) => (
                     <motion.div
-                      key={idx}
+                      key={order.id}
                       variants={staggerItem}
                       className="bg-white/10 border border-white/20 rounded-xl p-4 hover:bg-white/15 transition-colors"
                     >
                       <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="font-semibold text-white">{order.name}</h3>
-                          <p className="text-xs text-white/60">{order.date}</p>
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-white">{order.product_name}</h3>
+                          <div className="flex gap-4 mt-1 text-xs text-white/70">
+                            <p>Qty: {order.quantity}</p>
+                            <p>Method: {order.payment_method}</p>
+                          </div>
                         </div>
-                        <div className="text-right">
-                          <p className="font-bold text-white">${order.price}</p>
-                          <p className={`text-xs font-semibold ${
-                            order.status === 'Completed' ? 'text-green-300' : 'text-yellow-300'
+                        <div className="text-right flex-shrink-0">
+                          <p className="font-bold text-white">{format(parseFloat(order.total_amount as any) || 0)}</p>
+                          <p className={`text-xs font-semibold mt-1 ${
+                            order.status === 'Completed' ? 'text-green-300' : 
+                            order.status === 'Rejected' ? 'text-red-300' :
+                            'text-yellow-300'
                           }`}>
                             {order.status}
                           </p>

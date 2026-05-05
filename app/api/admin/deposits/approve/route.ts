@@ -1,5 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { sql } from '@/lib/db';
+import { neon } from '@neondatabase/serverless';
+
+function getSql() {
+  if (!process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL not set');
+  }
+  return neon(process.env.DATABASE_URL);
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,10 +23,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    const db = sql();
+    const sql = getSql();
 
     // Get deposit details
-    const depositResult = await db`SELECT * FROM deposits WHERE id = ${deposit_id}`;
+    const depositResult = await sql`SELECT * FROM deposits WHERE id = ${deposit_id}`;
     if (!depositResult || depositResult.length === 0) {
       return NextResponse.json({ error: 'Deposit not found' }, { status: 404 });
     }
@@ -27,17 +34,24 @@ export async function POST(request: NextRequest) {
     const deposit = depositResult[0];
 
     if (action === 'approve') {
-      const userResult = await db`SELECT wallet_balance FROM users WHERE id = ${deposit.user_id}`;
+      const userResult = await sql`SELECT wallet_balance FROM users WHERE id = ${deposit.user_id}`;
       const currentBalance = userResult?.length > 0 ? parseFloat(userResult[0].wallet_balance || 0) : 0;
       const newBalance = currentBalance + parseFloat(deposit.amount);
 
-      await db`UPDATE users SET wallet_balance = ${newBalance}, updated_at = NOW() WHERE id = ${deposit.user_id}`;
-      await db`UPDATE deposits SET status = 'approved', approved_by = ${userId || null}, approved_at = NOW(), updated_at = NOW() WHERE id = ${deposit_id}`;
-      await db`INSERT INTO wallet_transactions (user_id, transaction_type, amount, old_balance, new_balance, related_id, related_type, description) VALUES (${deposit.user_id}, 'deposit', ${deposit.amount}, ${currentBalance}, ${newBalance}, ${deposit_id}, 'deposit', 'Deposit approved')`;
+      await sql`UPDATE users SET wallet_balance = ${newBalance}, updated_at = NOW() WHERE id = ${deposit.user_id}`;
+      await sql`UPDATE deposits SET status = 'approved', approved_by = ${userId || null}, approved_at = NOW(), updated_at = NOW() WHERE id = ${deposit_id}`;
+      await sql`INSERT INTO wallet_transactions (user_id, transaction_type, amount, old_balance, new_balance, related_id, related_type, description) VALUES (${deposit.user_id}, 'deposit', ${deposit.amount}, ${currentBalance}, ${newBalance}, ${deposit_id}, 'deposit', 'Deposit approved')`;
+
+      // Update linked order if this is a payment for an order
+      await sql`UPDATE orders SET status = 'Processing', updated_at = NOW() WHERE linked_deposit_id = ${deposit_id}`;
 
       return NextResponse.json({ success: true, message: 'Deposit approved', newBalance });
     } else {
-      await db`UPDATE deposits SET status = 'rejected', approved_by = ${userId || null}, approved_at = NOW(), updated_at = NOW() WHERE id = ${deposit_id}`;
+      await sql`UPDATE deposits SET status = 'rejected', approved_by = ${userId || null}, approved_at = NOW(), updated_at = NOW() WHERE id = ${deposit_id}`;
+      
+      // Update linked order if this is a payment for an order
+      await sql`UPDATE orders SET status = 'Rejected', updated_at = NOW() WHERE linked_deposit_id = ${deposit_id}`;
+      
       return NextResponse.json({ success: true, message: 'Deposit rejected' });
     }
   } catch (error) {
