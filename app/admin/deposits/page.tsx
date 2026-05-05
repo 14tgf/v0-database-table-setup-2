@@ -52,7 +52,14 @@ export default function AdminDepositsPage() {
       setIsLoading(true);
       const response = await fetch('/api/admin/deposits');
       const data = await response.json();
-      setDeposits(data.deposits || []);
+      
+      // Convert amounts to numbers
+      const formattedDeposits = (data.deposits || []).map((deposit: any) => ({
+        ...deposit,
+        amount: typeof deposit.amount === 'string' ? parseFloat(deposit.amount) : deposit.amount,
+      }));
+      
+      setDeposits(formattedDeposits);
     } catch (error) {
       console.error('Error loading deposits:', error);
     } finally {
