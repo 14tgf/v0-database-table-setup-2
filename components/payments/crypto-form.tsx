@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Copy, CheckCircle } from 'lucide-react';
+import { Copy, CheckCircle, AlertCircle } from 'lucide-react';
 import { CryptoType, CRYPTO_NETWORKS } from '@/lib/payments';
 
 interface CryptoFormProps {
@@ -17,20 +17,88 @@ export function CryptoForm({ type, onSubmit }: CryptoFormProps) {
   const [network, setNetwork] = useState('mainnet');
   const [file, setFile] = useState<File | null>(null);
   const [copied, setCopied] = useState(false);
+  const [paymentMethods, setPaymentMethods] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const network_info = CRYPTO_NETWORKS[selected];
-  const demo_address = '1A1z7agoat2JLLSQb7EL347F8D4hjrjxa';
+
+  // Fetch payment methods from database
+  useEffect(() => {
+    const fetchPaymentMethods = async () => {
+      try {
+        console.log('[v0] CRYPTO FORM - Fetching payment methods from database');
+        setLoading(true);
+        setError(null);
+
+        const response = await fetch('/api/admin/payments/fetch', {
+          method: 'GET',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+        });
+
+        console.log('[v0] CRYPTO FORM - API response status:', response.status);
+
+        if (!response.ok) {
+          console.warn('[v0] CRYPTO FORM - Failed to fetch payment methods:', response.status);
+          setError('Unable to load payment methods');
+          return;
+        }
+
+        const result = await response.json();
+        console.log('[v0] CRYPTO FORM - Fetched payment methods:', result);
+
+        if (result.success && result.data) {
+          setPaymentMethods(result.data.crypto);
+          console.log('[v0] CRYPTO FORM - Payment methods loaded:', result.data.crypto);
+        } else {
+          console.warn('[v0] CRYPTO FORM - Invalid response format');
+          setError('Invalid payment data format');
+        }
+      } catch (err) {
+        const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+        console.error('[v0] CRYPTO FORM - Error fetching payment methods:', errorMsg);
+        setError('Failed to load payment methods');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (type === 'deposit') {
+      fetchPaymentMethods();
+    }
+  }, [type]);
+
+  // Get the wallet address for the selected crypto type
+  const getWalletAddress = () => {
+    if (!paymentMethods) return '';
+
+    const cryptoKey = selected === 'BTC' ? 'btc_address' : 
+                      selected === 'ETH' ? 'eth_address' :
+                      selected === 'USDT' ? 'usdt_erc20' : '';
+
+    return paymentMethods[cryptoKey] || '';
+  };
+
+  const displayAddress = type === 'deposit' ? getWalletAddress() : walletAddress;
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(demo_address);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    const addressToCopy = getWalletAddress();
+    if (addressToCopy) {
+      navigator.clipboard.writeText(addressToCopy);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (type === 'deposit' && !walletAddress) {
-      alert('Please provide a wallet address or proof');
+    if (type === 'deposit' && !displayAddress) {
+      alert('Payment address not available. Please try again later.');
+      return;
+    }
+    if (type === 'deposit' && !walletAddress && !file) {
+      alert('Please provide wallet proof or transaction ID');
       return;
     }
     if (type === 'withdraw' && !walletAddress) {
@@ -98,28 +166,49 @@ export function CryptoForm({ type, onSubmit }: CryptoFormProps) {
 
       {type === 'deposit' && (
         <>
-          {/* Wallet Address Display for Deposit */}
-          <div>
-            <label className="text-xs font-semibold text-muted-foreground mb-2 block">Send To Wallet Address</label>
-            <div className="p-3 bg-accent/10 border border-accent/30 rounded-lg flex items-center justify-between gap-2">
-              <code className="text-xs font-mono text-accent break-all">{demo_address}</code>
-              <button
-                type="button"
-                onClick={handleCopy}
-                className="p-1.5 hover:bg-accent/20 rounded transition-colors flex-shrink-0"
-              >
-                {copied ? (
-                  <CheckCircle className="w-4 h-4 text-green-400" />
-                ) : (
-                  <Copy className="w-4 h-4 text-accent" />
-                )}
-              </button>
+          {/* Error Message if Payment Methods Failed to Load */}
+          {error && (
+            <div className="p-3 bg-red-400/10 border border-red-400/30 rounded-lg flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-xs font-semibold text-red-400">{error}</p>
+                <p className="text-xs text-red-400/80 mt-1">Please refresh the page or contact support.</p>
+              </div>
             </div>
-          </div>
+          )}
+
+          {/* Loading State */}
+          {loading && (
+            <div className="p-3 bg-blue-400/10 border border-blue-400/30 rounded-lg">
+              <p className="text-xs text-blue-400">Loading payment addresses...</p>
+            </div>
+          )}
+
+          {/* Wallet Address Display for Deposit */}
+          {!loading && !error && (
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground mb-2 block">Send To Wallet Address</label>
+              <div className="p-3 bg-accent/10 border border-accent/30 rounded-lg flex items-center justify-between gap-2">
+                <code className="text-xs font-mono text-accent break-all">{displayAddress || 'Address loading...'}</code>
+                <button
+                  type="button"
+                  onClick={handleCopy}
+                  disabled={!displayAddress}
+                  className="p-1.5 hover:bg-accent/20 rounded transition-colors flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {copied ? (
+                    <CheckCircle className="w-4 h-4 text-green-400" />
+                  ) : (
+                    <Copy className="w-4 h-4 text-accent" />
+                  )}
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Payment Proof Upload */}
           <div>
-            <label className="text-xs font-semibold text-muted-foreground mb-2 block">Upload Payment Proof (Optional)</label>
+            <label className="text-xs font-semibold text-muted-foreground mb-2 block">Upload Payment Proof or TX ID (Optional)</label>
             <input
               type="file"
               accept="image/*"
