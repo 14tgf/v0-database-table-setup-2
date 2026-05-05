@@ -54,8 +54,21 @@ export default function AdminDepositsPage() {
       setIsLoading(true);
       setError(null);
       
+      // Get token from localStorage
+      const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+      console.log('[v0] ADMIN - Token from localStorage:', !!token);
+      
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
       const response = await fetch('/api/admin/deposits', {
         credentials: 'include',
+        headers,
       });
       
       console.log('[v0] ADMIN - Deposits API response status:', response.status);
@@ -85,7 +98,6 @@ export default function AdminDepositsPage() {
       }
       
       console.log('[v0] ADMIN - Deposits received:', data.deposits?.length || 0);
-      console.log('[v0] ADMIN - Full API response:', data);
       
       if (!data.deposits || data.deposits.length === 0) {
         console.log('[v0] ADMIN - No deposits in response');
@@ -117,10 +129,18 @@ export default function AdminDepositsPage() {
       console.log('[v0] ADMIN - Approve button clicked for deposit:', depositId);
       setActionLoading(depositId);
       
+      const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
       console.log('[v0] ADMIN - Sending approve request to API');
       const response = await fetch('/api/admin/deposits/approve', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         credentials: 'include',
         body: JSON.stringify({ deposit_id: depositId, action: 'approve' }),
       });
@@ -148,10 +168,18 @@ export default function AdminDepositsPage() {
       console.log('[v0] ADMIN - Reject button clicked for deposit:', depositId);
       setActionLoading(depositId);
       
+      const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
       console.log('[v0] ADMIN - Sending reject request to API');
       const response = await fetch('/api/admin/deposits/approve', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         credentials: 'include',
         body: JSON.stringify({ deposit_id: depositId, action: 'reject' }),
       });

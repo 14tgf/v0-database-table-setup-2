@@ -82,7 +82,8 @@ export async function POST(request: NextRequest) {
     const response = NextResponse.json({
       success: true,
       message: 'Login successful',
-      user: { id: user.id, email: user.email, fullName: user.full_name }
+      user: { id: user.id, email: user.email, fullName: user.full_name },
+      token: jwtToken
     }, { status: 200 });
 
     // Set secure cookie with the JWT token

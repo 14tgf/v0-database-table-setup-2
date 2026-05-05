@@ -14,33 +14,38 @@ function getSql() {
 export async function GET(request: NextRequest) {
   try {
     console.log('[v0] ADMIN DEPOSITS API - Request received');
-    console.log('[v0] ADMIN DEPOSITS API - All cookies:', request.cookies.getAll().map(c => c.name));
     
-    // Check for authentication
-    const cookie = request.cookies.get('auth_token')?.value;
-    console.log('[v0] ADMIN DEPOSITS API - Auth token present:', !!cookie);
-    console.log('[v0] ADMIN DEPOSITS API - Auth token value (first 20 chars):', cookie ? cookie.substring(0, 20) + '...' : 'none');
+    // Try to get token from cookies or Authorization header
+    let token = request.cookies.get('auth_token')?.value;
+    
+    if (!token) {
+      // Try Authorization header
+      const authHeader = request.headers.get('Authorization');
+      console.log('[v0] ADMIN DEPOSITS API - Auth header present:', !!authHeader);
+      
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        token = authHeader.substring(7); // Remove "Bearer " prefix
+        console.log('[v0] ADMIN DEPOSITS API - Token from Authorization header');
+      }
+    } else {
+      console.log('[v0] ADMIN DEPOSITS API - Token from cookie');
+    }
 
-    if (!cookie) {
-      console.error('[v0] ADMIN DEPOSITS API - No auth token found');
-      console.error('[v0] ADMIN DEPOSITS API - Available cookies:', request.cookies.getAll().map(c => ({ name: c.name, value: c.value.substring(0, 10) })));
+    if (!token) {
+      console.error('[v0] ADMIN DEPOSITS API - No auth token found in cookie or header');
       return NextResponse.json({ 
-        error: 'Not authenticated - no auth_token cookie found. Please ensure you are logged in.',
-        debug: {
-          cookiesSent: request.cookies.getAll().map(c => c.name),
-          message: 'Check that login set the auth_token cookie'
-        }
+        error: 'Not authenticated. Please log in again.',
       }, { status: 401 });
     }
 
     // Verify JWT
     try {
-      await jwtVerify(cookie, JWT_SECRET);
+      await jwtVerify(token, JWT_SECRET);
       console.log('[v0] ADMIN DEPOSITS API - JWT verification successful');
     } catch (jwtError) {
       console.error('[v0] ADMIN DEPOSITS API - JWT verification failed:', jwtError);
       return NextResponse.json({ 
-        error: 'Invalid or expired token. Please login again.',
+        error: 'Invalid or expired token. Please log in again.',
         detail: jwtError instanceof Error ? jwtError.message : String(jwtError)
       }, { status: 401 });
     }

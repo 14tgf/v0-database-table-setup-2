@@ -15,13 +15,25 @@ export async function POST(request: NextRequest) {
   try {
     console.log('[v0] ADMIN DEPOSITS APPROVE - Request received');
     
-    const cookie = request.cookies.get('auth_token')?.value;
-    if (!cookie) {
+    // Try to get token from cookies or Authorization header
+    let token = request.cookies.get('auth_token')?.value;
+    
+    if (!token) {
+      const authHeader = request.headers.get('Authorization');
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        token = authHeader.substring(7);
+        console.log('[v0] ADMIN DEPOSITS APPROVE - Token from Authorization header');
+      }
+    } else {
+      console.log('[v0] ADMIN DEPOSITS APPROVE - Token from cookie');
+    }
+
+    if (!token) {
       console.error('[v0] ADMIN DEPOSITS APPROVE - No auth token');
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }
 
-    const { payload } = await jwtVerify(cookie, JWT_SECRET);
+    const { payload } = await jwtVerify(token, JWT_SECRET);
     const adminId = payload.sub as string;
     console.log('[v0] ADMIN DEPOSITS APPROVE - Admin ID:', adminId);
 

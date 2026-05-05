@@ -104,6 +104,12 @@ export function useAuth(): UseAuthReturn {
       setSuccess(true);
       setUser(data.user || null);
       
+      // Store token in localStorage if provided
+      if (data.token && typeof window !== 'undefined') {
+        console.log('[v0] Storing auth token in localStorage');
+        localStorage.setItem('auth_token', data.token);
+      }
+      
       // Redirect to dashboard after brief delay
       setTimeout(() => {
         router.push('/dashboard');
@@ -119,6 +125,13 @@ export function useAuth(): UseAuthReturn {
   const logout = useCallback(async () => {
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
+      
+      // Clear token from localStorage
+      if (typeof window !== 'undefined') {
+        console.log('[v0] Clearing auth token from localStorage');
+        localStorage.removeItem('auth_token');
+      }
+      
       setUser(null);
       router.push('/login');
     } catch (error) {
