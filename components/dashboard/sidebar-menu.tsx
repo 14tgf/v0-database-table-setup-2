@@ -19,7 +19,7 @@ export function SidebarMenu({ isOpen, onClose, userEmail = '', userName = '' }: 
   const menuItems = [
     { icon: LayoutGrid, label: 'Dashboard', href: '/dashboard' },
     { icon: Wallet, label: 'Wallet', href: '/dashboard/wallet' },
-    { icon: TrendingUp, label: 'Investments', href: '/market' },
+    { icon: TrendingUp, label: 'Investments', href: '/dashboard/investment-plans' },
     { icon: BarChart3, label: 'Stocks', href: '/market' },
     { icon: Clock, label: 'Portfolio', href: '/portfolio' },
     { icon: Car, label: 'Inventory', href: '/inventory' },
