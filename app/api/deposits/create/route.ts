@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
 
     if (!cookie) {
       console.error('[v0] DEPOSITS API - No auth token found');
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+      return NextResponse.json({ error: 'Not authenticated. Please login first.' }, { status: 401 });
     }
 
     // Verify JWT
@@ -22,7 +22,6 @@ export async function POST(request: NextRequest) {
     try {
       const { payload } = await jwtVerify(cookie, JWT_SECRET);
       userId = payload.sub as string;
-      console.log('[v0] DEPOSITS API - JWT payload:', payload);
       console.log('[v0] DEPOSITS API - User ID from JWT:', userId, 'Type:', typeof userId);
       
       if (!userId) {
@@ -30,103 +29,100 @@ export async function POST(request: NextRequest) {
       }
     } catch (jwtError) {
       console.error('[v0] DEPOSITS API - JWT verification failed:', jwtError);
-      return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 });
+      return NextResponse.json({ error: 'Invalid or expired session token' }, { status: 401 });
     }
 
-    const body = await request.json();
-    const { method_name, amount, tx_hash, proof_upload, note } = body;
+    // Parse request body
+    let body;
+    try {
+      body = await request.json();
+    } catch (e) {
+      console.error('[v0] DEPOSITS API - Failed to parse JSON:', e);
+      return NextResponse.json({ error: 'Invalid request format' }, { status: 400 });
+    }
 
-    console.log('[v0] DEPOSITS API - Deposit data:', { userId, method_name, amount, tx_hash });
+    const { method_name, amount, tx_hash, proof_upload, note } = body;
 
     // Validate input
     if (!method_name || !amount || amount <= 0) {
       console.error('[v0] DEPOSITS API - Invalid deposit data:', { method_name, amount });
       return NextResponse.json(
-        { error: 'Invalid deposit data. Method and amount are required.' },
+        { error: 'Invalid deposit data. Method name and amount (>0) are required.' },
         { status: 400 }
       );
     }
 
-    // Create deposit record - status starts as 'pending'
-    console.log('[v0] DEPOSITS API - Inserting into database with userId:', userId);
-    
-    // First verify the user exists
+    console.log('[v0] DEPOSITS API - Validated deposit:', { userId, method_name, amount });
+
+    // SIMPLE INSERT - No user check, just insert directly
+    let insertResult;
     try {
-      const userCheck = await sql`SELECT id FROM users WHERE id = ${userId}`;
-      console.log('[v0] DEPOSITS API - User check result:', userCheck);
+      console.log('[v0] DEPOSITS API - About to execute INSERT query');
       
-      if (!userCheck || (Array.isArray(userCheck) && userCheck.length === 0)) {
-        console.error('[v0] DEPOSITS API - User not found in database:', userId);
-        return NextResponse.json(
-          { error: 'User not found. Please login again.' },
-          { status: 401 }
-        );
-      }
-    } catch (userCheckError) {
-      console.error('[v0] DEPOSITS API - User check SQL error:', userCheckError);
-    }
-    
-    let result;
-    let sqlErrorDetails = null;
-    try {
-      result = await sql`
+      insertResult = await sql`
         INSERT INTO deposits (user_id, method_name, amount, tx_hash, proof_upload, note, status)
-        VALUES (${userId}, ${method_name}, ${amount}, ${tx_hash}, ${proof_upload}, ${note}, 'pending')
-        RETURNING id, status, created_at
+        VALUES (${userId}::uuid, ${method_name}, ${amount}::numeric, ${tx_hash}, ${proof_upload}, ${note}, 'pending')
+        RETURNING id, user_id, method_name, amount, status, created_at
       `;
-      console.log('[v0] DEPOSITS API - SQL execution successful');
+      
+      console.log('[v0] DEPOSITS API - INSERT query executed');
+      console.log('[v0] DEPOSITS API - Raw result type:', typeof insertResult);
+      console.log('[v0] DEPOSITS API - Raw result is array:', Array.isArray(insertResult));
+      console.log('[v0] DEPOSITS API - Raw result:', insertResult);
+      
     } catch (sqlError) {
-      sqlErrorDetails = {
+      const errorDetails = {
         message: sqlError instanceof Error ? sqlError.message : String(sqlError),
-        name: sqlError instanceof Error ? sqlError.name : 'Unknown',
-        stack: sqlError instanceof Error ? sqlError.stack : undefined,
+        code: (sqlError as any)?.code,
+        constraint: (sqlError as any)?.constraint,
       };
-      console.error('[v0] DEPOSITS API - SQL Error Details:', sqlErrorDetails);
-      throw sqlError;
+      console.error('[v0] DEPOSITS API - SQL INSERT ERROR:', errorDetails);
+      return NextResponse.json(
+        { 
+          error: `Database error: ${errorDetails.message}`,
+          details: errorDetails,
+        },
+        { status: 500 }
+      );
     }
 
-    console.log('[v0] DEPOSITS API - SQL result type:', typeof result, 'Is array:', Array.isArray(result));
-    console.log('[v0] DEPOSITS API - SQL result length:', Array.isArray(result) ? result.length : 'N/A');
-    console.log('[v0] DEPOSITS API - SQL result:', JSON.stringify(result));
-
-    // neon() returns array directly, not {rows: [...]}
-    const depositRecord = Array.isArray(result) && result.length > 0 ? result[0] : null;
-    
-    console.log('[v0] DEPOSITS API - Deposit record:', depositRecord);
-
-    if (!depositRecord) {
-      console.error('[v0] DEPOSITS API - No deposit record returned', { 
-        result, 
-        userId, 
-        method_name, 
-        amount,
-        resultLength: Array.isArray(result) ? result.length : 'not an array',
-        resultType: typeof result,
-      });
-      throw new Error(`Deposit INSERT failed: No data returned from database. Result: ${JSON.stringify(result)}`);
+    // Handle result - neon returns array directly
+    if (!insertResult) {
+      console.error('[v0] DEPOSITS API - Query returned null/undefined');
+      return NextResponse.json({ error: 'Database query returned no result' }, { status: 500 });
     }
 
-    console.log('[v0] DEPOSITS API - Deposit created successfully with ID:', depositRecord.id);
+    if (!Array.isArray(insertResult)) {
+      console.error('[v0] DEPOSITS API - Query result is not an array:', typeof insertResult);
+      return NextResponse.json({ error: 'Unexpected database response format' }, { status: 500 });
+    }
+
+    if (insertResult.length === 0) {
+      console.error('[v0] DEPOSITS API - INSERT returned empty array (no rows)');
+      return NextResponse.json({ error: 'Database INSERT did not return any rows' }, { status: 500 });
+    }
+
+    const depositRecord = insertResult[0];
+    console.log('[v0] DEPOSITS API - SUCCESS - Deposit created:', depositRecord);
 
     return NextResponse.json({
       success: true,
       deposit: depositRecord,
       message: 'Deposit submitted successfully. Pending admin approval.',
-    });
+    }, { status: 200 });
+
   } catch (error) {
-    const errorMsg = error instanceof Error ? error.message : 'Deposit submission failed';
-    const errorDetails = error instanceof Error ? {
-      message: error.message,
-      name: error.name,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
-    } : { message: String(error) };
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    const errorStack = error instanceof Error ? error.stack : undefined;
     
-    console.error('[v0] DEPOSITS API - Full Error:', errorDetails);
+    console.error('[v0] DEPOSITS API - CATCH BLOCK ERROR:', {
+      message: errorMsg,
+      stack: errorStack,
+    });
     
     return NextResponse.json(
       { 
-        error: errorMsg,
-        details: process.env.NODE_ENV === 'development' ? errorDetails : undefined,
+        error: `Server error: ${errorMsg}`,
       },
       { status: 500 }
     );
