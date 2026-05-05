@@ -108,6 +108,7 @@ export async function POST(request: NextRequest) {
         invested_amount = user_portfolio_stocks.invested_amount + ${investmentAmount},
         initial_price = (user_portfolio_stocks.invested_amount + ${investmentAmount}) / (user_portfolio_stocks.quantity + 1),
         current_price = ${currentPrice},
+        status = 'active',
         updated_at = NOW()
       RETURNING *
     `) as any[];
