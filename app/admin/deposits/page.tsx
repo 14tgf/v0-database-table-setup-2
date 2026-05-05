@@ -45,6 +45,7 @@ export default function AdminDepositsPage() {
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   useEffect(() => {
+    console.log('[v0] Admin deposits page mounted');
     fetchDeposits();
   }, []);
 

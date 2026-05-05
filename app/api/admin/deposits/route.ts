@@ -3,7 +3,9 @@ import { sql } from '@/lib/db';
 
 export async function GET(request: NextRequest) {
   try {
+    console.log('[v0] Fetching deposits...');
     const db = sql();
+    console.log('[v0] Database connection obtained');
 
     const deposits = await db`
       SELECT 
@@ -23,6 +25,8 @@ export async function GET(request: NextRequest) {
       ORDER BY d.created_at DESC
     `;
 
+    console.log('[v0] Query executed, deposits:', deposits?.length);
+
     const formattedDeposits = deposits.map((deposit: any) => ({
       id: deposit.id,
       user_id: deposit.user_id,
@@ -36,11 +40,13 @@ export async function GET(request: NextRequest) {
       user_email: deposit.user_email,
     }));
 
+    console.log('[v0] Deposits formatted, returning response');
     return NextResponse.json({ success: true, deposits: formattedDeposits });
 
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
     console.error('[v0] Error fetching deposits:', msg);
+    console.error('[v0] Full error:', error);
     return NextResponse.json({ success: false, error: msg, deposits: [] }, { status: 500 });
   }
 }
