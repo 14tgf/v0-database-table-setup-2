@@ -2,17 +2,26 @@ import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
 import { jwtVerify } from 'jose';
 
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'your-secret-key');
+const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'default-secret-key-change-in-production');
 
 export async function POST(request: NextRequest) {
   try {
     const cookie = request.cookies.get('auth_token')?.value;
+    console.log('[v0] Withdrawal API - Auth token present:', !!cookie);
+    
     if (!cookie) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }
 
-    const { payload } = await jwtVerify(cookie, JWT_SECRET);
-    const userId = payload.sub as string;
+    let userId: string;
+    try {
+      const { payload } = await jwtVerify(cookie, JWT_SECRET);
+      userId = payload.sub as string;
+      console.log('[v0] Withdrawal API - User ID verified:', userId);
+    } catch (jwtError) {
+      console.error('[v0] Withdrawal API - JWT verification failed:', jwtError);
+      return NextResponse.json({ error: 'Invalid or expired session. Please log in again.' }, { status: 401 });
+    }
 
     const body = await request.json();
     const { method_name, amount, destination_address, destination_bank_details, note } = body;
