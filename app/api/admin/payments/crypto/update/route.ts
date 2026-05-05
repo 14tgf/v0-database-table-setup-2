@@ -6,8 +6,8 @@ const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'your-secr
 
 export async function POST(request: NextRequest) {
   try {
-    // Verify admin authentication
-    const cookie = request.cookies.get('auth_token')?.value;
+    // Verify admin authentication using admin_session cookie (not auth_token)
+    const cookie = request.cookies.get('admin_session')?.value;
     
     console.log('[v0] CRYPTO UPDATE API - Request received', {
       hasCookie: !!cookie,
@@ -20,34 +20,33 @@ export async function POST(request: NextRequest) {
     });
 
     if (!cookie) {
-      console.error('[v0] CRYPTO UPDATE API - No auth token found', {
+      console.error('[v0] CRYPTO UPDATE API - No admin_session found', {
         availableCookies: Array.from(request.cookies.getAll().map(c => c.name)),
-        message: 'Check if auth_token cookie is being sent with credentials: include',
+        message: 'Admin must be logged in with admin_session cookie',
       });
       return NextResponse.json(
-        { message: 'Unauthorized: No auth token - ensure credentials: include is set on fetch' },
+        { message: 'Unauthorized: Admin session not found. Please log in.' },
         { status: 401 }
       );
     }
 
     try {
       const { payload } = await jwtVerify(cookie, JWT_SECRET);
-      const userId = payload.sub as string;
+      const adminId = payload.sub as string;
       
-      console.log('[v0] CRYPTO UPDATE API - Admin ID:', userId);
+      console.log('[v0] CRYPTO UPDATE API - Admin ID:', adminId);
       
-      // Check if user is admin (you may need to add admin check)
-      if (!userId) {
-        console.error('[v0] CRYPTO UPDATE API - Invalid token');
+      if (!adminId) {
+        console.error('[v0] CRYPTO UPDATE API - Invalid admin session');
         return NextResponse.json(
-          { message: 'Invalid token' },
+          { message: 'Invalid admin session' },
           { status: 401 }
         );
       }
     } catch (jwtError) {
       console.error('[v0] CRYPTO UPDATE API - JWT verification failed:', jwtError);
       return NextResponse.json(
-        { message: 'Invalid or expired token' },
+        { message: 'Invalid or expired admin session' },
         { status: 401 }
       );
     }
