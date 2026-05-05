@@ -57,24 +57,27 @@ export async function POST(request: NextRequest) {
     // SIMPLE INSERT - No user check, just insert directly
     let insertResult;
     try {
-      console.log('[v0] DEPOSITS API - About to execute INSERT query');
+      console.log('[v0] DEPOSITS API - About to execute INSERT query with params:', { userId, method_name, amount });
       
+      // Remove explicit type casting - neon handles this
       insertResult = await sql`
         INSERT INTO deposits (user_id, method_name, amount, tx_hash, proof_upload, note, status)
-        VALUES (${userId}::uuid, ${method_name}, ${amount}::numeric, ${tx_hash}, ${proof_upload}, ${note}, 'pending')
+        VALUES (${userId}, ${method_name}, ${amount}, ${tx_hash}, ${proof_upload}, ${note}, 'pending')
         RETURNING id, user_id, method_name, amount, status, created_at
       `;
       
       console.log('[v0] DEPOSITS API - INSERT query executed');
       console.log('[v0] DEPOSITS API - Raw result type:', typeof insertResult);
       console.log('[v0] DEPOSITS API - Raw result is array:', Array.isArray(insertResult));
-      console.log('[v0] DEPOSITS API - Raw result:', insertResult);
+      console.log('[v0] DEPOSITS API - Raw result length:', Array.isArray(insertResult) ? insertResult.length : 'N/A');
+      console.log('[v0] DEPOSITS API - Raw result:', JSON.stringify(insertResult));
       
     } catch (sqlError) {
       const errorDetails = {
         message: sqlError instanceof Error ? sqlError.message : String(sqlError),
         code: (sqlError as any)?.code,
         constraint: (sqlError as any)?.constraint,
+        detail: (sqlError as any)?.detail,
       };
       console.error('[v0] DEPOSITS API - SQL INSERT ERROR:', errorDetails);
       return NextResponse.json(
