@@ -18,6 +18,8 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
     { icon: Users, label: 'Users', href: '/admin/users' },
     { icon: FileText, label: 'KYC Requests', href: '/admin/kyc' },
     { icon: CreditCard, label: 'Membership Payments', href: '/admin/membership' },
+    { icon: CreditCard, label: 'Deposits', href: '/admin/deposits' },
+    { icon: CreditCard, label: 'Withdrawals', href: '/admin/withdrawals' },
     { icon: CreditCard, label: 'Payment Methods', href: '/admin/payments' },
     { icon: Settings, label: 'Settings', href: '/admin/settings' },
   ];
