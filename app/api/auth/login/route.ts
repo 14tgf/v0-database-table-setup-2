@@ -86,15 +86,17 @@ export async function POST(request: NextRequest) {
     }, { status: 200 });
 
     // Set secure cookie with the JWT token
+    console.log('[v0] LOGIN: Setting auth_token cookie');
     response.cookies.set('auth_token', jwtToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: false, // Allow in development
       sameSite: 'lax',
       maxAge: 24 * 60 * 60, // 24 hours
       path: '/',
     });
 
     console.log('[v0] LOGIN: Success for user:', user.id);
+    console.log('[v0] LOGIN: Cookie set with token');
     return response;
     
   } catch (error) {
