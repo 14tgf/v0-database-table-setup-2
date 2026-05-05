@@ -53,6 +53,19 @@ export async function GET(request: NextRequest) {
     }
 
     const userData = user[0];
+
+    // Get investment count
+    const investmentCountResult = (await db`
+      SELECT COUNT(*) as count FROM user_investments WHERE user_id = ${userId} AND status = 'active'
+    `) as any[];
+    const investmentCount = investmentCountResult[0]?.count || 0;
+
+    // Get stock holdings count (assuming there's a user_stocks or portfolio table)
+    const stockCountResult = (await db`
+      SELECT COUNT(*) as count FROM user_stocks WHERE user_id = ${userId} AND quantity > 0
+    `) as any[];
+    const stockHoldingsCount = stockCountResult[0]?.count || 0;
+
     const walletBalance = typeof userData.wallet_balance === 'string'
       ? parseFloat(userData.wallet_balance)
       : Number(userData.wallet_balance);
@@ -80,8 +93,8 @@ export async function GET(request: NextRequest) {
       totalInvested: 0,
       currency: userData.preferred_currency || 'USD',
       portfolioValue: walletBalance || 0,
-      investmentCount: 0,
-      stockHoldings: 0,
+      investmentCount: investmentCount,
+      stockHoldings: stockHoldingsCount,
       teslaVehicles: 0,
     };
 
