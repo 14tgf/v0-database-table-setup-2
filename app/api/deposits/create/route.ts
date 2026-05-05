@@ -67,6 +67,7 @@ export async function POST(request: NextRequest) {
     }
     
     let result;
+    let sqlErrorDetails = null;
     try {
       result = await sql`
         INSERT INTO deposits (user_id, method_name, amount, tx_hash, proof_upload, note, status)
@@ -75,7 +76,12 @@ export async function POST(request: NextRequest) {
       `;
       console.log('[v0] DEPOSITS API - SQL execution successful');
     } catch (sqlError) {
-      console.error('[v0] DEPOSITS API - SQL Error:', sqlError);
+      sqlErrorDetails = {
+        message: sqlError instanceof Error ? sqlError.message : String(sqlError),
+        name: sqlError instanceof Error ? sqlError.name : 'Unknown',
+        stack: sqlError instanceof Error ? sqlError.stack : undefined,
+      };
+      console.error('[v0] DEPOSITS API - SQL Error Details:', sqlErrorDetails);
       throw sqlError;
     }
 
@@ -89,8 +95,15 @@ export async function POST(request: NextRequest) {
     console.log('[v0] DEPOSITS API - Deposit record:', depositRecord);
 
     if (!depositRecord) {
-      console.error('[v0] DEPOSITS API - No deposit record returned', { result, userId, method_name, amount });
-      throw new Error('Failed to create deposit record - INSERT did not return data. Check user exists in database.');
+      console.error('[v0] DEPOSITS API - No deposit record returned', { 
+        result, 
+        userId, 
+        method_name, 
+        amount,
+        resultLength: Array.isArray(result) ? result.length : 'not an array',
+        resultType: typeof result,
+      });
+      throw new Error(`Deposit INSERT failed: No data returned from database. Result: ${JSON.stringify(result)}`);
     }
 
     console.log('[v0] DEPOSITS API - Deposit created successfully with ID:', depositRecord.id);
@@ -101,10 +114,20 @@ export async function POST(request: NextRequest) {
       message: 'Deposit submitted successfully. Pending admin approval.',
     });
   } catch (error) {
-    console.error('[v0] DEPOSITS API - Error:', error);
     const errorMsg = error instanceof Error ? error.message : 'Deposit submission failed';
+    const errorDetails = error instanceof Error ? {
+      message: error.message,
+      name: error.name,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+    } : { message: String(error) };
+    
+    console.error('[v0] DEPOSITS API - Full Error:', errorDetails);
+    
     return NextResponse.json(
-      { error: errorMsg },
+      { 
+        error: errorMsg,
+        details: process.env.NODE_ENV === 'development' ? errorDetails : undefined,
+      },
       { status: 500 }
     );
   }

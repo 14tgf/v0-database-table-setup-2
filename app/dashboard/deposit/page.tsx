@@ -82,8 +82,15 @@ export default function DepositPage() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        console.error('[v0] API error:', errorData);
-        throw new Error(errorData.error || 'Failed to submit deposit');
+        console.error('[v0] API error response:', errorData);
+        console.error('[v0] API error details:', errorData.details);
+        
+        // Display detailed error if available
+        const detailedError = errorData.details 
+          ? `${errorData.error}\n\nDetails: ${JSON.stringify(errorData.details, null, 2)}`
+          : errorData.error;
+        
+        throw new Error(detailedError || 'Failed to submit deposit');
       }
 
       const result = await response.json();
