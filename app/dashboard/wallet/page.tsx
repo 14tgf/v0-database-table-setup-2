@@ -3,16 +3,18 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Bell, Sun, Plus, Minus, TrendingUp, TrendingDown, Wallet as WalletIcon } from 'lucide-react';
+import { Bell, Sun, Plus, Minus, TrendingUp, TrendingDown, Wallet as WalletIcon, ArrowUpRight, ArrowDownLeft, Zap, TrendingUpIcon } from 'lucide-react';
 import { SidebarMenu } from '@/components/dashboard/sidebar-menu';
 import { DashboardNav } from '@/components/dashboard/dashboard-nav';
 import { useWallet } from '@/hooks/useWallet';
 import { useCurrencyFormatter } from '@/hooks/useCurrencyFormatter';
 import { usePreloader } from '@/app/providers/preloader-provider';
+import { useTransactionHistory } from '@/hooks/useTransactionHistory';
 
 export default function WalletPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { wallet, isLoading } = useWallet();
+  const { transactions, isLoading: isTransactionsLoading } = useTransactionHistory();
   const { format } = useCurrencyFormatter();
   const { isLoading: isPreloading } = usePreloader();
 
@@ -165,22 +167,60 @@ export default function WalletPage() {
               <h2 className="text-lg sm:text-xl font-bold text-white">Recent Transactions</h2>
               <p className="text-white/70 text-xs sm:text-sm">Your latest wallet activity</p>
             </div>
-            <a href="#" className="text-primary hover:text-primary/80 transition-colors font-medium text-xs sm:text-sm flex items-center gap-1">
-              View All <span>→</span>
-            </a>
           </div>
 
-          {/* Empty State */}
-          <div className="py-8 sm:py-12 text-center">
-            <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-white/10 flex items-center justify-center mx-auto mb-4">
-              <WalletIcon className="w-6 h-6 sm:w-8 sm:h-8 text-white/40" />
+          {isTransactionsLoading ? (
+            <div className="py-8 sm:py-12 text-center">
+              <p className="text-white/60">Loading transactions...</p>
             </div>
-            <p className="text-white text-base sm:text-lg font-medium mb-2">No transactions yet</p>
-            <p className="text-white/70 text-xs sm:text-sm mb-4 sm:mb-6">Start by depositing funds to your wallet</p>
-            <button className="bg-white text-background px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg font-medium text-sm hover:bg-white/90 transition-colors">
-              + Deposit Funds
-            </button>
-          </div>
+          ) : transactions.length === 0 ? (
+            <div className="py-8 sm:py-12 text-center">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-white/10 flex items-center justify-center mx-auto mb-4">
+                <WalletIcon className="w-6 h-6 sm:w-8 sm:h-8 text-white/40" />
+              </div>
+              <p className="text-white text-base sm:text-lg font-medium mb-2">No transactions yet</p>
+              <p className="text-white/70 text-xs sm:text-sm mb-4 sm:mb-6">Start by depositing funds to your wallet</p>
+              <button className="bg-white text-background px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg font-medium text-sm hover:bg-white/90 transition-colors">
+                + Deposit Funds
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {transactions.map((tx) => {
+                const isIncoming = tx.transaction_type === 'deposit' || 
+                                  tx.transaction_type === 'investment_return' || 
+                                  tx.transaction_type === 'stock_sell' ||
+                                  tx.transaction_type === 'admin_adjustment' && tx.amount > 0;
+                const icon = isIncoming ? <ArrowDownLeft /> : <ArrowUpRight />;
+                const iconBg = isIncoming ? 'bg-primary/20' : 'bg-destructive/20';
+                const iconColor = isIncoming ? 'text-primary' : 'text-destructive';
+                
+                return (
+                  <div key={tx.id} className="flex items-center justify-between p-3 sm:p-4 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 transition-colors">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className={`w-10 h-10 rounded-lg ${iconBg} flex items-center justify-center flex-shrink-0`}>
+                        {icon && <div className={`w-5 h-5 ${iconColor}`}>{icon}</div>}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-white font-medium text-sm sm:text-base capitalize truncate">
+                          {tx.transaction_type.replace(/_/g, ' ')}
+                        </p>
+                        <p className="text-white/60 text-xs sm:text-sm truncate">{tx.description}</p>
+                      </div>
+                    </div>
+                    <div className="text-right flex-shrink-0 ml-2">
+                      <p className={`font-semibold text-sm sm:text-base ${isIncoming ? 'text-primary' : 'text-destructive'}`}>
+                        {isIncoming ? '+' : '-'}${Math.abs(parseFloat(tx.amount as any) || 0).toFixed(2)}
+                      </p>
+                      <p className="text-white/60 text-xs">
+                        {new Date(tx.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </main>
 
