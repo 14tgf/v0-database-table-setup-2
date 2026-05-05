@@ -1,28 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
 
-let sql: ReturnType<typeof neon> | null = null;
-
-function getSql() {
-  if (!sql) {
-    const dbUrl = process.env.DATABASE_URL;
-    if (!dbUrl) {
-      throw new Error('DATABASE_URL environment variable is not set');
-    }
-    sql = neon(dbUrl);
-  }
-  return sql;
-}
+const sql = neon(process.env.DATABASE_URL || '');
 
 export async function GET(request: NextRequest) {
   try {
     const searchQuery = request.nextUrl.searchParams.get('search') || '';
 
-    const dbSql = getSql();
     let users: any[];
 
     if (searchQuery) {
-      users = await dbSql(
+      users = await sql.query(
         `SELECT 
           id, 
           email, 
@@ -39,7 +27,7 @@ export async function GET(request: NextRequest) {
         [`%${searchQuery}%`]
       );
     } else {
-      users = await dbSql(
+      users = await sql.query(
         `SELECT 
           id, 
           email, 

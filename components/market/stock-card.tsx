@@ -6,7 +6,6 @@ import Image from 'next/image';
 import { TrendingUp, TrendingDown, Minus, AlertCircle, CheckCircle } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { usePortfolio } from '@/hooks/usePortfolio';
-import { useWallet } from '@/hooks/useWallet';
 
 interface StockCardProps {
   stock: {
@@ -23,9 +22,8 @@ interface StockCardProps {
 export function StockCard({ stock, index }: StockCardProps) {
   const [isAdding, setIsAdding] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
-  const { user, isLoading: authLoading } = useAuth();
+  const { user, isLoading } = useAuth();
   const { addStock, isStockInPortfolio } = usePortfolio();
-  const { wallet, isLoading: walletLoading, refreshWallet } = useWallet();
 
   // Defensive checks for undefined values
   const price = typeof stock.price === 'number' ? stock.price : 0;
@@ -42,9 +40,6 @@ export function StockCard({ stock, index }: StockCardProps) {
 
   const trend = change > 0.5 ? 'up' : change < -0.5 ? 'down' : 'flat';
   const alreadyInPortfolio = isStockInPortfolio(stock.ticker);
-  const walletBalance = wallet?.balance || 0;
-  const hasInsufficientFunds = walletBalance < price;
-  const canBuy = user && !alreadyInPortfolio && !hasInsufficientFunds && !authLoading;
 
   const handleAddToPortfolio = async () => {
     if (!user) {
@@ -52,34 +47,21 @@ export function StockCard({ stock, index }: StockCardProps) {
       return;
     }
 
-    if (alreadyInPortfolio) {
-      setMessage({ type: 'error', text: 'Already in portfolio' });
-      return;
-    }
-
-    if (hasInsufficientFunds) {
-      setMessage({ type: 'error', text: `Insufficient balance. Need $${price.toFixed(2)}, have $${walletBalance.toFixed(2)}` });
-      return;
-    }
-
     setIsAdding(true);
     setMessage(null);
     
     try {
-      console.log('[v0] Buying 1 share of', stock.ticker, 'at $' + price.toFixed(2));
+      console.log('[v0] Adding stock via usePortfolio:', stock.ticker);
       await addStock(stock.ticker, stock.companyName, stock.logo, price);
       
-      setMessage({ type: 'success', text: `${stock.ticker} purchased at $${price.toFixed(2)}!` });
-      console.log('[v0] Stock purchased successfully:', stock.ticker);
-      
-      // Refresh wallet to show updated balance
-      await refreshWallet();
+      setMessage({ type: 'success', text: `${stock.ticker} added to portfolio!` });
+      console.log('[v0] Stock added successfully:', stock.ticker);
       
       // Clear message after 3 seconds
       setTimeout(() => setMessage(null), 3000);
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : 'Failed to purchase stock';
-      console.error('[v0] Error purchasing stock:', errorMsg);
+      const errorMsg = error instanceof Error ? error.message : 'Failed to add stock';
+      console.error('[v0] Error adding stock:', errorMsg);
       setMessage({ type: 'error', text: errorMsg });
     } finally {
       setIsAdding(false);
@@ -185,16 +167,14 @@ export function StockCard({ stock, index }: StockCardProps) {
       {/* Add to Portfolio Button */}
       <button
         onClick={handleAddToPortfolio}
-        disabled={isAdding || !canBuy || alreadyInPortfolio || walletLoading}
+        disabled={isAdding || !user || isLoading || alreadyInPortfolio}
         className={`w-full py-2 rounded-lg font-semibold text-sm transition-all ${
           alreadyInPortfolio
             ? 'bg-green-500/20 text-green-400 border border-green-500/30 cursor-default'
-            : hasInsufficientFunds
-            ? 'bg-red-500/20 text-red-400 border border-red-500/30 cursor-not-allowed'
             : 'bg-accent/20 text-accent border border-accent/50 hover:bg-accent/30 disabled:opacity-50'
         }`}
       >
-        {authLoading ? 'Loading...' : !user ? 'Login to Buy' : alreadyInPortfolio ? '✓ Owned' : hasInsufficientFunds ? '✗ No Funds' : isAdding ? 'Buying...' : `Buy $${price.toFixed(2)}`}
+        {isLoading ? 'Loading...' : !user ? 'Login to Add' : isAdding ? '...' : alreadyInPortfolio ? '✓ Added' : '+ Add'}
       </button>
     </motion.div>
   );
