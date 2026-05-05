@@ -27,14 +27,34 @@ export default function PortfolioPage() {
       };
     }
 
-    const totalInvested = portfolioStocks.reduce((sum, stock: any) => sum + stock.invested_amount, 0);
-    const totalValue = portfolioStocks.reduce((sum, stock: any) => sum + (stock.current_price * stock.quantity), 0);
-    const totalGain = portfolioStocks.reduce((sum, stock: any) => sum + stock.profit_loss, 0);
+    const totalInvested = portfolioStocks.reduce((sum, stock: any) => {
+      const amount = parseFloat(stock.invested_amount) || 0;
+      return sum + amount;
+    }, 0);
+    
+    const totalValue = portfolioStocks.reduce((sum, stock: any) => {
+      const price = parseFloat(stock.current_price) || 0;
+      const qty = parseInt(stock.quantity) || 0;
+      return sum + (price * qty);
+    }, 0);
+    
+    const totalGain = portfolioStocks.reduce((sum, stock: any) => {
+      const gain = parseFloat(stock.profit_loss) || 0;
+      return sum + gain;
+    }, 0);
+    
     const totalGainPercent = totalInvested > 0 ? (totalGain / totalInvested) * 100 : 0;
-    const gainersCount = portfolioStocks.filter((stock: any) => stock.profit_loss > 0).length;
-    const losersCount = portfolioStocks.filter((stock: any) => stock.profit_loss < 0).length;
+    const gainersCount = portfolioStocks.filter((stock: any) => (parseFloat(stock.profit_loss) || 0) > 0).length;
+    const losersCount = portfolioStocks.filter((stock: any) => (parseFloat(stock.profit_loss) || 0) < 0).length;
 
-    return { totalInvested, totalValue, totalGain, totalGainPercent, gainersCount, losersCount };
+    return { 
+      totalInvested: Number(totalInvested) || 0, 
+      totalValue: Number(totalValue) || 0, 
+      totalGain: Number(totalGain) || 0, 
+      totalGainPercent: Number(totalGainPercent) || 0, 
+      gainersCount, 
+      losersCount 
+    };
   }, [portfolioStocks]);
 
   const handleRemoveStock = async (symbol: string) => {
@@ -218,8 +238,13 @@ export default function PortfolioPage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {portfolioStocks.map((holding: any) => {
-                const isPositive = holding.profit_loss >= 0;
-                const currentValue = holding.current_price * holding.quantity;
+                const profitLoss = parseFloat(holding.profit_loss) || 0;
+                const currentPrice = parseFloat(holding.current_price) || 0;
+                const quantity = parseInt(holding.quantity) || 0;
+                const initialPrice = parseFloat(holding.initial_price) || 0;
+                const percentChange = parseFloat(holding.percent_change) || 0;
+                const isPositive = profitLoss >= 0;
+                const currentValue = currentPrice * quantity;
                 return (
                   <div
                     key={holding.symbol}
@@ -258,15 +283,15 @@ export default function PortfolioPage() {
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
                         <p className="text-white/60">Qty:</p>
-                        <p className="text-white font-semibold">{holding.quantity}</p>
+                        <p className="text-white font-semibold">{quantity}</p>
                       </div>
                       <div className="flex justify-between">
                         <p className="text-white/60">Entry:</p>
-                        <p className="text-white font-semibold">${holding.initial_price.toFixed(2)}</p>
+                        <p className="text-white font-semibold">${initialPrice.toFixed(2)}</p>
                       </div>
                       <div className="flex justify-between">
                         <p className="text-white/60">Current:</p>
-                        <p className="text-white font-semibold">${holding.current_price.toFixed(2)}</p>
+                        <p className="text-white font-semibold">${currentPrice.toFixed(2)}</p>
                       </div>
                       <div className="flex justify-between">
                         <p className="text-white/60">Value:</p>
@@ -275,7 +300,7 @@ export default function PortfolioPage() {
                       <div className="pt-2 border-t border-white/10 flex justify-between">
                         <p className="text-white/60">P/L:</p>
                         <p className={`font-semibold ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
-                          {isPositive ? '+' : ''}{holding.percent_change.toFixed(2)}%
+                          {isPositive ? '+' : ''}{percentChange.toFixed(2)}%
                         </p>
                       </div>
                     </div>
