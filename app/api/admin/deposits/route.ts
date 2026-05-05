@@ -1,8 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
-import { jwtVerify } from 'jose';
-
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'default-secret-key-change-in-production');
 
 function getSql() {
   if (!process.env.DATABASE_URL) {
@@ -15,92 +12,54 @@ export async function GET(request: NextRequest) {
   try {
     console.log('[v0] ADMIN DEPOSITS API - Request received');
     
-    // Try to get token from cookies or Authorization header
-    let token = request.cookies.get('auth_token')?.value;
+    // Get user ID from query parameter
+    const { searchParams } = new URL(request.url);
+    const userId = searchParams.get('userId');
     
-    if (!token) {
-      // Try Authorization header
-      const authHeader = request.headers.get('Authorization');
-      console.log('[v0] ADMIN DEPOSITS API - Auth header present:', !!authHeader);
-      
-      if (authHeader && authHeader.startsWith('Bearer ')) {
-        token = authHeader.substring(7); // Remove "Bearer " prefix
-        console.log('[v0] ADMIN DEPOSITS API - Token from Authorization header');
-      }
-    } else {
-      console.log('[v0] ADMIN DEPOSITS API - Token from cookie');
+    console.log('[v0] ADMIN DEPOSITS API - User ID:', userId);
+
+    if (!userId) {
+      return NextResponse.json({ error: 'No user ID provided', deposits: [] }, { status: 400 });
     }
 
-    if (!token) {
-      console.error('[v0] ADMIN DEPOSITS API - No auth token found in cookie or header');
-      return NextResponse.json({ 
-        error: 'Not authenticated. Please log in again.',
-      }, { status: 401 });
-    }
-
-    // Verify JWT
-    try {
-      await jwtVerify(token, JWT_SECRET);
-      console.log('[v0] ADMIN DEPOSITS API - JWT verification successful');
-    } catch (jwtError) {
-      console.error('[v0] ADMIN DEPOSITS API - JWT verification failed:', jwtError);
-      return NextResponse.json({ 
-        error: 'Invalid or expired token. Please log in again.',
-        detail: jwtError instanceof Error ? jwtError.message : String(jwtError)
-      }, { status: 401 });
-    }
-
-    // Get database connection
     const sql = getSql();
 
-    // Fetch all deposits with user emails
-    try {
-      console.log('[v0] ADMIN DEPOSITS API - Fetching deposits');
-      
-      const deposits = await sql`
-        SELECT 
-          d.id,
-          d.user_id,
-          d.method_name,
-          d.amount,
-          d.tx_hash,
-          d.proof_upload,
-          d.note,
-          d.status,
-          d.created_at,
-          u.email as user_email
-        FROM deposits d
-        LEFT JOIN users u ON d.user_id = u.id
-        ORDER BY d.created_at DESC
-      `;
-      
-      console.log('[v0] ADMIN DEPOSITS API - Deposits fetched:', deposits?.length || 0);
+    // Check if user is an admin
+    const adminCheck = await sql`SELECT id FROM admins WHERE id = ${userId}`;
 
-      if (!deposits || !Array.isArray(deposits)) {
-        console.error('[v0] ADMIN DEPOSITS API - Invalid result format');
-        return NextResponse.json({ deposits: [] }, { status: 200 });
-      }
-
-      return NextResponse.json({
-        deposits: deposits,
-        count: deposits.length,
-      }, { status: 200 });
-      
-    } catch (sqlError) {
-      const errorMsg = sqlError instanceof Error ? sqlError.message : String(sqlError);
-      console.error('[v0] ADMIN DEPOSITS API - Database error:', errorMsg);
-      return NextResponse.json(
-        { error: `Database error: ${errorMsg}`, deposits: [] },
-        { status: 200 } // Return 200 with empty deposits instead of 500
-      );
+    if (!adminCheck || adminCheck.length === 0) {
+      console.log('[v0] ADMIN DEPOSITS API - User is not an admin');
+      return NextResponse.json({ error: 'Admin access required', deposits: [] }, { status: 403 });
     }
 
+    console.log('[v0] ADMIN DEPOSITS API - User is admin, fetching deposits');
+
+    // Get all pending deposits with user email
+    const deposits = await sql`
+      SELECT 
+        d.id,
+        d.user_id,
+        d.method_name,
+        d.amount,
+        d.tx_hash,
+        d.proof_upload,
+        d.note,
+        d.status,
+        d.created_at,
+        u.email as user_email
+      FROM deposits d
+      LEFT JOIN users u ON d.user_id = u.id
+      WHERE d.status = 'pending'
+      ORDER BY d.created_at DESC
+    `;
+
+    console.log('[v0] ADMIN DEPOSITS API - Deposits:', deposits?.length || 0);
+
+    return NextResponse.json({ success: true, deposits: deposits || [] });
+
   } catch (error) {
-    const errorMsg = error instanceof Error ? error.message : String(error);
-    console.error('[v0] ADMIN DEPOSITS API - Error:', errorMsg);
-    return NextResponse.json(
-      { error: `Server error: ${errorMsg}`, deposits: [] },
-      { status: 200 }
-    );
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error('[v0] ADMIN DEPOSITS API - Error:', msg);
+    return NextResponse.json({ error: msg, deposits: [] }, { status: 500 });
   }
 }

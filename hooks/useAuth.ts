@@ -104,7 +104,11 @@ export function useAuth(): UseAuthReturn {
       setSuccess(true);
       setUser(data.user || null);
       
-      // Store token in localStorage if provided
+      // Store user ID in localStorage for admin API calls
+      if (data.user?.id && typeof window !== 'undefined') {
+        console.log('[v0] Storing user ID in localStorage');
+        localStorage.setItem('userId', data.user.id);
+      }
       if (data.token && typeof window !== 'undefined') {
         console.log('[v0] Storing auth token in localStorage');
         localStorage.setItem('auth_token', data.token);
@@ -126,10 +130,11 @@ export function useAuth(): UseAuthReturn {
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
       
-      // Clear token from localStorage
+      // Clear from localStorage
       if (typeof window !== 'undefined') {
-        console.log('[v0] Clearing auth token from localStorage');
+        console.log('[v0] Clearing auth data from localStorage');
         localStorage.removeItem('auth_token');
+        localStorage.removeItem('userId');
       }
       
       setUser(null);

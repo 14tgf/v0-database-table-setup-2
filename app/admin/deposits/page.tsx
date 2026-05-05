@@ -54,59 +54,31 @@ export default function AdminDepositsPage() {
       setIsLoading(true);
       setError(null);
       
-      // Get token from localStorage
-      const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
-      console.log('[v0] ADMIN - Token from localStorage:', !!token);
-      
-      const headers: HeadersInit = {
-        'Content-Type': 'application/json',
-      };
-      
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
+      const userId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
+      if (!userId) {
+        setError('User ID not found. Please log in again.');
+        return;
       }
       
-      const response = await fetch('/api/admin/deposits', {
-        credentials: 'include',
-        headers,
-      });
-      
-      console.log('[v0] ADMIN - Deposits API response status:', response.status);
+      const response = await fetch(`/api/admin/deposits?userId=${userId}`);
+      console.log('[v0] ADMIN - API response status:', response.status);
       
       if (!response.ok) {
-        let errorMsg = `API Error (${response.status})`;
-        try {
-          const errorData = await response.json();
-          errorMsg = errorData.error || errorData.message || errorMsg;
-        } catch (e) {
-          // Response wasn't JSON
-        }
-        console.error('[v0] ADMIN - Deposits API error:', errorMsg);
-        setError(errorMsg);
+        const errorData = await response.json();
+        setError(errorData.error || 'Failed to load deposits');
         setDeposits([]);
         return;
       }
       
-      let data;
-      try {
-        data = await response.json();
-      } catch (e) {
-        console.error('[v0] ADMIN - Failed to parse API response:', e);
-        setError('Failed to parse API response');
-        setDeposits([]);
-        return;
-      }
-      
+      const data = await response.json();
       console.log('[v0] ADMIN - Deposits received:', data.deposits?.length || 0);
       
       if (!data.deposits || data.deposits.length === 0) {
-        console.log('[v0] ADMIN - No deposits in response');
         setError(null);
         setDeposits([]);
         return;
       }
       
-      // Convert amounts to numbers
       const formattedDeposits = (data.deposits || []).map((deposit: any) => ({
         ...deposit,
         amount: typeof deposit.amount === 'string' ? parseFloat(deposit.amount) : deposit.amount,
@@ -129,35 +101,28 @@ export default function AdminDepositsPage() {
       console.log('[v0] ADMIN - Approve button clicked for deposit:', depositId);
       setActionLoading(depositId);
       
-      const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
-      const headers: HeadersInit = {
-        'Content-Type': 'application/json',
-      };
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
+      const userId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
+      if (!userId) {
+        alert('User ID not found. Please log in again.');
+        return;
       }
       
-      console.log('[v0] ADMIN - Sending approve request to API');
       const response = await fetch('/api/admin/deposits/approve', {
         method: 'POST',
-        headers,
-        credentials: 'include',
-        body: JSON.stringify({ deposit_id: depositId, action: 'approve' }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ deposit_id: depositId, action: 'approve', userId }),
       });
-
-      console.log('[v0] ADMIN - API response status:', response.status);
 
       if (!response.ok) {
         const errorData = await response.json();
-        console.error('[v0] ADMIN - API error:', errorData);
         throw new Error(errorData.error || 'Failed to approve deposit');
       }
 
-      const data = await response.json();
-      console.log('[v0] ADMIN - Approve successful:', data);
+      console.log('[v0] ADMIN - Deposit approved');
       await loadDeposits();
     } catch (error) {
       console.error('[v0] ADMIN - Error approving deposit:', error);
+      alert(error instanceof Error ? error.message : 'Failed to approve deposit');
     } finally {
       setActionLoading(null);
     }
@@ -168,35 +133,28 @@ export default function AdminDepositsPage() {
       console.log('[v0] ADMIN - Reject button clicked for deposit:', depositId);
       setActionLoading(depositId);
       
-      const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
-      const headers: HeadersInit = {
-        'Content-Type': 'application/json',
-      };
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
+      const userId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
+      if (!userId) {
+        alert('User ID not found. Please log in again.');
+        return;
       }
       
-      console.log('[v0] ADMIN - Sending reject request to API');
       const response = await fetch('/api/admin/deposits/approve', {
         method: 'POST',
-        headers,
-        credentials: 'include',
-        body: JSON.stringify({ deposit_id: depositId, action: 'reject' }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ deposit_id: depositId, action: 'reject', userId }),
       });
-
-      console.log('[v0] ADMIN - API response status:', response.status);
 
       if (!response.ok) {
         const errorData = await response.json();
-        console.error('[v0] ADMIN - API error:', errorData);
         throw new Error(errorData.error || 'Failed to reject deposit');
       }
 
-      const data = await response.json();
-      console.log('[v0] ADMIN - Reject successful:', data);
+      console.log('[v0] ADMIN - Deposit rejected');
       await loadDeposits();
     } catch (error) {
       console.error('[v0] ADMIN - Error rejecting deposit:', error);
+      alert(error instanceof Error ? error.message : 'Failed to reject deposit');
     } finally {
       setActionLoading(null);
     }
