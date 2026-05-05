@@ -6,7 +6,18 @@ const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || 'default-secret-key-change-in-production'
 );
 
-const sql = neon(process.env.DATABASE_URL || '');
+let sql: ReturnType<typeof neon> | null = null;
+
+function getSql() {
+  if (!sql) {
+    const dbUrl = process.env.DATABASE_URL;
+    if (!dbUrl) {
+      throw new Error('DATABASE_URL environment variable is not set');
+    }
+    sql = neon(dbUrl);
+  }
+  return sql;
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -29,8 +40,10 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    const dbSql = getSql();
+
     // Fetch wallet data from database
-    const user = await sql.query(
+    const user = await dbSql(
       `SELECT 
         id,
         email,

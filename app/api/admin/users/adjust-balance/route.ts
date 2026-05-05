@@ -1,7 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
 
-const sql = neon(process.env.DATABASE_URL || '');
+let sql: ReturnType<typeof neon> | null = null;
+
+function getSql() {
+  if (!sql) {
+    const dbUrl = process.env.DATABASE_URL;
+    if (!dbUrl) {
+      throw new Error('DATABASE_URL environment variable is not set');
+    }
+    sql = neon(dbUrl);
+  }
+  return sql;
+}
 
 export async function PUT(request: NextRequest) {
   try {
@@ -38,8 +49,10 @@ export async function PUT(request: NextRequest) {
     };
     const columnName = columnMap[balanceType];
 
+    const dbSql = getSql();
+
     // Get current user balance
-    const userResult = await sql.query(
+    const userResult = await dbSql(
       `SELECT id, email, ${columnName}, full_name FROM users WHERE id = $1`,
       [userId]
     );
@@ -69,14 +82,14 @@ export async function PUT(request: NextRequest) {
     }
 
     // Update user balance
-    await sql.query(
+    await dbSql(
       `UPDATE users SET ${columnName} = $1, updated_at = NOW() WHERE id = $2`,
       [newBalance, userId]
     );
 
     // Log the adjustment in audit_logs
     const description = `Admin adjusted ${balanceType} balance: ${type} $${adjustmentAmount} - Reason: ${reason || 'No reason provided'}`;
-    await sql.query(
+    await dbSql(
       'INSERT INTO audit_logs (id, user_id, action, description, status) VALUES (gen_random_uuid(), $1, $2, $3, $4)',
       [userId, 'BALANCE_ADJUSTMENT', description, 'success']
     );
@@ -105,3 +118,4 @@ export async function PUT(request: NextRequest) {
     );
   }
 }
+
