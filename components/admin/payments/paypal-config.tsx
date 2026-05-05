@@ -20,13 +20,38 @@ export function PayPalConfigComponent({ initialConfig, onToggle, isActive }: Pay
   const handleSave = async () => {
     if (!email) return;
     setIsSaving(true);
+    console.log('[v0] PAYPAL CONFIG - Save started:', { email });
     try {
-      await updatePayPalConfig({ email });
+      console.log('[v0] PAYPAL CONFIG - Calling updatePayPalConfig API');
+      const response = await fetch('/api/admin/payments/paypal/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+
+      console.log('[v0] PAYPAL CONFIG - API response status:', response.status);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('[v0] PAYPAL CONFIG - API error response:', errorData);
+        throw new Error(errorData.message || `HTTP ${response.status}: Failed to save`);
+      }
+
+      const result = await response.json();
+      console.log('[v0] PAYPAL CONFIG - Save successful:', result);
       setShowSuccess(true);
       setIsEditing(false);
       setTimeout(() => setShowSuccess(false), 3000);
     } catch (error) {
-      console.error('Error saving PayPal config:', error);
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      console.error('[v0] PAYPAL CONFIG - Error saving PayPal config:', {
+        error,
+        errorMsg,
+        email,
+        timestamp: new Date().toISOString(),
+      });
+      // Show error to user
+      alert(`Error saving PayPal configuration:\n\n${errorMsg}\n\nCheck browser console for details.`);
     } finally {
       setIsSaving(false);
     }
