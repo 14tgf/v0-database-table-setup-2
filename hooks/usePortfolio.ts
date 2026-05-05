@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import useSWR from 'swr';
 import { useAuth } from './useAuth';
+import { useWallet } from './useWallet';
 
 const fetcher = (url: string) => fetch(url).then(res => {
   if (!res.ok) throw new Error('Failed to fetch');
@@ -11,6 +12,7 @@ const fetcher = (url: string) => fetch(url).then(res => {
 
 export function usePortfolio() {
   const { user } = useAuth();
+  const { refreshWallet } = useWallet();
   const [isInitialized, setIsInitialized] = useState(false);
   const updatePricesRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -111,9 +113,11 @@ export function usePortfolio() {
         }
 
         const result = await response.json();
-        console.log('[v0] Stock added, revalidating portfolio...');
+        console.log('[v0] Stock added, revalidating portfolio and wallet...');
         // Revalidate portfolio to show the new stock
         await mutateStocks();
+        // Refresh wallet to update balance and stock holdings count
+        await refreshWallet();
         console.log('[v0] Stock added successfully:', symbol);
         return result;
       } catch (error) {
@@ -121,7 +125,7 @@ export function usePortfolio() {
         throw error;
       }
     },
-    [user?.id, mutateStocks]
+    [user?.id, mutateStocks, refreshWallet]
   );
 
   // Remove stock from portfolio
@@ -143,8 +147,10 @@ export function usePortfolio() {
         }
 
         // Revalidate portfolio
-        console.log('[v0] Stock removed, revalidating portfolio...');
+        console.log('[v0] Stock removed, revalidating portfolio and wallet...');
         await mutateStocks();
+        // Refresh wallet to update balance and stock holdings count
+        await refreshWallet();
         const result = await response.json();
         console.log('[v0] Stock removed successfully:', symbol);
         return result;
@@ -153,7 +159,7 @@ export function usePortfolio() {
         throw error;
       }
     },
-    [user?.id, mutateStocks]
+    [user?.id, mutateStocks, refreshWallet]
   );
 
   // Check if stock is in portfolio
