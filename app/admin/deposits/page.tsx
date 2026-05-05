@@ -49,9 +49,22 @@ export default function AdminDepositsPage() {
 
   const loadDeposits = async () => {
     try {
+      console.log('[v0] ADMIN - Loading deposits');
       setIsLoading(true);
-      const response = await fetch('/api/admin/deposits');
+      const response = await fetch('/api/admin/deposits', {
+        credentials: 'include',
+      });
+      
+      console.log('[v0] ADMIN - Deposits API response status:', response.status);
+      
+      if (!response.ok) {
+        console.error('[v0] ADMIN - Deposits API error, status:', response.status);
+        setDeposits([]);
+        return;
+      }
+      
       const data = await response.json();
+      console.log('[v0] ADMIN - Deposits received:', data.deposits?.length || 0);
       
       // Convert amounts to numbers
       const formattedDeposits = (data.deposits || []).map((deposit: any) => ({
@@ -61,7 +74,8 @@ export default function AdminDepositsPage() {
       
       setDeposits(formattedDeposits);
     } catch (error) {
-      console.error('Error loading deposits:', error);
+      console.error('[v0] ADMIN - Error loading deposits:', error);
+      setDeposits([]);
     } finally {
       setIsLoading(false);
     }

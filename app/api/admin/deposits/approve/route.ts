@@ -25,12 +25,24 @@ export async function POST(request: NextRequest) {
     const adminId = payload.sub as string;
     console.log('[v0] ADMIN DEPOSITS APPROVE - Admin ID:', adminId);
 
-    const body = await request.json();
+    let body;
+    try {
+      body = await request.json();
+      console.log('[v0] ADMIN DEPOSITS APPROVE - Request body:', body);
+    } catch (e) {
+      console.error('[v0] ADMIN DEPOSITS APPROVE - Failed to parse JSON:', e);
+      return NextResponse.json(
+        { error: 'Invalid request format' },
+        { status: 400 }
+      );
+    }
+
     const { deposit_id, action } = body;
 
     if (!deposit_id || !['approve', 'reject'].includes(action)) {
+      console.error('[v0] ADMIN DEPOSITS APPROVE - Invalid parameters:', { deposit_id, action });
       return NextResponse.json(
-        { error: 'Invalid request' },
+        { error: 'Invalid request - deposit_id and action (approve/reject) required' },
         { status: 400 }
       );
     }
