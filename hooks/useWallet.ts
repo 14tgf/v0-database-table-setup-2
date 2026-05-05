@@ -37,7 +37,7 @@ export function useWallet() {
   );
 
   const refreshWallet = async () => {
-    await mutate();
+    return await mutate();
   };
 
   return {
@@ -45,5 +45,6 @@ export function useWallet() {
     isLoading,
     error: error ? error.message : null,
     refreshWallet,
+    mutate,
   };
 }

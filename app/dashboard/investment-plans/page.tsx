@@ -17,7 +17,7 @@ export default function InvestmentPlansPage() {
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
   const { plans, plansLoading, createInvestment } = useInvestments();
-  const { wallet } = useWallet();
+  const { wallet, refreshWallet } = useWallet();
 
   const walletBalance = wallet?.balance || 0;
   const amount = parseFloat(investmentAmount) || 0;
@@ -49,11 +49,17 @@ export default function InvestmentPlansPage() {
     setMessage(null);
 
     try {
-      await createInvestment(selectedPlan.id, amount);
+      const result = await createInvestment(selectedPlan.id, amount);
+      
+      // Refresh wallet balance after successful investment
+      await refreshWallet();
+      
       setMessage({ type: 'success', text: `Successfully invested $${amount.toFixed(2)} in ${selectedPlan.name}!` });
       setInvestmentAmount('');
       setSelectedPlan(null);
-      setTimeout(() => setMessage(null), 3000);
+      
+      // Keep message visible for 4 seconds
+      setTimeout(() => setMessage(null), 4000);
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Investment failed';
       setMessage({ type: 'error', text: errorMsg });

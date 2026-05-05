@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { ArrowLeft, RefreshCw } from 'lucide-react';
 import { MarketHeader } from '@/components/market/market-header';
@@ -26,14 +27,24 @@ export default function MarketPage() {
       {/* Top Navigation */}
       <nav className="sticky top-0 z-40 border-b border-white/10 bg-background/80 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-          <div className="flex items-center justify-between">
-            <Link
-              href="/dashboard"
-              className="flex items-center gap-2 text-accent hover:text-accent/80 transition-colors text-xs font-semibold"
-            >
-              <ArrowLeft className="w-3 h-3" />
-              Back to Dashboard
+          <div className="flex items-center justify-between mb-3">
+            <Link href="/dashboard" className="flex items-center gap-2">
+              <Image 
+                src="/logo.png" 
+                alt="X Holding" 
+                width={80} 
+                height={40}
+                className="w-auto h-10"
+              />
             </Link>
+          </div>
+          {/* Top Navigation Links */}
+          <div className="flex gap-1 overflow-x-auto pb-1">
+            <Link href="/dashboard" className="px-3 py-1.5 rounded-lg text-sm text-white/70 hover:text-white hover:bg-white/10 transition-all whitespace-nowrap">Dashboard</Link>
+            <Link href="/dashboard/wallet" className="px-3 py-1.5 rounded-lg text-sm text-white/70 hover:text-white hover:bg-white/10 transition-all whitespace-nowrap">Wallet</Link>
+            <Link href="/dashboard/investment-plans" className="px-3 py-1.5 rounded-lg text-sm text-white/70 hover:text-white hover:bg-white/10 transition-all whitespace-nowrap">Plans</Link>
+            <Link href="/dashboard/investments" className="px-3 py-1.5 rounded-lg text-sm text-white/70 hover:text-white hover:bg-white/10 transition-all whitespace-nowrap">My Investments</Link>
+            <Link href="/market" className="px-3 py-1.5 rounded-lg text-sm text-white font-semibold bg-accent/20 border border-accent/50 whitespace-nowrap">Stocks</Link>
           </div>
         </div>
       </nav>

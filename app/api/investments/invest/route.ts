@@ -108,15 +108,6 @@ export async function POST(request: NextRequest) {
 
     const investment = result[0];
 
-    console.log('[v0] Investment created:', {
-      userId,
-      planName: investmentPlan.name,
-      amount: investmentAmount,
-      roi: roiPercent,
-      durationDays,
-      newWalletBalance,
-    });
-
     return NextResponse.json(
       {
         success: true,
