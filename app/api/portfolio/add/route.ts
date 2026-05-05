@@ -43,13 +43,7 @@ export async function POST(request: NextRequest) {
     const currentPrice = liveQuote?.price || 0;
     console.log('[v0] Current stock price:', currentPrice);
 
-    // 3. Check if user already owns this stock
-    const existing = (await db`
-      SELECT id, quantity, initial_price, invested_amount FROM user_portfolio_stocks 
-      WHERE user_id = ${userId} AND symbol = ${symbol} AND status = 'active'
-    `) as any[];
-
-    // 4. Get user's wallet balance
+    // 3. Get user's wallet balance
     const user = (await db`
       SELECT wallet_balance FROM users WHERE id = ${userId}
     `) as any[];
@@ -61,7 +55,7 @@ export async function POST(request: NextRequest) {
     const walletBalance = parseFloat(user[0].wallet_balance) || 0;
     console.log('[v0] User wallet balance:', walletBalance);
 
-    // 5. Check if user has sufficient funds to invest
+    // 4. Check if user has sufficient funds to invest
     if (walletBalance < investmentAmount) {
       console.log('[v0] Insufficient funds for investment');
       return NextResponse.json(
@@ -74,75 +68,57 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 6. Deduct investment amount from wallet
+    // 5. Deduct investment amount from wallet FIRST
     const newWalletBalance = walletBalance - investmentAmount;
+    console.log('[v0] Deducting investment from wallet:', {
+      oldBalance: walletBalance,
+      newBalance: newWalletBalance,
+      invested: investmentAmount,
+    });
+
     await db`
       UPDATE users 
       SET wallet_balance = ${newWalletBalance}, updated_at = NOW()
       WHERE id = ${userId}
     `;
 
-    let result;
+    // 6. Use PostgreSQL UPSERT (INSERT ... ON CONFLICT DO UPDATE) to handle duplicates
+    console.log('[v0] Attempting to upsert stock holding for user:', userId, 'symbol:', symbol);
 
-    if (existing.length > 0) {
-      // User already owns this stock - UPDATE the holding (add to quantity)
-      const existingHolding = existing[0];
-      const totalQuantity = existingHolding.quantity + 1;
-      const totalInvested = parseFloat(existingHolding.invested_amount) + investmentAmount;
-      const newAveragePrice = totalInvested / totalQuantity;
-
-      console.log('[v0] Updating existing stock holding:', {
-        symbol,
-        oldQuantity: existingHolding.quantity,
-        newQuantity: totalQuantity,
-        oldInvested: existingHolding.invested_amount,
-        newInvested: totalInvested,
-        newAveragePrice,
-      });
-
-      result = (await db`
-        UPDATE user_portfolio_stocks 
-        SET 
-          quantity = ${totalQuantity},
-          invested_amount = ${totalInvested},
-          initial_price = ${newAveragePrice},
-          current_price = ${currentPrice},
-          updated_at = NOW()
-        WHERE user_id = ${userId} AND symbol = ${symbol}
-        RETURNING *
-      `) as any[];
-    } else {
-      // New stock - INSERT into portfolio
-      console.log('[v0] Adding new stock to portfolio:', symbol);
-
-      result = (await db`
-        INSERT INTO user_portfolio_stocks 
-         (user_id, symbol, company_name, company_logo, initial_price, current_price, quantity, invested_amount, profit_loss, percent_change, status, created_at, updated_at)
-        VALUES (
-          ${userId}, 
-          ${symbol}, 
-          ${companyName}, 
-          ${companyLogo || ''}, 
-          ${currentPrice}, 
-          ${currentPrice}, 
-          1, 
-          ${investmentAmount}, 
-          0, 
-          0, 
-          'active', 
-          NOW(), 
-          NOW()
-        )
-        RETURNING *
-      `) as any[];
-    }
+    const result = (await db`
+      INSERT INTO user_portfolio_stocks 
+        (user_id, symbol, company_name, company_logo, initial_price, current_price, quantity, invested_amount, profit_loss, percent_change, status, created_at, updated_at)
+      VALUES (
+        ${userId}, 
+        ${symbol}, 
+        ${companyName}, 
+        ${companyLogo || ''}, 
+        ${currentPrice}, 
+        ${currentPrice}, 
+        1, 
+        ${investmentAmount}, 
+        0, 
+        0, 
+        'active', 
+        NOW(), 
+        NOW()
+      )
+      ON CONFLICT (user_id, symbol) DO UPDATE SET
+        quantity = user_portfolio_stocks.quantity + 1,
+        invested_amount = user_portfolio_stocks.invested_amount + ${investmentAmount},
+        initial_price = (user_portfolio_stocks.invested_amount + ${investmentAmount}) / (user_portfolio_stocks.quantity + 1),
+        current_price = ${currentPrice},
+        updated_at = NOW()
+      RETURNING *
+    `) as any[];
 
     console.log('[v0] Stock purchase completed successfully:', {
       symbol,
       invested: investmentAmount,
       currentPrice,
       newWalletBalance,
-      wasExisting: existing.length > 0,
+      quantity: result[0]?.quantity,
+      totalInvested: result[0]?.invested_amount,
     });
 
     return NextResponse.json(
@@ -155,8 +131,15 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     console.error('[v0] Add stock error:', error);
+    const errorMsg = error instanceof Error ? error.message : 'Internal server error';
+    
+    // Check if it's a database constraint error
+    if (errorMsg.includes('duplicate key') || errorMsg.includes('unique constraint')) {
+      console.error('[v0] Duplicate key error - this should not happen with UPSERT:', errorMsg);
+    }
+    
     return NextResponse.json(
-      { message: error instanceof Error ? error.message : 'Internal server error' },
+      { message: errorMsg },
       { status: 500 }
     );
   }
