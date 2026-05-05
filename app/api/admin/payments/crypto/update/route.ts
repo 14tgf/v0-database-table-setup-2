@@ -11,13 +11,21 @@ export async function POST(request: NextRequest) {
     
     console.log('[v0] CRYPTO UPDATE API - Request received', {
       hasCookie: !!cookie,
+      cookieNames: Array.from(request.cookies.getAll().map(c => c.name)),
+      requestHeaders: {
+        authorization: request.headers.get('authorization') ? 'present' : 'missing',
+        cookie: request.headers.get('cookie') ? 'present' : 'missing',
+      },
       timestamp: new Date().toISOString(),
     });
 
     if (!cookie) {
-      console.error('[v0] CRYPTO UPDATE API - No auth token');
+      console.error('[v0] CRYPTO UPDATE API - No auth token found', {
+        availableCookies: Array.from(request.cookies.getAll().map(c => c.name)),
+        message: 'Check if auth_token cookie is being sent with credentials: include',
+      });
       return NextResponse.json(
-        { message: 'Unauthorized: No auth token' },
+        { message: 'Unauthorized: No auth token - ensure credentials: include is set on fetch' },
         { status: 401 }
       );
     }

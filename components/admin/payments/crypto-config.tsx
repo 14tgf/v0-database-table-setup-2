@@ -32,10 +32,14 @@ export function CryptoConfigComponent({ initialConfig, onToggle, isActive }: Cry
       const response = await fetch('/api/admin/payments/crypto/update', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include', // Include cookies in the request
         body: JSON.stringify(formData),
       });
 
       console.log('[v0] CRYPTO CONFIG - API response status:', response.status);
+      console.log('[v0] CRYPTO CONFIG - Response headers:', {
+        contentType: response.headers.get('content-type'),
+      });
 
       if (!response.ok) {
         const errorData = await response.json();
