@@ -22,40 +22,27 @@ export async function GET(request: Request) {
       ORDER BY tier_level ASC
     `;
 
-    console.log('[v0] VIP plans API - Raw result:', {
-      type: typeof plansResult,
-      isArray: Array.isArray(plansResult),
-      length: Array.isArray(plansResult) ? plansResult.length : 'not an array',
-      keys: plansResult ? Object.keys(plansResult).slice(0, 5) : 'N/A',
-      stringified: JSON.stringify(plansResult).substring(0, 200),
-    });
+    console.log('[v0] VIP plans API - Query result received');
+    console.log('[v0] VIP plans API - Result type:', typeof plansResult);
+    console.log('[v0] VIP plans API - Is array:', Array.isArray(plansResult));
+    
+    if (plansResult) {
+      console.log('[v0] VIP plans API - Result length:', plansResult.length || 'N/A');
+    }
 
     // Ensure we have an array
     const plans = Array.isArray(plansResult) ? plansResult : [];
 
-    console.log('[v0] VIP plans API - After array check:', {
-      isArray: Array.isArray(plans),
-      length: plans.length,
-      firstPlan: plans[0] ? JSON.stringify(plans[0]).substring(0, 200) : 'none',
-    });
+    console.log('[v0] VIP plans API - Plans array length:', plans.length);
 
     if (plans.length === 0) {
       console.warn('[v0] VIP plans API - No active plans found in database');
-      console.log('[v0] VIP plans API - Returning empty array');
       return NextResponse.json([], { status: 200 });
     }
 
     // Convert PostgreSQL arrays to JSON-serializable format
     console.log('[v0] VIP plans API - Starting to serialize', plans.length, 'plans');
     const serializedPlans = plans.map((plan: any, index: number) => {
-      console.log(`[v0] VIP plans API - Serializing plan ${index}:`, {
-        id: plan.id,
-        name: plan.name,
-        tier_level: plan.tier_level,
-        benefitsType: typeof plan.benefits,
-        benefitsValue: plan.benefits,
-      });
-
       // Parse benefits - handle various formats
       let benefits = [];
       if (Array.isArray(plan.benefits)) {
@@ -69,7 +56,7 @@ export async function GET(request: Request) {
         }
       }
 
-      const serialized = {
+      return {
         id: plan.id,
         name: plan.name,
         tier_level: plan.tier_level,
@@ -81,30 +68,19 @@ export async function GET(request: Request) {
         created_at: plan.created_at instanceof Date ? plan.created_at.toISOString() : plan.created_at,
         updated_at: plan.updated_at instanceof Date ? plan.updated_at.toISOString() : plan.updated_at,
       };
-
-      console.log(`[v0] VIP plans API - Serialized plan ${index}:`, serialized);
-      return serialized;
     });
 
     console.log('[v0] VIP plans API - Successfully serialized', serializedPlans.length, 'plans');
-    console.log('[v0] VIP plans API - First serialized plan:', serializedPlans[0]);
-    console.log('[v0] VIP plans API - Returning NextResponse.json with', serializedPlans.length, 'plans');
-
-    const response = NextResponse.json(serializedPlans, { status: 200 });
-    console.log('[v0] VIP plans API - Response created, status:', response.status);
-    return response;
+    return NextResponse.json(serializedPlans, { status: 200 });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     const errorType = error instanceof Error ? error.constructor.name : typeof error;
-    const errorStack = error instanceof Error ? error.stack : 'N/A';
     
-    console.error('[v0] VIP plans API - CAUGHT ERROR:', {
-      message: errorMessage,
-      type: errorType,
-      stack: errorStack,
-      error: String(error),
-      fullError: error,
-    });
+    console.error('[v0] VIP plans API - ERROR:', errorMessage);
+    console.error('[v0] VIP plans API - Error type:', errorType);
+    if (error instanceof Error) {
+      console.error('[v0] VIP plans API - Stack:', error.stack);
+    }
 
     // Provide specific error information
     let userMessage = 'Failed to fetch VIP plans';
@@ -131,12 +107,6 @@ export async function GET(request: Request) {
     } else {
       details = errorMessage;
     }
-
-    console.log('[v0] VIP plans API - Returning error response:', {
-      userMessage,
-      details,
-      errorType,
-    });
 
     return NextResponse.json(
       { 
