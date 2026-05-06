@@ -81,15 +81,37 @@ export default function VIPSetupPage() {
         throw new Error(data.message || data.error || 'Step failed');
       }
 
-      // Update status to success
-      setSteps(prev => {
-        const newSteps = [...prev];
-        newSteps[stepIndex].status = 'success';
-        newSteps[stepIndex].message = data.message || 'Step completed successfully';
-        return newSteps;
-      });
+      // If this is the seed step, verify the plans were actually inserted
+      if (stepId === 'seed') {
+        console.log('[v0] Verifying VIP plans were inserted...');
+        const verifyResponse = await fetch('/api/vip/plans');
+        const plans = await verifyResponse.json();
+        console.log('[v0] Plans verification result:', { count: plans.length, plans });
 
-      console.log(`[v0] VIP setup step ${stepId} completed:`, data);
+        if (!Array.isArray(plans) || plans.length === 0) {
+          throw new Error('Seed reported success but no plans found in database. This may indicate a database connection issue.');
+        }
+
+        // Update message with verified count
+        setSteps(prev => {
+          const newSteps = [...prev];
+          newSteps[stepIndex].status = 'success';
+          newSteps[stepIndex].message = `✓ Verified: ${plans.length} VIP plans successfully inserted and readable from database`;
+          return newSteps;
+        });
+
+        console.log(`[v0] VIP plans verification passed: ${plans.length} plans found`);
+      } else {
+        // Update status to success
+        setSteps(prev => {
+          const newSteps = [...prev];
+          newSteps[stepIndex].status = 'success';
+          newSteps[stepIndex].message = data.message || 'Step completed successfully';
+          return newSteps;
+        });
+
+        console.log(`[v0] VIP setup step ${stepId} completed:`, data);
+      }
 
       // Check if all steps are complete
       const allStepsAfter = [...steps];

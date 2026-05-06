@@ -77,48 +77,77 @@ export async function POST(request: Request) {
   try {
     console.log('[v0] Seeding VIP plans...');
 
-    // Seed VIP plans
+    // Clear existing active plans first (optional, but helps with testing)
+    try {
+      await sql`DELETE FROM vip_plans WHERE name IN ('Bronze', 'Silver', 'Private Access', 'Platinum')`;
+      console.log('[v0] Cleared existing VIP plans');
+    } catch (e) {
+      console.log('[v0] No existing plans to clear or delete failed (table may not exist yet)');
+    }
+
+    // Seed each VIP plan individually with explicit logging
     for (const tier of VIP_TIERS) {
       try {
-        console.log(`[v0] Inserting VIP plan: ${tier.name}`);
+        console.log(`[v0] Inserting VIP plan: ${tier.name} (tier ${tier.tier_level})`);
         
-        // Format benefits as proper TEXT array for PostgreSQL
-        const benefitsArray = tier.benefits;
-        
-        await sql`
-          INSERT INTO vip_plans (name, tier_level, description, benefits, price, duration_days, active)
+        const result = await sql`
+          INSERT INTO vip_plans (
+            name, 
+            tier_level, 
+            description, 
+            benefits, 
+            price, 
+            duration_days, 
+            active
+          )
           VALUES (
             ${tier.name},
             ${tier.tier_level},
             ${tier.description},
-            ${benefitsArray}::text[],
+            ${tier.benefits},
             ${tier.price},
             ${tier.duration_days},
             true
           )
-          ON CONFLICT (name) DO NOTHING
+          RETURNING id, name, tier_level, active
         `;
-        console.log(`[v0] Successfully inserted VIP plan: ${tier.name}`);
+        
+        console.log(`[v0] Successfully inserted ${tier.name}:`, result);
       } catch (error) {
         console.error(`[v0] Error inserting ${tier.name}:`, error);
+        throw error;
       }
     }
 
-    // Verify insertion
-    const verifyResult = await sql`SELECT COUNT(*) as count FROM vip_plans WHERE active = true`;
-    console.log('[v0] VIP plans verification:', verifyResult);
+    // Verify all plans were inserted
+    const verifyResult = await sql`
+      SELECT id, name, tier_level, active, created_at FROM vip_plans WHERE active = true ORDER BY tier_level
+    `;
+    
+    console.log('[v0] Verification - VIP plans in database:', {
+      count: verifyResult.length,
+      plans: verifyResult.map(p => ({ name: p.name, tier: p.tier_level, active: p.active })),
+    });
 
-    console.log('[v0] VIP plans seeded successfully');
+    if (verifyResult.length === 0) {
+      throw new Error('Seed operation completed but no plans found in database. Check database logs.');
+    }
 
     return NextResponse.json({
       success: true,
-      message: 'VIP plans seeded',
-      count: VIP_TIERS.length,
+      message: `Successfully seeded ${verifyResult.length} VIP plans`,
+      count: verifyResult.length,
+      plans: verifyResult.map(p => ({ id: p.id, name: p.name, tier_level: p.tier_level })),
     });
   } catch (error) {
-    console.error('[v0] VIP seeding error:', error);
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    console.error('[v0] VIP seeding error:', errorMsg);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'VIP seeding failed' },
+      { 
+        success: false,
+        error: 'Failed to seed VIP plans',
+        details: errorMsg,
+      },
       { status: 500 }
     );
   }
