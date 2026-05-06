@@ -39,15 +39,25 @@ export function useMarketStocks() {
       const response = await fetch(url);
       
       if (!response.ok) {
-        throw new Error('Failed to fetch stocks');
+        throw new Error(`Failed to fetch stocks: ${response.status}`);
       }
 
       const data = await response.json();
-      setStocks(data);
+      
+      // Handle both array response and object with stocks property
+      const stocksArray = Array.isArray(data) ? data : (data.stocks || []);
+      
+      if (!Array.isArray(stocksArray)) {
+        throw new Error('Invalid stock data format received');
+      }
+
+      setStocks(stocksArray);
       setLastRefresh(new Date());
     } catch (err) {
-      console.error('[v0] useMarketStocks error:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch stock data');
+      const errorMsg = err instanceof Error ? err.message : 'Failed to fetch stock data';
+      console.error('[v0] Market fetch error:', errorMsg);
+      setError(errorMsg);
+      setStocks([]); // Clear stocks on error
     } finally {
       setIsLoading(false);
     }

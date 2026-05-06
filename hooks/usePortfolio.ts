@@ -19,7 +19,6 @@ export function usePortfolio() {
   // Wait for auth to load before fetching portfolio
   useEffect(() => {
     if (user !== undefined) {
-      console.log('[v0] usePortfolio - Auth ready, userId:', user?.id);
       setIsInitialized(true);
     }
   }, [user]);
@@ -31,26 +30,11 @@ export function usePortfolio() {
     { revalidateOnFocus: false, revalidateOnReconnect: true, dedupingInterval: 2000 }
   );
 
-  // Log fetch state changes - only log on actual state changes
-  useEffect(() => {
-    if (isInitialized && user?.id) {
-      console.log('[v0] usePortfolio - Data loaded:', {
-        userId: user.id,
-        stocksCount: stocks?.length || 0,
-        hasError: !!error,
-      });
-    }
-  }, [stocks, error, isInitialized, user?.id]);
-
-  // Update portfolio prices from live market data (no deps on mutateStocks to avoid circular refs)
+  // Update portfolio prices from live market data
   const updatePrices = useCallback(async () => {
-    if (!user?.id) {
-      console.log('[v0] Skipping price update - no user');
-      return;
-    }
+    if (!user?.id) return;
 
     try {
-      console.log('[v0] Updating portfolio prices...');
       const response = await fetch('/api/portfolio/update-prices', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -58,25 +42,18 @@ export function usePortfolio() {
       });
 
       if (response.ok) {
-        console.log('[v0] Portfolio prices updated');
-        // Revalidate portfolio to show updated prices
         mutateStocks();
       } else {
-        console.error('[v0] Failed to update prices:', response.statusText);
+        console.error('[v0] Portfolio price update failed:', response.status);
       }
     } catch (error) {
-      console.error('[v0] Update prices error:', error);
+      console.error('[v0] Portfolio price update error:', error instanceof Error ? error.message : String(error));
     }
   }, [user?.id, mutateStocks]);
 
   // Update prices on mount and periodically (every 60 seconds)
   useEffect(() => {
-    if (!user?.id || !isInitialized) {
-      console.log('[v0] Skipping price update interval - user or init not ready');
-      return;
-    }
-
-    console.log('[v0] Setting up price update interval');
+    if (!user?.id || !isInitialized) return;
 
     // Clear existing interval
     if (updatePricesRef.current) {

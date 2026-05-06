@@ -15,6 +15,7 @@ interface StockCardProps {
     price: number;
     change: number;
     percentChange: number;
+    isOwned?: boolean;
   };
   index: number;
 }
@@ -23,7 +24,7 @@ export function StockCard({ stock, index }: StockCardProps) {
   const [isAdding, setIsAdding] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const { user, isLoading } = useAuth();
-  const { addStock, isStockInPortfolio } = usePortfolio();
+  const { addStock } = usePortfolio();
 
   // Defensive checks for undefined values
   const price = typeof stock.price === 'number' ? stock.price : 0;
@@ -39,7 +40,8 @@ export function StockCard({ stock, index }: StockCardProps) {
   const bgColor = isPositive ? 'bg-green-500/5' : isNegative ? 'bg-red-500/5' : 'bg-white/5';
 
   const trend = change > 0.5 ? 'up' : change < -0.5 ? 'down' : 'flat';
-  const alreadyInPortfolio = isStockInPortfolio(stock.ticker);
+  // Use the isOwned flag from the API response, not from hook
+  const alreadyInPortfolio = stock.isOwned === true;
 
   const handleAddToPortfolio = async () => {
     if (!user) {
@@ -50,35 +52,16 @@ export function StockCard({ stock, index }: StockCardProps) {
     setIsAdding(true);
     setMessage(null);
     
-    console.log('[v0] INVEST BUTTON - Starting investment:', {
-      ticker: stock.ticker,
-      userId: user.id,
-      price: price,
-      timestamp: new Date().toISOString(),
-    });
-    
     try {
-      console.log('[v0] INVEST BUTTON - Calling addStock function');
       await addStock(stock.ticker, stock.companyName, stock.logo, price);
-      
-      console.log('[v0] INVEST BUTTON - Stock added successfully');
       setMessage({ type: 'success', text: `${stock.ticker} added to portfolio!` });
-      
-      // Clear message after 3 seconds
       setTimeout(() => setMessage(null), 3000);
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Failed to add stock';
-      console.error('[v0] INVEST BUTTON - Error adding stock:', {
-        ticker: stock.ticker,
-        errorMsg,
-        error,
-        fullError: error,
-        timestamp: new Date().toISOString(),
-      });
+      console.error(`[v0] Error adding ${stock.ticker}:`, errorMsg);
       setMessage({ type: 'error', text: `Error: ${errorMsg}` });
     } finally {
       setIsAdding(false);
-      console.log('[v0] INVEST BUTTON - Investment attempt completed');
     }
   };
 

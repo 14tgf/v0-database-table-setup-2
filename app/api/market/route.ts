@@ -18,12 +18,12 @@ interface FinnhubProfile {
 }
 
 interface StockData {
-  symbol: string;
-  name: string;
+  ticker: string;
+  companyName: string;
   logo: string;
   price: number;
   change: number;
-  changePercent: number;
+  percentChange: number;
   high: number;
   low: number;
   open: number;
@@ -99,12 +99,12 @@ async function fetchStockData(symbol: string): Promise<StockData | null> {
     const changePercent = (change / quote.pc) * 100;
 
     const data: StockData = {
-      symbol,
-      name: profile?.name || symbol,
+      ticker: symbol,
+      companyName: profile?.name || symbol,
       logo: profile?.logo || '',
       price: parseFloat(quote.c.toFixed(2)),
       change: parseFloat(change.toFixed(2)),
-      changePercent: parseFloat(changePercent.toFixed(2)),
+      percentChange: parseFloat(changePercent.toFixed(2)),
       high: parseFloat((quote.h || 0).toFixed(2)),
       low: parseFloat((quote.l || 0).toFixed(2)),
       open: parseFloat((quote.o || 0).toFixed(2)),
@@ -169,34 +169,62 @@ export async function GET(request: NextRequest) {
     
     // Check ownership for each stock if userId provided
     if (userId) {
-      const { sql } = await import('@/lib/db');
-      const db = sql();
-      
-      const ownedStocks = (await db`
-        SELECT DISTINCT c.symbol FROM user_portfolio_stocks ups
-        JOIN companies c ON ups.company_id = c.id
-        WHERE ups.user_id = ${userId} AND ups.status = 'active'
-      `) as any[];
-      
-      const ownedSymbols = new Set(ownedStocks.map(s => s.symbol));
-      
-      return NextResponse.json({
-        stocks: validData.map(stock => ({
-          ...stock,
-          isOwned: ownedSymbols.has(stock.symbol)
-        })),
-        timestamp: Date.now(),
-      });
+      try {
+        const { sql } = await import('@/lib/db');
+        const db = sql();
+        
+        const ownedStocks = (await db`
+          SELECT DISTINCT c.symbol FROM user_portfolio_stocks ups
+          JOIN companies c ON ups.company_id = c.id
+          WHERE ups.user_id = ${userId} AND ups.status = 'active'
+        `) as any[];
+        
+        const ownedSymbols = new Set(ownedStocks.map(s => s.symbol));
+        
+        return NextResponse.json(
+          validData.map(stock => ({
+            ...stock,
+            isOwned: ownedSymbols.has(stock.ticker)
+          })),
+          {
+            headers: {
+              'Cache-Control': 'public, max-age=5',
+            },
+          }
+        );
+      } catch (dbError) {
+        console.error('[v0] Market ownership check failed for userId:', userId, 'Error:', dbError instanceof Error ? dbError.message : String(dbError));
+        // Return stocks without ownership info if DB fails - stocks won't be marked as owned
+        return NextResponse.json(
+          validData.map(stock => ({
+            ...stock,
+            isOwned: false,
+            _ownershipCheckFailed: true
+          })),
+          {
+            headers: {
+              'Cache-Control': 'public, max-age=5',
+            },
+          }
+        );
+      }
     }
 
-    return NextResponse.json({
-      stocks: validData,
-      timestamp: Date.now(),
-    });
-  } catch (error) {
-    console.error('[v0] Market API error:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      validData.map(stock => ({
+        ...stock,
+        isOwned: false
+      })),
+      {
+        headers: {
+          'Cache-Control': 'public, max-age=5',
+        },
+      }
+    );
+  } catch (error) {
+    console.error('[v0] Market API error:', error instanceof Error ? error.message : String(error));
+    return NextResponse.json(
+      { error: 'Failed to fetch market data' },
       { status: 500 }
     );
   }
