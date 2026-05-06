@@ -82,48 +82,45 @@ export async function POST(request: NextRequest) {
     `;
 
     // 6. Use PostgreSQL UPSERT (INSERT ... ON CONFLICT DO UPDATE) to handle duplicates
-    console.log('[v0] Attempting to upsert stock holding for user:', userId, 'symbol:', symbol);
+    console.log('[v0] Attempting to upsert stock holding for user:', userId, 'company_id:', company[0].id);
+
+    // Calculate number of shares based on investment amount and current price
+    const shares = currentPrice > 0 ? investmentAmount / currentPrice : 1;
 
     const result = (await db`
       INSERT INTO user_portfolio_stocks 
-        (user_id, symbol, company_name, company_logo, initial_price, current_price, quantity, invested_amount, profit_loss, percent_change, status, created_at, updated_at)
+        (user_id, company_id, shares, average_cost, current_value, gain_loss, created_at, updated_at)
       VALUES (
         ${userId}, 
-        ${symbol}, 
-        ${companyName}, 
-        ${companyLogo || ''}, 
+        ${company[0].id}, 
+        ${shares}, 
         ${currentPrice}, 
-        ${currentPrice}, 
-        1, 
         ${investmentAmount}, 
         0, 
-        0, 
-        'active', 
         NOW(), 
         NOW()
       )
-      ON CONFLICT (user_id, symbol) DO UPDATE SET
-        quantity = user_portfolio_stocks.quantity + 1,
-        invested_amount = user_portfolio_stocks.invested_amount + ${investmentAmount},
-        initial_price = (user_portfolio_stocks.invested_amount + ${investmentAmount}) / (user_portfolio_stocks.quantity + 1),
-        current_price = ${currentPrice},
-        status = 'active',
+      ON CONFLICT (user_id, company_id) DO UPDATE SET
+        shares = user_portfolio_stocks.shares + ${shares},
+        average_cost = (user_portfolio_stocks.average_cost * (SELECT COUNT(*) FROM user_portfolio_stocks WHERE user_id = ${userId} AND company_id = ${company[0].id}) + ${currentPrice}) / (SELECT COUNT(*) FROM user_portfolio_stocks WHERE user_id = ${userId} AND company_id = ${company[0].id} + 1),
+        current_value = user_portfolio_stocks.current_value + ${investmentAmount},
         updated_at = NOW()
       RETURNING *
     `) as any[];
 
     console.log('[v0] Stock purchase completed successfully:', {
       symbol,
+      companyId: company[0].id,
       invested: investmentAmount,
       currentPrice,
       newWalletBalance,
-      quantity: result[0]?.quantity,
-      totalInvested: result[0]?.invested_amount,
+      shares: result[0]?.shares,
+      totalValue: result[0]?.current_value,
     });
 
     return NextResponse.json(
       {
-        message: `Invested $${investmentAmount.toFixed(2)} in ${symbol}`,
+        message: `Invested $${investmentAmount.toFixed(2)} in ${companyName}`,
         holding: result[0],
         newWalletBalance,
       },
