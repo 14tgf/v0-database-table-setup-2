@@ -5,6 +5,8 @@ export async function PUT(request: NextRequest) {
   try {
     const { userId, amount, type, balanceType = 'wallet', reason } = await request.json();
 
+    console.log('[v0] Adjust balance request body:', { userId, amount, type, balanceType, reason });
+
     if (!userId || !amount || !type) {
       return NextResponse.json(
         { error: 'Missing required fields: userId, amount, type' },
@@ -37,11 +39,15 @@ export async function PUT(request: NextRequest) {
     const columnName = columnMap[balanceType];
 
     // Get current user balance
+    console.log('[v0] Fetching user with ID:', userId, 'Type:', typeof userId);
     const userResult = (await sql`
-      SELECT id, email, wallet_balance, full_name FROM users WHERE id = ${userId}
+      SELECT id, email, wallet_balance::numeric, full_name FROM users WHERE id = ${userId}::uuid
     `) as any[];
 
-    if (userResult.length === 0) {
+    console.log('[v0] User query result:', userResult);
+    
+    if (!userResult || userResult.length === 0) {
+      console.log('[v0] User not found');
       return NextResponse.json(
         { error: 'User not found' },
         { status: 404 }
@@ -49,8 +55,18 @@ export async function PUT(request: NextRequest) {
     }
 
     const user = userResult[0];
-    const currentBalance = parseFloat(user.wallet_balance) || 0;
-    const adjustmentAmount = parseFloat(amount);
+    console.log('[v0] User object:', user);
+    
+    // Handle wallet_balance - it might be string, number, or BigInt
+    let currentBalance = 0;
+    if (user.wallet_balance !== null && user.wallet_balance !== undefined) {
+      currentBalance = typeof user.wallet_balance === 'string' 
+        ? parseFloat(user.wallet_balance) 
+        : Number(user.wallet_balance);
+    }
+    console.log('[v0] Current balance:', currentBalance, 'Type:', typeof currentBalance);
+    
+    const adjustmentAmount = parseFloat(String(amount));
 
     // Calculate new balance
     const newBalance = type === 'credit' 
