@@ -42,15 +42,23 @@ export async function POST(request: NextRequest) {
       await sql`UPDATE deposits SET status = 'approved', approved_by = ${userId || null}, approved_at = NOW(), updated_at = NOW() WHERE id = ${deposit_id}`;
       await sql`INSERT INTO wallet_transactions (user_id, transaction_type, amount, old_balance, new_balance, related_id, related_type, description) VALUES (${deposit.user_id}, 'deposit', ${deposit.amount}, ${currentBalance}, ${newBalance}, ${deposit_id}, 'deposit', 'Deposit approved')`;
 
-      // Update linked order if this is a payment for an order
-      await sql`UPDATE orders SET status = 'Processing', updated_at = NOW() WHERE linked_deposit_id = ${deposit_id}`;
+      // Update linked order if this is a payment for an order (optional - only if exists)
+      try {
+        await sql`UPDATE orders SET status = 'Processing', updated_at = NOW() WHERE linked_deposit_id = ${deposit_id}`;
+      } catch (e) {
+        console.log('[v0] No linked order found for deposit, skipping order update');
+      }
 
       return NextResponse.json({ success: true, message: 'Deposit approved', newBalance });
     } else {
       await sql`UPDATE deposits SET status = 'rejected', approved_by = ${userId || null}, approved_at = NOW(), updated_at = NOW() WHERE id = ${deposit_id}`;
       
-      // Update linked order if this is a payment for an order
-      await sql`UPDATE orders SET status = 'Rejected', updated_at = NOW() WHERE linked_deposit_id = ${deposit_id}`;
+      // Update linked order if this is a payment for an order (optional - only if exists)
+      try {
+        await sql`UPDATE orders SET status = 'Rejected', updated_at = NOW() WHERE linked_deposit_id = ${deposit_id}`;
+      } catch (e) {
+        console.log('[v0] No linked order found for deposit, skipping order update');
+      }
       
       return NextResponse.json({ success: true, message: 'Deposit rejected' });
     }
