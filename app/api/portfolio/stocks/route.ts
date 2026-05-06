@@ -35,11 +35,11 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Now fetch only active stocks
+    // Now fetch only active stocks (or NULL status which we'll treat as active)
     console.log('[v0] Portfolio Stocks Endpoint - Fetching active stocks...');
     const stocks = (await db`
       SELECT * FROM user_portfolio_stocks 
-      WHERE user_id = ${userId} AND status = 'active'
+      WHERE user_id = ${userId} AND (status = 'active' OR status IS NULL)
       ORDER BY created_at DESC
     `) as any[];
 

@@ -131,6 +131,7 @@ export async function GET(request: NextRequest) {
 
     const searchParams = request.nextUrl.searchParams;
     const symbol = searchParams.get('symbol');
+    const userId = searchParams.get('userId');
 
     if (symbol) {
       // Fetch single stock
@@ -141,7 +142,22 @@ export async function GET(request: NextRequest) {
           { status: 500 }
         );
       }
-      return NextResponse.json(data);
+      
+      // Check if user owns this stock
+      let isOwned = false;
+      if (userId) {
+        const { sql } = await import('@/lib/db');
+        const db = sql();
+        const owned = (await db`
+          SELECT id FROM user_portfolio_stocks 
+          WHERE user_id = ${userId} 
+          AND company_id IN (SELECT id FROM companies WHERE symbol = ${symbol.toUpperCase()})
+          AND status = 'active'
+        `) as any[];
+        isOwned = owned.length > 0;
+      }
+      
+      return NextResponse.json({ ...data, isOwned });
     }
 
     // Fetch all symbols
@@ -150,6 +166,28 @@ export async function GET(request: NextRequest) {
     );
 
     const validData = stocksData.filter((data) => data !== null) as StockData[];
+    
+    // Check ownership for each stock if userId provided
+    if (userId) {
+      const { sql } = await import('@/lib/db');
+      const db = sql();
+      
+      const ownedStocks = (await db`
+        SELECT DISTINCT c.symbol FROM user_portfolio_stocks ups
+        JOIN companies c ON ups.company_id = c.id
+        WHERE ups.user_id = ${userId} AND ups.status = 'active'
+      `) as any[];
+      
+      const ownedSymbols = new Set(ownedStocks.map(s => s.symbol));
+      
+      return NextResponse.json({
+        stocks: validData.map(stock => ({
+          ...stock,
+          isOwned: ownedSymbols.has(stock.symbol)
+        })),
+        timestamp: Date.now(),
+      });
+    }
 
     return NextResponse.json({
       stocks: validData,

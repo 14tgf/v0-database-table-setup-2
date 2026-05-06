@@ -89,14 +89,15 @@ export async function POST(request: NextRequest) {
 
     const result = (await db`
       INSERT INTO user_portfolio_stocks 
-        (user_id, company_id, shares, average_cost, current_value, gain_loss, created_at, updated_at)
+        (user_id, company_id, shares, average_cost, current_value, gain_loss, status, created_at, updated_at)
       VALUES (
         ${userId}, 
         ${company[0].id}, 
         ${shares}, 
         ${currentPrice}, 
         ${investmentAmount}, 
-        0, 
+        0,
+        'active',
         NOW(), 
         NOW()
       )
@@ -104,6 +105,7 @@ export async function POST(request: NextRequest) {
         shares = user_portfolio_stocks.shares + ${shares},
         average_cost = ${currentPrice},
         current_value = user_portfolio_stocks.current_value + ${investmentAmount},
+        status = 'active',
         updated_at = NOW()
       RETURNING *
     `) as any[];
