@@ -47,10 +47,10 @@ export async function POST(request: NextRequest) {
     }
 
     const investmentPlan = plan[0];
-    const minAmount = parseFloat(investmentPlan.minimum_amount);
-    const maxAmount = investmentPlan.maximum_amount ? parseFloat(investmentPlan.maximum_amount) : Infinity;
-    const roiPercent = parseFloat(investmentPlan.roi_percent);
-    const durationDays = investmentPlan.duration_days;
+    const minAmount = parseFloat(investmentPlan.min_investment);
+    const maxAmount = investmentPlan.max_investment ? parseFloat(investmentPlan.max_investment) : Infinity;
+    const expectedReturn = parseFloat(investmentPlan.expected_return) || 0;
+    const durationMonths = investmentPlan.duration_months || 12;
 
     // 2. Validate investment amount
     if (investmentAmount < minAmount || investmentAmount > maxAmount) {
@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
 
     // 4. Calculate maturity date
     const investedAt = new Date();
-    const maturityDate = new Date(investedAt.getTime() + durationDays * 24 * 60 * 60 * 1000);
+    const maturityDate = new Date(investedAt.getTime() + durationMonths * 30 * 24 * 60 * 60 * 1000);
 
     // 5. Deduct from wallet
     const newWalletBalance = walletBalance - investmentAmount;
@@ -101,8 +101,8 @@ export async function POST(request: NextRequest) {
     // 6. Create investment record
     const result = (await db`
       INSERT INTO user_investments 
-        (user_id, plan_id, amount, roi_percent, status, maturity_date)
-      VALUES (${userId}, ${planId}, ${investmentAmount}, ${roiPercent}, 'active', ${maturityDate.toISOString()})
+        (user_id, plan_id, amount, returns, status)
+      VALUES (${userId}, ${planId}, ${investmentAmount}, ${expectedReturn}, 'active')
       RETURNING *
     `) as any[];
 
@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: true,
-        message: `Invested $${investmentAmount.toFixed(2)} in ${investmentPlan.name}`,
+        message: `Invested $${investmentAmount.toFixed(2)} in ${investmentPlan.plan_name}`,
         investment,
         newWalletBalance,
       },
