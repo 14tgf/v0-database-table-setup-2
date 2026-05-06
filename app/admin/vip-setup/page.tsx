@@ -78,7 +78,8 @@ export default function VIPSetupPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || data.error || 'Step failed');
+        const errorDetail = data.details || data.message || data.error || 'Step failed';
+        throw new Error(errorDetail);
       }
 
       // If this is the seed step, verify the plans were actually inserted
