@@ -1,21 +1,21 @@
-import { NextResponse } from 'next/server';
-import { sql } from '@/lib/db';
+import { neon } from '@neondatabase/serverless';
 
-// Hardcoded VIP tiers from the page
+const sql = neon(process.env.DATABASE_URL);
+
 const VIP_TIERS = [
   {
     name: 'Bronze',
     tier_level: 1,
     price: 99.00,
-    duration_days: 366, // 12.2 months approximation
+    duration_days: 366,
     description: 'Essential VIP benefits for new members',
-    benefits: [
+    benefits: JSON.stringify([
       '3.00% off car purchases',
       '1.00% investment bonus',
       'Priority email support',
       'Exclusive member newsletter',
       'Early access to new inventory',
-    ],
+    ]),
   },
   {
     name: 'Silver',
@@ -23,7 +23,7 @@ const VIP_TIERS = [
     price: 249.00,
     duration_days: 366,
     description: 'Enhanced benefits with greater rewards',
-    benefits: [
+    benefits: JSON.stringify([
       '5.00% off car purchases',
       '2.00% investment bonus',
       '2x giveaway entries',
@@ -32,7 +32,7 @@ const VIP_TIERS = [
       '24/7 phone support',
       'Invitation to exclusive events',
       'Quarterly market insights report',
-    ],
+    ]),
   },
   {
     name: 'Private Access',
@@ -40,7 +40,7 @@ const VIP_TIERS = [
     price: 5000.00,
     duration_days: 366,
     description: 'Premium tier with exclusive opportunities',
-    benefits: [
+    benefits: JSON.stringify([
       '7.00% off car purchases',
       '10.00% investment bonus',
       '3x giveaway entries',
@@ -51,7 +51,7 @@ const VIP_TIERS = [
       'Priority Tesla vehicle allocations',
       'VIP client priority support',
       'Not available to all clients',
-    ],
+    ]),
   },
   {
     name: 'Platinum',
@@ -59,7 +59,7 @@ const VIP_TIERS = [
     price: 999.00,
     duration_days: 366,
     description: 'Ultimate VIP experience with maximum benefits',
-    benefits: [
+    benefits: JSON.stringify([
       '10.00% off car purchases',
       '5.00% investment bonus',
       '5x giveaway entries',
@@ -70,15 +70,15 @@ const VIP_TIERS = [
       'Annual Tesla accessory package',
       'Exclusive Tesla events invitation',
       'White-glove delivery service',
-    ],
+    ]),
   },
 ];
 
-export async function POST(request: Request) {
+async function seed() {
   try {
-    console.log('[v0] Initializing VIP tables...');
+    console.log('Starting VIP plans seeding...');
 
-    // Create VIP Plans table
+    // First, create tables if they don't exist
     await sql`
       CREATE TABLE IF NOT EXISTS vip_plans (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -94,39 +94,30 @@ export async function POST(request: Request) {
       )
     `;
 
-    // Create User VIP Memberships table
-    await sql`
-      CREATE TABLE IF NOT EXISTS user_vip_memberships (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-        vip_plan_id UUID NOT NULL REFERENCES vip_plans(id),
-        tier_level INTEGER NOT NULL,
-        status VARCHAR(50) DEFAULT 'active',
-        started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        expires_at TIMESTAMP NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `;
+    console.log('VIP plans table created/verified');
 
-    // Create indexes
-    await sql`CREATE INDEX IF NOT EXISTS idx_vip_plans_active ON vip_plans(active)`;
-    await sql`CREATE INDEX IF NOT EXISTS idx_vip_plans_tier_level ON vip_plans(tier_level)`;
-    await sql`CREATE INDEX IF NOT EXISTS idx_user_vip_memberships_user_id ON user_vip_memberships(user_id)`;
-    await sql`CREATE INDEX IF NOT EXISTS idx_user_vip_memberships_status ON user_vip_memberships(status)`;
-    await sql`CREATE INDEX IF NOT EXISTS idx_user_vip_memberships_expires_at ON user_vip_memberships(expires_at)`;
+    // Clear existing plans
+    await sql`DELETE FROM vip_plans`;
+    console.log('Cleared existing plans');
 
-    console.log('[v0] VIP tables created successfully');
+    // Insert new plans
+    for (const tier of VIP_TIERS) {
+      await sql`
+        INSERT INTO vip_plans (name, tier_level, description, benefits, price, duration_days, active)
+        VALUES (${tier.name}, ${tier.tier_level}, ${tier.description}, ${tier.benefits}::text[], ${tier.price}, ${tier.duration_days}, true)
+      `;
+      console.log(`Seeded: ${tier.name}`);
+    }
 
-    return NextResponse.json({
-      success: true,
-      message: 'VIP tables initialized',
-    });
+    // Verify
+    const result = await sql`SELECT COUNT(*) as count FROM vip_plans WHERE active = true`;
+    console.log(`Successfully seeded ${result[0].count} VIP plans!`);
+
+    process.exit(0);
   } catch (error) {
-    console.error('[v0] VIP schema initialization error:', error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'VIP schema initialization failed' },
-      { status: 500 }
-    );
+    console.error('Seeding error:', error);
+    process.exit(1);
   }
 }
+
+seed();

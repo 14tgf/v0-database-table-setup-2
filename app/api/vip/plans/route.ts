@@ -37,6 +37,16 @@ export async function GET(request: Request) {
 
     if (plans.length === 0) {
       console.warn('[v0] VIP plans API - No active plans found in database');
+      // Check if the table exists and has any data
+      try {
+        const countResult = await sql`SELECT COUNT(*) as count FROM vip_plans`;
+        console.log('[v0] VIP plans API - Total plans in DB (including inactive):', countResult);
+        
+        const allPlans = await sql`SELECT * FROM vip_plans`;
+        console.log('[v0] VIP plans API - All plans from DB:', allPlans);
+      } catch (checkErr) {
+        console.error('[v0] VIP plans API - Error checking DB:', checkErr);
+      }
       return NextResponse.json([], { status: 200 });
     }
 

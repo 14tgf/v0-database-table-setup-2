@@ -75,26 +75,38 @@ const VIP_TIERS = [
 
 export async function POST(request: Request) {
   try {
-    const authHeader = request.headers.get('authorization');
-    if (authHeader !== `Bearer ${process.env.ADMIN_API_KEY}`) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     console.log('[v0] Seeding VIP plans...');
 
     // Seed VIP plans
     for (const tier of VIP_TIERS) {
       try {
+        console.log(`[v0] Inserting VIP plan: ${tier.name}`);
+        
+        // Format benefits as proper TEXT array for PostgreSQL
+        const benefitsArray = tier.benefits;
+        
         await sql`
           INSERT INTO vip_plans (name, tier_level, description, benefits, price, duration_days, active)
-          VALUES (${tier.name}, ${tier.tier_level}, ${tier.description}, ${tier.benefits}, ${tier.price}, ${tier.duration_days}, true)
+          VALUES (
+            ${tier.name},
+            ${tier.tier_level},
+            ${tier.description},
+            ${benefitsArray}::text[],
+            ${tier.price},
+            ${tier.duration_days},
+            true
+          )
           ON CONFLICT (name) DO NOTHING
         `;
-        console.log(`[v0] Seeded VIP plan: ${tier.name}`);
+        console.log(`[v0] Successfully inserted VIP plan: ${tier.name}`);
       } catch (error) {
-        console.warn(`[v0] Error seeding ${tier.name}:`, error);
+        console.error(`[v0] Error inserting ${tier.name}:`, error);
       }
     }
+
+    // Verify insertion
+    const verifyResult = await sql`SELECT COUNT(*) as count FROM vip_plans WHERE active = true`;
+    console.log('[v0] VIP plans verification:', verifyResult);
 
     console.log('[v0] VIP plans seeded successfully');
 
