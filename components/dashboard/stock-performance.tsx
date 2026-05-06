@@ -36,14 +36,18 @@ export function StockPerformance() {
       const dataPoint: ChartDataPoint = { date };
       
       chartStocks.forEach((stock) => {
+        // Use ticker as the key, with fallback to symbol
+        const stockKey = stock.ticker || stock.symbol || 'UNKNOWN';
+        const changePercent = stock.percentChange || stock.changePercent || 0;
+        
         // Create a realistic percentage change over time
-        const baseChange = (stock.changePercent || 0) / 8; // Spread the daily change across 8 days
+        const baseChange = changePercent / 8; // Spread the daily change across 8 days
         const variance = (Math.random() - 0.5) * 0.5; // Add random variance
         const dayChange = baseChange + variance;
         
         // Calculate cumulative change
         const cumulativeChange = dayChange * (index + 1);
-        dataPoint[stock.symbol] = parseFloat(cumulativeChange.toFixed(2));
+        dataPoint[stockKey] = parseFloat(cumulativeChange.toFixed(2));
       });
       
       return dataPoint;
@@ -53,7 +57,7 @@ export function StockPerformance() {
   }, [stocks]);
 
   // Get first 5 symbols for legend
-  const displaySymbols = stocks.slice(0, 5).map(s => s.symbol);
+  const displaySymbols = stocks.slice(0, 5).map(s => s.ticker || s.symbol || 'N/A');
   const colors = ['#3b82f6', '#14b8a6', '#eab308', '#ef4444', '#a855f7'];
   const symbolColorMap = Object.fromEntries(displaySymbols.map((sym, i) => [sym, colors[i]]));
 

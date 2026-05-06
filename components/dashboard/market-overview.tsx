@@ -42,13 +42,16 @@ export function MarketOverview() {
             <p className="text-red-400 text-sm">{error}</p>
           </div>
         ) : (
-          /* Stock Items */
           <div className="space-y-2">
             {displayStocks.map((stock) => {
               const isPositive = stock.change >= 0;
+              const symbol = stock.symbol || stock.ticker || 'N/A';
+              const name = stock.name || stock.companyName || 'Unknown';
+              const changePercent = stock.changePercent || stock.percentChange || 0;
+              
               return (
                 <Link
-                  key={stock.symbol}
+                  key={symbol}
                   href="/market"
                   className="block"
                 >
@@ -58,19 +61,19 @@ export function MarketOverview() {
                         <div className="flex-shrink-0">
                           <CompanyLogo
                             logo={stock.logo}
-                            name={stock.name}
-                            symbol={stock.symbol}
+                            name={name}
+                            symbol={symbol}
                           />
                         </div>
                         <div>
-                          <p className="text-sm font-semibold text-white">{stock.name}</p>
-                          <p className="text-xs text-white/50">{stock.symbol}</p>
+                          <p className="text-sm font-semibold text-white">{name}</p>
+                          <p className="text-xs text-white/50">{symbol}</p>
                         </div>
                       </div>
                       <div className="text-right">
                         <p className="text-sm font-semibold text-white">${stock.price.toFixed(2)}</p>
                         <p className={`text-xs font-semibold ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
-                          {isPositive ? '+' : ''}{stock.changePercent.toFixed(2)}%
+                          {isPositive ? '+' : ''}{changePercent.toFixed(2)}%
                         </p>
                       </div>
                     </div>
