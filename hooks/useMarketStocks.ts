@@ -1,7 +1,21 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { StockData } from '@/lib/finnhub';
+import { useAuth } from './useAuth';
+
+interface StockData {
+  ticker: string;
+  companyName: string;
+  logo: string;
+  price: number;
+  change: number;
+  percentChange: number;
+  high: number;
+  low: number;
+  open: number;
+  timestamp: number;
+  isOwned?: boolean;
+}
 
 export function useMarketStocks() {
   const [stocks, setStocks] = useState<StockData[]>([]);
@@ -10,6 +24,7 @@ export function useMarketStocks() {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'none' | 'gainers' | 'losers'>('none');
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
+  const { user } = useAuth();
 
   // Fetch stocks
   const fetchStocks = useCallback(async () => {
@@ -17,7 +32,11 @@ export function useMarketStocks() {
       setIsLoading(true);
       setError(null);
 
-      const response = await fetch('/api/market/stocks');
+      const url = user?.id 
+        ? `/api/market/stocks?userId=${user.id}`
+        : '/api/market/stocks';
+
+      const response = await fetch(url);
       
       if (!response.ok) {
         throw new Error('Failed to fetch stocks');
@@ -27,12 +46,12 @@ export function useMarketStocks() {
       setStocks(data);
       setLastRefresh(new Date());
     } catch (err) {
-      console.error('[useMarketStocks] Error:', err);
+      console.error('[v0] useMarketStocks error:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch stock data');
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [user?.id]);
 
   // Initial fetch
   useEffect(() => {
