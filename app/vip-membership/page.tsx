@@ -25,7 +25,7 @@ export default function VIPMembershipPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [vipTiers, setVipTiers] = useState<VIPTier[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<{ message: string; details?: string; errorType?: string } | null>(null)
   const [currentMembership, setCurrentMembership] = useState<any | null>(null)
   const [purchasingPlanId, setPurchasingPlanId] = useState<string | null>(null)
   const [purchaseError, setPurchaseError] = useState<string | null>(null)
@@ -39,24 +39,58 @@ export default function VIPMembershipPage() {
         setError(null)
 
         // Fetch available VIP plans
+        console.log('[v0] VIP page - Fetching plans from /api/vip/plans');
         const plansResponse = await fetch('/api/vip/plans')
-        if (!plansResponse.ok) throw new Error('Failed to fetch VIP plans')
+        
+        if (!plansResponse.ok) {
+          const errorData = await plansResponse.json()
+          console.error('[v0] VIP plans API error:', {
+            status: plansResponse.status,
+            error: errorData.error,
+            details: errorData.details,
+            errorType: errorData.errorType,
+          });
+          
+          throw new Error(
+            errorData.details 
+              ? `${errorData.error}: ${errorData.details}`
+              : errorData.error || `HTTP ${plansResponse.status}: Failed to fetch VIP plans`
+          )
+        }
+        
         const plans = await plansResponse.json()
+        
+        if (!Array.isArray(plans) || plans.length === 0) {
+          console.warn('[v0] VIP plans - Empty or invalid response:', plans);
+          throw new Error('No VIP plans available in the database. Please contact support.')
+        }
+        
+        console.log('[v0] VIP page - Successfully fetched', plans.length, 'plans');
         setVipTiers(plans)
 
         // Fetch user's current membership if logged in
         if (user?.id) {
+          console.log('[v0] VIP page - Fetching membership status for user:', user.id);
           const statusResponse = await fetch(`/api/vip/status?userId=${user.id}`)
           if (statusResponse.ok) {
             const statusData = await statusResponse.json()
             if (statusData.has_active_membership) {
+              console.log('[v0] VIP page - User has active membership:', statusData.membership.name);
               setCurrentMembership(statusData.membership)
+            } else {
+              console.log('[v0] VIP page - User has no active membership');
             }
+          } else {
+            console.warn('[v0] VIP page - Failed to fetch membership status:', statusResponse.status);
           }
         }
       } catch (err) {
-        console.error('[v0] Error fetching VIP data:', err)
-        setError(err instanceof Error ? err.message : 'Failed to load VIP plans')
+        const errorMessage = err instanceof Error ? err.message : String(err)
+        console.error('[v0] VIP page - Fatal error:', errorMessage)
+        setError({ 
+          message: 'Unable to load VIP plans',
+          details: errorMessage,
+        })
       } finally {
         setIsLoading(false)
       }
@@ -272,14 +306,35 @@ export default function VIPMembershipPage() {
           {/* Error State */}
           {error && !isLoading && (
             <div className="text-center py-12">
-              <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
-              <p className="text-red-400 mb-4">{error}</p>
-              <button
-                onClick={() => window.location.reload()}
-                className="px-6 py-2 bg-accent/20 border border-accent/50 text-accent rounded-lg hover:bg-accent/30 transition-all"
-              >
-                Try Again
-              </button>
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full border-2 border-red-400/30 bg-red-400/10 mb-4">
+                <AlertCircle className="w-8 h-8 text-red-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-white mb-2">{error.message}</h3>
+              {error.details && (
+                <div className="mb-6 max-w-2xl mx-auto">
+                  <p className="text-sm text-red-400/80 mb-3">{error.details}</p>
+                  {error.errorType && (
+                    <p className="text-xs text-white/40">Error Type: {error.errorType}</p>
+                  )}
+                </div>
+              )}
+              <div className="flex gap-3 justify-center">
+                <button
+                  onClick={() => window.location.reload()}
+                  className="px-6 py-2 bg-accent/20 border border-accent/50 text-accent rounded-lg hover:bg-accent/30 transition-all font-semibold"
+                >
+                  Try Again
+                </button>
+                <a
+                  href="/"
+                  className="px-6 py-2 bg-white/5 border border-white/10 text-white rounded-lg hover:bg-white/10 transition-all font-semibold"
+                >
+                  Go Home
+                </a>
+              </div>
+              <p className="text-xs text-white/40 mt-4">
+                If the problem persists, please contact support with error type: {error.errorType}
+              </p>
             </div>
           )}
 
