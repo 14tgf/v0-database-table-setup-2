@@ -36,10 +36,8 @@ export async function PUT(request: NextRequest) {
     };
     const columnName = columnMap[balanceType];
 
-    const db = sql();
-
     // Get current user balance
-    const userResult = (await db`
+    const userResult = (await sql`
       SELECT id, email, wallet_balance, full_name FROM users WHERE id = ${userId}
     `) as any[];
 
@@ -51,7 +49,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const user = userResult[0];
-    const currentBalance = parseFloat(user[columnName]) || 0;
+    const currentBalance = parseFloat(user.wallet_balance) || 0;
     const adjustmentAmount = parseFloat(amount);
 
     // Calculate new balance
@@ -68,11 +66,14 @@ export async function PUT(request: NextRequest) {
     }
 
     // Update user balance
-    await db`UPDATE users SET wallet_balance = ${newBalance}, updated_at = NOW() WHERE id = ${userId}`;
+    await sql`UPDATE users SET wallet_balance = ${newBalance}, updated_at = NOW() WHERE id = ${userId}`;
 
     // Log the adjustment in audit_logs
-    const description = `Admin adjusted wallet balance: ${type} $${adjustmentAmount} - Reason: ${reason || 'No reason provided'}`;
-    await db`INSERT INTO audit_logs (id, admin_id, action, entity_type, entity_id, new_values) VALUES (gen_random_uuid(), NULL, 'BALANCE_ADJUSTMENT', 'user', ${userId}, jsonb_build_object('new_balance', ${newBalance}, 'reason', ${reason || 'No reason provided'}))`;
+    const newValuesJson = JSON.stringify({
+      new_balance: newBalance,
+      reason: reason || 'No reason provided'
+    });
+    await sql`INSERT INTO audit_logs (id, admin_id, action, entity_type, entity_id, new_values) VALUES (gen_random_uuid(), NULL, 'BALANCE_ADJUSTMENT', 'user', ${userId}, ${newValuesJson}::jsonb)`;
 
     return NextResponse.json({
       success: true,
