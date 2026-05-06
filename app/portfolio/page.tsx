@@ -33,8 +33,7 @@ export default function PortfolioPage() {
     return () => console.log('[v0] Portfolio Page Unmounted');
   }, []);
 
-  // Calculate totals from real portfolio data
-  const totals = useMemo(() => {
+    // Calculate totals from real portfolio data
     if (!portfolioStocks || portfolioStocks.length === 0) {
       return {
         totalInvested: 0,
@@ -47,24 +46,23 @@ export default function PortfolioPage() {
     }
 
     const totalInvested = portfolioStocks.reduce((sum, stock: any) => {
-      const amount = parseFloat(stock.invested_amount) || 0;
+      const amount = parseFloat(stock.invested_amount) || parseFloat(stock.current_value) || 0;
       return sum + amount;
     }, 0);
     
     const totalValue = portfolioStocks.reduce((sum, stock: any) => {
-      const price = parseFloat(stock.current_price) || 0;
-      const qty = parseInt(stock.quantity) || 0;
-      return sum + (price * qty);
+      const value = parseFloat(stock.current_value) || 0;
+      return sum + value;
     }, 0);
     
     const totalGain = portfolioStocks.reduce((sum, stock: any) => {
-      const gain = parseFloat(stock.profit_loss) || 0;
+      const gain = parseFloat(stock.gain_loss) || 0;
       return sum + gain;
     }, 0);
     
     const totalGainPercent = totalInvested > 0 ? (totalGain / totalInvested) * 100 : 0;
-    const gainersCount = portfolioStocks.filter((stock: any) => (parseFloat(stock.profit_loss) || 0) > 0).length;
-    const losersCount = portfolioStocks.filter((stock: any) => (parseFloat(stock.profit_loss) || 0) < 0).length;
+    const gainersCount = portfolioStocks.filter((stock: any) => (parseFloat(stock.gain_loss) || 0) > 0).length;
+    const losersCount = portfolioStocks.filter((stock: any) => (parseFloat(stock.gain_loss) || 0) < 0).length;
 
     return { 
       totalInvested: Number(totalInvested) || 0, 
@@ -281,42 +279,32 @@ export default function PortfolioPage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {portfolioStocks.map((holding: any) => {
-                const profitLoss = parseFloat(holding.profit_loss) || 0;
-                const currentPrice = parseFloat(holding.current_price) || 0;
-                const quantity = parseInt(holding.quantity) || 0;
-                const initialPrice = parseFloat(holding.initial_price) || 0;
-                const percentChange = parseFloat(holding.percent_change) || 0;
-                const isPositive = profitLoss >= 0;
-                const currentValue = currentPrice * quantity;
+                const gainLoss = parseFloat(holding.gain_loss) || 0;
+                const currentValue = parseFloat(holding.current_value) || 0;
+                const shares = parseFloat(holding.shares) || 0;
+                const averageCost = parseFloat(holding.average_cost) || 0;
+                const isPositive = gainLoss >= 0;
+                const symbol = holding.symbol || 'N/A';
+                const companyName = holding.company_name || 'Unknown';
+                
                 return (
                   <div
-                    key={holding.symbol}
+                    key={holding.id}
                     className="rounded-lg bg-secondary/20 border border-white/10 p-4 hover:bg-secondary/30 transition-all glow-cyan-hover"
                   >
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-3">
-                        {holding.company_logo ? (
-                          <Image
-                            src={holding.company_logo}
-                            alt={holding.symbol}
-                            width={40}
-                            height={40}
-                            className="w-10 h-10 rounded bg-white/10 flex-shrink-0 object-contain"
-                            unoptimized
-                          />
-                        ) : (
-                          <div className="w-10 h-10 rounded bg-accent/20 flex items-center justify-center flex-shrink-0">
-                            <span className="text-white text-xs font-bold">{holding.symbol[0]}</span>
-                          </div>
-                        )}
+                        <div className="w-10 h-10 rounded bg-accent/20 flex items-center justify-center flex-shrink-0">
+                          <span className="text-white text-xs font-bold">{symbol.charAt(0)}</span>
+                        </div>
                         <div>
-                          <p className="text-white font-semibold text-sm">{holding.symbol}</p>
-                          <p className="text-white/50 text-xs">{holding.company_name}</p>
+                          <p className="text-white font-semibold text-sm">{symbol}</p>
+                          <p className="text-white/50 text-xs">{companyName}</p>
                         </div>
                       </div>
                       <button
-                        onClick={() => handleRemoveStock(holding.symbol)}
-                        disabled={removingStock === holding.symbol}
+                        onClick={() => handleRemoveStock(symbol)}
+                        disabled={removingStock === symbol}
                         className="p-1 rounded hover:bg-red-500/20 text-white/60 hover:text-red-400 transition-colors disabled:opacity-50"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -325,25 +313,21 @@ export default function PortfolioPage() {
 
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
-                        <p className="text-white/60">Qty:</p>
-                        <p className="text-white font-semibold">{quantity}</p>
+                        <p className="text-white/60">Shares:</p>
+                        <p className="text-white font-semibold">{shares.toFixed(2)}</p>
                       </div>
                       <div className="flex justify-between">
-                        <p className="text-white/60">Entry:</p>
-                        <p className="text-white font-semibold">${initialPrice.toFixed(2)}</p>
+                        <p className="text-white/60">Avg Cost:</p>
+                        <p className="text-white font-semibold">${averageCost.toFixed(2)}</p>
                       </div>
                       <div className="flex justify-between">
-                        <p className="text-white/60">Current:</p>
-                        <p className="text-white font-semibold">${currentPrice.toFixed(2)}</p>
-                      </div>
-                      <div className="flex justify-between">
-                        <p className="text-white/60">Value:</p>
+                        <p className="text-white/60">Current Value:</p>
                         <p className="text-white font-semibold">${currentValue.toFixed(2)}</p>
                       </div>
                       <div className="pt-2 border-t border-white/10 flex justify-between">
-                        <p className="text-white/60">P/L:</p>
+                        <p className="text-white/60">Gain/Loss:</p>
                         <p className={`font-semibold ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
-                          {isPositive ? '+' : ''}{percentChange.toFixed(2)}%
+                          {isPositive ? '+' : ''}{gainLoss.toFixed(2)}
                         </p>
                       </div>
                     </div>

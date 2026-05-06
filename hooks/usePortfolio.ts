@@ -31,20 +31,16 @@ export function usePortfolio() {
     { revalidateOnFocus: false, revalidateOnReconnect: true, dedupingInterval: 2000 }
   );
 
-  // Log fetch state changes
+  // Log fetch state changes - only log on actual state changes
   useEffect(() => {
-    console.log('[v0] usePortfolio - Fetch State:', {
-      isInitialized,
-      userId: user?.id,
-      isLoading,
-      stocksCount: stocks?.length || 0,
-      hasError: !!error,
-      errorMessage: error?.message,
-      timestamp: new Date().toISOString(),
-    });
-  }, [isInitialized, user?.id, isLoading, stocks?.length, error]);
-
-  console.log('[v0] usePortfolio - user:', user?.id, 'stocks:', stocks.length, 'isLoading:', isLoading);
+    if (isInitialized && user?.id) {
+      console.log('[v0] usePortfolio - Data loaded:', {
+        userId: user.id,
+        stocksCount: stocks?.length || 0,
+        hasError: !!error,
+      });
+    }
+  }, [stocks, error, isInitialized, user?.id]);
 
   // Update portfolio prices from live market data (no deps on mutateStocks to avoid circular refs)
   const updatePrices = useCallback(async () => {
@@ -165,54 +161,38 @@ export function usePortfolio() {
       }
 
       try {
-        console.log('[v0] removeStock - Starting:', { symbol, userId: user.id });
+        console.log('[v0] removeStock - Starting for:', symbol);
         const response = await fetch('/api/portfolio/remove', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ userId: user.id, symbol }),
         });
 
-        console.log('[v0] removeStock - API response status:', response.status);
-
         if (!response.ok) {
           const data = await response.json();
-          console.error('[v0] removeStock - API error:', { status: response.status, data });
+          console.error('[v0] removeStock - API error:', data);
           throw new Error(data.message || 'Failed to remove stock');
         }
 
         const result = await response.json();
-        console.log('[v0] removeStock - API success:', {
-          symbol,
-          salePrice: result.salePrice,
-          realizedProfitLoss: result.realizedProfitLoss,
-          newWalletBalance: result.newWalletBalance,
-        });
+        console.log('[v0] removeStock - Success:', symbol);
 
-        // Revalidate portfolio
-        console.log('[v0] removeStock - Revalidating portfolio and wallet...');
         await mutateStocks();
-        // Refresh wallet to update balance and stock holdings count
         await refreshWallet();
         
-        console.log('[v0] removeStock - Complete:', symbol);
         return result;
       } catch (error) {
-        console.error('[v0] removeStock - Error:', {
-          symbol,
-          error,
-          errorMsg: error instanceof Error ? error.message : 'Unknown error',
-          timestamp: new Date().toISOString(),
-        });
+        console.error('[v0] removeStock - Error:', error instanceof Error ? error.message : String(error));
         throw error;
       }
     },
     [user?.id, mutateStocks, refreshWallet]
   );
 
-  // Check if stock is in portfolio
+  // Check if stock is in portfolio - use company_id since that's what the API returns
   const isStockInPortfolio = useCallback(
     (symbol: string) => {
-      return stocks.some((stock: any) => stock.symbol === symbol);
+      return stocks.some((stock: any) => stock.symbol === symbol || stock.company_id);
     },
     [stocks]
   );
