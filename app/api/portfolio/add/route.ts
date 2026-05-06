@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
       )
       ON CONFLICT (user_id, company_id) DO UPDATE SET
         shares = user_portfolio_stocks.shares + ${shares},
-        average_cost = (user_portfolio_stocks.average_cost * (SELECT COUNT(*) FROM user_portfolio_stocks WHERE user_id = ${userId} AND company_id = ${company[0].id}) + ${currentPrice}) / (SELECT COUNT(*) FROM user_portfolio_stocks WHERE user_id = ${userId} AND company_id = ${company[0].id} + 1),
+        average_cost = ${currentPrice},
         current_value = user_portfolio_stocks.current_value + ${investmentAmount},
         updated_at = NOW()
       RETURNING *
