@@ -77,20 +77,30 @@ export async function POST(request: Request) {
   try {
     console.log('[v0] Seeding VIP plans...');
 
+    // Get the database client
+    const db = sql();
+
     // Clear existing active plans first (optional, but helps with testing)
     try {
-      await sql`DELETE FROM vip_plans WHERE name IN ('Bronze', 'Silver', 'Private Access', 'Platinum')`;
+      console.log('[v0] Attempting to delete existing plans...');
+      await db`DELETE FROM vip_plans`;
       console.log('[v0] Cleared existing VIP plans');
     } catch (e) {
-      console.log('[v0] No existing plans to clear or delete failed (table may not exist yet)');
+      console.error('[v0] Error during delete:', e);
+      // Don't throw, continue
     }
+
+    // Verify the table is empty before inserting
+    const preCheckResult = await db`SELECT COUNT(*) as count FROM vip_plans`;
+    const preCheckArray = Array.isArray(preCheckResult) ? preCheckResult : (preCheckResult?.rows || []);
+    console.log('[v0] Pre-insert check - Plans in DB:', preCheckArray[0]?.count || 0);
 
     // Seed each VIP plan individually with explicit logging
     for (const tier of VIP_TIERS) {
       try {
         console.log(`[v0] Inserting VIP plan: ${tier.name} (tier ${tier.tier_level})`);
         
-        const result = await sql`
+        const result = await db`
           INSERT INTO vip_plans (
             name, 
             tier_level, 
@@ -112,32 +122,44 @@ export async function POST(request: Request) {
           RETURNING id, name, tier_level, active
         `;
         
-        console.log(`[v0] Successfully inserted ${tier.name}:`, result);
+        // Handle both array and non-array responses
+        const insertedPlan = Array.isArray(result) ? result[0] : (result?.rows?.[0] || result);
+        console.log(`[v0] Successfully inserted ${tier.name}:`, insertedPlan);
+        
+        // Verify this specific insert worked
+        const checkAfterInsert = await db`SELECT COUNT(*) as count FROM vip_plans WHERE name = ${tier.name}`;
+        const checkArray = Array.isArray(checkAfterInsert) ? checkAfterInsert : (checkAfterInsert?.rows || []);
+        console.log(`[v0] After insert - Count for ${tier.name}:`, checkArray[0]?.count || 0);
       } catch (error) {
         console.error(`[v0] Error inserting ${tier.name}:`, error);
         throw error;
       }
     }
 
-    // Verify all plans were inserted
-    const verifyResult = await sql`
-      SELECT id, name, tier_level, active, created_at FROM vip_plans WHERE active = true ORDER BY tier_level
+    // Verify all plans were inserted (check all, not just active)
+    const allPlansResult = await db`
+      SELECT id, name, tier_level, active, created_at FROM vip_plans ORDER BY tier_level
     `;
     
-    console.log('[v0] Verification - VIP plans in database:', {
-      count: verifyResult.length,
-      plans: verifyResult.map(p => ({ name: p.name, tier: p.tier_level, active: p.active })),
+    // Handle both array and non-array responses from the sql client
+    const plansArray = Array.isArray(allPlansResult) ? allPlansResult : (allPlansResult?.rows || []);
+    
+    console.log('[v0] Verification - ALL VIP plans in database:', {
+      type: typeof allPlansResult,
+      isArray: Array.isArray(allPlansResult),
+      count: plansArray.length,
+      plans: plansArray.map((p: any) => ({ name: p.name, tier: p.tier_level, active: p.active })),
     });
 
-    if (verifyResult.length === 0) {
-      throw new Error('Seed operation completed but no plans found in database. Check database logs.');
+    if (plansArray.length === 0) {
+      throw new Error('Seed operation completed but no plans found in database. Plans may not have been inserted.');
     }
 
     return NextResponse.json({
       success: true,
-      message: `Successfully seeded ${verifyResult.length} VIP plans`,
-      count: verifyResult.length,
-      plans: verifyResult.map(p => ({ id: p.id, name: p.name, tier_level: p.tier_level })),
+      message: `Successfully seeded ${plansArray.length} VIP plans`,
+      count: plansArray.length,
+      plans: plansArray.map((p: any) => ({ id: p.id, name: p.name, tier_level: p.tier_level, active: p.active })),
     });
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error);

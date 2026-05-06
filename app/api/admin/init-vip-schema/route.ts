@@ -78,8 +78,11 @@ export async function POST(request: Request) {
   try {
     console.log('[v0] Initializing VIP tables...');
 
+    // Get the database client
+    const db = sql();
+
     // Create VIP Plans table
-    await sql`
+    await db`
       CREATE TABLE IF NOT EXISTS vip_plans (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         name VARCHAR(100) NOT NULL UNIQUE,
@@ -95,7 +98,7 @@ export async function POST(request: Request) {
     `;
 
     // Create User VIP Memberships table
-    await sql`
+    await db`
       CREATE TABLE IF NOT EXISTS user_vip_memberships (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -110,11 +113,11 @@ export async function POST(request: Request) {
     `;
 
     // Create indexes
-    await sql`CREATE INDEX IF NOT EXISTS idx_vip_plans_active ON vip_plans(active)`;
-    await sql`CREATE INDEX IF NOT EXISTS idx_vip_plans_tier_level ON vip_plans(tier_level)`;
-    await sql`CREATE INDEX IF NOT EXISTS idx_user_vip_memberships_user_id ON user_vip_memberships(user_id)`;
-    await sql`CREATE INDEX IF NOT EXISTS idx_user_vip_memberships_status ON user_vip_memberships(status)`;
-    await sql`CREATE INDEX IF NOT EXISTS idx_user_vip_memberships_expires_at ON user_vip_memberships(expires_at)`;
+    await db`CREATE INDEX IF NOT EXISTS idx_vip_plans_active ON vip_plans(active)`;
+    await db`CREATE INDEX IF NOT EXISTS idx_vip_plans_tier_level ON vip_plans(tier_level)`;
+    await db`CREATE INDEX IF NOT EXISTS idx_user_vip_memberships_user_id ON user_vip_memberships(user_id)`;
+    await db`CREATE INDEX IF NOT EXISTS idx_user_vip_memberships_status ON user_vip_memberships(status)`;
+    await db`CREATE INDEX IF NOT EXISTS idx_user_vip_memberships_expires_at ON user_vip_memberships(expires_at)`;
 
     console.log('[v0] VIP tables created successfully');
 
