@@ -46,9 +46,6 @@ export async function GET(request: NextRequest) {
         email,
         full_name,
         wallet_balance,
-        stock_balance,
-        vehicle_balance,
-        energy_balance,
         preferred_currency,
         account_type,
         status
@@ -115,25 +112,10 @@ export async function GET(request: NextRequest) {
     const walletBalance = typeof userData.wallet_balance === 'string'
       ? parseFloat(userData.wallet_balance)
       : Number(userData.wallet_balance);
-    
-    const stockBalance = typeof userData.stock_balance === 'string'
-      ? parseFloat(userData.stock_balance)
-      : Number(userData.stock_balance);
-    
-    const vehicleBalance = typeof userData.vehicle_balance === 'string'
-      ? parseFloat(userData.vehicle_balance)
-      : Number(userData.vehicle_balance);
-    
-    const energyBalance = typeof userData.energy_balance === 'string'
-      ? parseFloat(userData.energy_balance)
-      : Number(userData.energy_balance);
 
     const walletData = {
       userId: userData.id,
       balance: walletBalance || 0,
-      stockBalance: stockBalance || 0,
-      vehicleBalance: vehicleBalance || 0,
-      energyBalance: energyBalance || 0,
       totalDeposits: 0,
       totalWithdrawals: 0,
       totalInvested: 0,
