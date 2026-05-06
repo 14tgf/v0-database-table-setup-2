@@ -2,103 +2,137 @@ import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
 
 export async function PUT(request: NextRequest) {
+  let requestBody: any;
+  
   try {
-    const { userId, amount, type, balanceType = 'wallet', reason } = await request.json();
+    console.log('[v0] ========== ADJUST BALANCE START ==========');
+    requestBody = await request.json();
+    console.log('[v0] Request body received:', JSON.stringify(requestBody));
+    
+    const { userId, amount, type, balanceType = 'wallet', reason } = requestBody;
 
-    console.log('[v0] Adjust balance request body:', { userId, amount, type, balanceType, reason });
-
-    if (!userId || !amount || !type) {
-      return NextResponse.json(
-        { error: 'Missing required fields: userId, amount, type' },
-        { status: 400 }
-      );
+    // Validate inputs
+    if (!userId) {
+      console.log('[v0] VALIDATION ERROR: Missing userId');
+      return NextResponse.json({ error: 'VALIDATION_ERROR: Missing userId field' }, { status: 400 });
+    }
+    if (!amount) {
+      console.log('[v0] VALIDATION ERROR: Missing amount');
+      return NextResponse.json({ error: 'VALIDATION_ERROR: Missing amount field' }, { status: 400 });
+    }
+    if (!type) {
+      console.log('[v0] VALIDATION ERROR: Missing type');
+      return NextResponse.json({ error: 'VALIDATION_ERROR: Missing type field' }, { status: 400 });
     }
 
     if (type !== 'credit' && type !== 'debit') {
-      return NextResponse.json(
-        { error: 'Type must be either "credit" or "debit"' },
-        { status: 400 }
-      );
+      console.log('[v0] VALIDATION ERROR: Invalid type:', type);
+      return NextResponse.json({ error: 'VALIDATION_ERROR: Type must be "credit" or "debit"' }, { status: 400 });
     }
 
     const validBalanceTypes = ['wallet'];
     if (!validBalanceTypes.includes(balanceType)) {
-      return NextResponse.json(
-        { error: 'Invalid balance type. Currently only "wallet" is supported' },
-        { status: 400 }
-      );
+      console.log('[v0] VALIDATION ERROR: Invalid balanceType:', balanceType);
+      return NextResponse.json({ error: 'VALIDATION_ERROR: Invalid balance type' }, { status: 400 });
     }
 
-    // Map balance type to column name
-    const columnMap: Record<string, string> = {
-      wallet: 'wallet_balance',
-      stock: 'stock_balance',
-      vehicle: 'vehicle_balance',
-      energy: 'energy_balance',
-    };
-    const columnName = columnMap[balanceType];
-
-    // Get current user balance
-    console.log('[v0] Fetching user with ID:', userId, 'Type:', typeof userId);
-    const userResult = (await sql`
-      SELECT id, email, wallet_balance::numeric, full_name FROM users WHERE id = ${userId}::uuid
-    `) as any[];
-
-    console.log('[v0] User query result:', userResult);
+    // Step 1: Fetch user
+    console.log('[v0] STEP 1: Fetching user with ID:', userId);
+    let userResult;
+    try {
+      userResult = await sql`SELECT id, email, wallet_balance, full_name FROM users WHERE id = ${userId}`;
+      console.log('[v0] STEP 1 SUCCESS: User query returned:', userResult?.length || 0, 'rows');
+      console.log('[v0] STEP 1 DATA:', JSON.stringify(userResult));
+    } catch (dbError) {
+      console.error('[v0] STEP 1 FAILED: Database error fetching user:', dbError);
+      throw new Error(`DB_FETCH_USER_FAILED: ${dbError instanceof Error ? dbError.message : String(dbError)}`);
+    }
     
     if (!userResult || userResult.length === 0) {
-      console.log('[v0] User not found');
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
-      );
+      console.log('[v0] STEP 1 RESULT: No user found with ID:', userId);
+      return NextResponse.json({ error: 'USER_NOT_FOUND: No user exists with this ID' }, { status: 404 });
     }
 
+    // Step 2: Extract and validate user data
+    console.log('[v0] STEP 2: Extracting user data');
     const user = userResult[0];
-    console.log('[v0] User object:', user);
+    console.log('[v0] STEP 2 DATA: user object:', JSON.stringify(user));
     
-    // Handle wallet_balance - it might be string, number, or BigInt
+    if (!user) {
+      console.error('[v0] STEP 2 FAILED: user object is null/undefined');
+      throw new Error('USER_OBJECT_NULL: Failed to extract user from query result');
+    }
+
+    // Step 3: Convert wallet_balance to number
+    console.log('[v0] STEP 3: Converting wallet_balance to number');
+    console.log('[v0] STEP 3 DATA: wallet_balance value:', user.wallet_balance, 'type:', typeof user.wallet_balance);
+    
     let currentBalance = 0;
     if (user.wallet_balance !== null && user.wallet_balance !== undefined) {
-      currentBalance = typeof user.wallet_balance === 'string' 
-        ? parseFloat(user.wallet_balance) 
-        : Number(user.wallet_balance);
+      const balanceStr = String(user.wallet_balance);
+      currentBalance = parseFloat(balanceStr);
+      console.log('[v0] STEP 3 SUCCESS: Converted balance:', currentBalance);
+      if (isNaN(currentBalance)) {
+        throw new Error(`INVALID_BALANCE_VALUE: Cannot parse wallet_balance as number: ${balanceStr}`);
+      }
     }
-    console.log('[v0] Current balance:', currentBalance, 'Type:', typeof currentBalance);
-    
-    const adjustmentAmount = parseFloat(String(amount));
 
-    // Calculate new balance
+    // Step 4: Parse adjustment amount
+    console.log('[v0] STEP 4: Parsing adjustment amount:', amount);
+    const adjustmentAmount = parseFloat(String(amount));
+    if (isNaN(adjustmentAmount)) {
+      console.error('[v0] STEP 4 FAILED: Invalid amount');
+      throw new Error(`INVALID_AMOUNT: Cannot parse amount as number: ${amount}`);
+    }
+    console.log('[v0] STEP 4 SUCCESS: Adjustment amount:', adjustmentAmount);
+
+    // Step 5: Calculate new balance
+    console.log('[v0] STEP 5: Calculating new balance');
     const newBalance = type === 'credit' 
       ? currentBalance + adjustmentAmount 
       : currentBalance - adjustmentAmount;
+    console.log('[v0] STEP 5: New balance calculated:', newBalance);
 
-    // Prevent negative balances
     if (newBalance < 0) {
-      return NextResponse.json(
-        { error: `Insufficient ${balanceType} balance for debit operation` },
-        { status: 400 }
-      );
+      console.log('[v0] STEP 5 ERROR: Negative balance not allowed:', newBalance);
+      return NextResponse.json({ error: `INSUFFICIENT_BALANCE: New balance would be negative: ${newBalance}` }, { status: 400 });
     }
 
-    // Update user balance
-    await sql`UPDATE users SET wallet_balance = ${newBalance}, updated_at = NOW() WHERE id = ${userId}`;
+    // Step 6: Update user balance in database
+    console.log('[v0] STEP 6: Updating user balance in database');
+    try {
+      await sql`UPDATE users SET wallet_balance = ${newBalance}, updated_at = NOW() WHERE id = ${userId}`;
+      console.log('[v0] STEP 6 SUCCESS: User balance updated');
+    } catch (updateError) {
+      console.error('[v0] STEP 6 FAILED: Database error updating balance:', updateError);
+      throw new Error(`DB_UPDATE_FAILED: ${updateError instanceof Error ? updateError.message : String(updateError)}`);
+    }
 
-    // Log the adjustment in audit_logs
-    const newValuesJson = JSON.stringify({
-      new_balance: newBalance,
-      reason: reason || 'No reason provided'
-    });
-    await sql`INSERT INTO audit_logs (id, admin_id, action, entity_type, entity_id, new_values) VALUES (gen_random_uuid(), NULL, 'BALANCE_ADJUSTMENT', 'user', ${userId}, ${newValuesJson}::jsonb)`;
+    // Step 7: Log to audit_logs (optional - don't fail if this fails)
+    console.log('[v0] STEP 7: Logging to audit_logs');
+    try {
+      const newValuesJson = JSON.stringify({
+        new_balance: newBalance,
+        old_balance: currentBalance,
+        adjustment: adjustmentAmount,
+        type: type,
+        reason: reason || 'No reason provided'
+      });
+      await sql`INSERT INTO audit_logs (id, admin_id, action, entity_type, entity_id, new_values) 
+        VALUES (gen_random_uuid(), NULL, 'BALANCE_ADJUSTMENT', 'user', ${userId}, ${newValuesJson}::jsonb)`;
+      console.log('[v0] STEP 7 SUCCESS: Audit log created');
+    } catch (auditError) {
+      console.warn('[v0] STEP 7 WARNING: Failed to log audit (non-critical):', auditError);
+    }
 
+    console.log('[v0] ========== ADJUST BALANCE SUCCESS ==========');
     return NextResponse.json({
       success: true,
-      message: `${balanceType} balance adjusted successfully`,
+      message: 'Balance adjusted successfully',
       user: {
         id: user.id,
         email: user.email,
         fullName: user.full_name,
-        balanceType: balanceType,
         previousBalance: currentBalance,
         newBalance: newBalance,
         adjustmentAmount: adjustmentAmount,
@@ -107,10 +141,18 @@ export async function PUT(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('[v0] Balance adjustment error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown database error';
+    console.error('[v0] ========== ADJUST BALANCE FAILED ==========');
+    console.error('[v0] Error type:', error?.constructor?.name);
+    console.error('[v0] Error message:', error instanceof Error ? error.message : String(error));
+    console.error('[v0] Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+    console.error('[v0] Full error object:', JSON.stringify(error, null, 2));
+    
+    const errorMessage = error instanceof Error ? error.message : String(error);
     return NextResponse.json(
-      { error: `Failed to adjust balance: ${errorMessage}` },
+      { 
+        error: `UNEXPECTED_ERROR: ${errorMessage}`,
+        details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+      },
       { status: 500 }
     );
   }
