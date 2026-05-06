@@ -16,9 +16,6 @@ export async function GET(request: NextRequest) {
           email, 
           full_name, 
           wallet_balance,
-          stock_balance,
-          vehicle_balance,
-          energy_balance,
           status,
           created_at
         FROM users
@@ -32,9 +29,6 @@ export async function GET(request: NextRequest) {
           email, 
           full_name, 
           wallet_balance,
-          stock_balance,
-          vehicle_balance,
-          energy_balance,
           status,
           created_at
         FROM users
@@ -48,9 +42,6 @@ export async function GET(request: NextRequest) {
       name: user.full_name,
       email: user.email,
       balance: parseFloat(user.wallet_balance) || 0,
-      stockBalance: parseFloat(user.stock_balance) || 0,
-      vehicleBalance: parseFloat(user.vehicle_balance) || 0,
-      energyBalance: parseFloat(user.energy_balance) || 0,
       status: user.status as 'active' | 'frozen',
       joinDate: new Date(user.created_at).toLocaleDateString('en-US', {
         year: 'numeric',

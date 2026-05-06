@@ -19,10 +19,10 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const validBalanceTypes = ['wallet', 'stock', 'vehicle', 'energy'];
+    const validBalanceTypes = ['wallet'];
     if (!validBalanceTypes.includes(balanceType)) {
       return NextResponse.json(
-        { error: 'Invalid balance type. Must be one of: wallet, stock, vehicle, energy' },
+        { error: 'Invalid balance type. Currently only "wallet" is supported' },
         { status: 400 }
       );
     }
@@ -38,9 +38,9 @@ export async function PUT(request: NextRequest) {
 
     const db = sql();
 
-    // Get current user balance - use dynamic column in template literal
+    // Get current user balance
     const userResult = (await db`
-      SELECT id, email, wallet_balance, stock_balance, vehicle_balance, energy_balance, full_name FROM users WHERE id = ${userId}
+      SELECT id, email, wallet_balance, full_name FROM users WHERE id = ${userId}
     `) as any[];
 
     if (userResult.length === 0) {
@@ -67,13 +67,12 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // Update user balance - use dynamic column update
-    const updateQuery = `UPDATE users SET ${columnName} = ${newBalance}, updated_at = NOW() WHERE id = ${userId}`;
-    await db.query(updateQuery);
+    // Update user balance
+    await db`UPDATE users SET wallet_balance = ${newBalance}, updated_at = NOW() WHERE id = ${userId}`;
 
     // Log the adjustment in audit_logs
-    const description = `Admin adjusted ${balanceType} balance: ${type} $${adjustmentAmount} - Reason: ${reason || 'No reason provided'}`;
-    await db`INSERT INTO audit_logs (id, user_id, action, description, status) VALUES (gen_random_uuid(), ${userId}, 'BALANCE_ADJUSTMENT', ${description}, 'success')`;
+    const description = `Admin adjusted wallet balance: ${type} $${adjustmentAmount} - Reason: ${reason || 'No reason provided'}`;
+    await db`INSERT INTO audit_logs (id, admin_id, action, entity_type, entity_id, new_values) VALUES (gen_random_uuid(), NULL, 'BALANCE_ADJUSTMENT', 'user', ${userId}, jsonb_build_object('new_balance', ${newBalance}, 'reason', ${reason || 'No reason provided'}))`;
 
     return NextResponse.json({
       success: true,
