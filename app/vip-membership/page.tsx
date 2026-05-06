@@ -4,93 +4,138 @@ import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { Check, Menu, X as XIcon } from 'lucide-react'
+import { Check, Menu, X as XIcon, AlertCircle, Loader } from 'lucide-react'
 import { staggerContainer, staggerItem } from '@/lib/animations'
 import { SidebarMenu } from '@/components/dashboard/sidebar-menu'
+import { useAuth } from '@/hooks/useAuth'
 
-const VIPTiers = [
-  {
-    name: 'Bronze',
-    price: 99.00,
-    duration: '12.2 months',
-    description: 'Essential VIP benefits for new members',
-    benefits: [
-      '3.00% off car purchases',
-      '1.00% investment bonus',
-      'Priority email support',
-      'Exclusive member newsletter',
-      'Early access to new inventory',
-    ],
-    glowColor: 'glow-cyan',
-    featured: false,
-  },
-  {
-    name: 'Silver',
-    price: 249.00,
-    duration: '12.2 months',
-    description: 'Enhanced benefits with greater rewards',
-    benefits: [
-      '5.00% off car purchases',
-      '2.00% investment bonus',
-      '2x giveaway entries',
-      'Priority customer support',
-      'All Bronze benefits',
-      '24/7 phone support',
-      'Invitation to exclusive events',
-      'Quarterly market insights report',
-    ],
-    glowColor: 'glow-cyan',
-    featured: false,
-  },
-  {
-    name: 'Private Access',
-    price: 5000.00,
-    duration: '12.2 months',
-    description: 'Premium tier with exclusive opportunities',
-    benefits: [
-      '7.00% off car purchases',
-      '10.00% investment bonus',
-      '3x giveaway entries',
-      'Priority customer support',
-      'Access to exclusive opportunities',
-      'Advanced AI & robotics insights',
-      'Private investment deals',
-      'Priority Tesla vehicle allocations',
-      'VIP client priority support',
-      'Not available to all clients',
-    ],
-    glowColor: 'glow-cyan',
-    featured: true,
-  },
-  {
-    name: 'Platinum',
-    price: 999.00,
-    duration: '12.2 months',
-    description: 'Ultimate VIP experience with maximum benefits',
-    benefits: [
-      '10.00% off car purchases',
-      '5.00% investment bonus',
-      '5x giveaway entries',
-      'Priority customer support',
-      'All Gold benefits',
-      'Concierge service',
-      'Personalized investment strategy',
-      'Annual Tesla accessory package',
-      'Exclusive Tesla events invitation',
-      'White-glove delivery service',
-    ],
-    glowColor: 'glow-cyan',
-    featured: false,
-  },
-]
+interface VIPTier {
+  id: string
+  name: string
+  tier_level: number
+  price: number
+  duration_days: number
+  description: string
+  benefits: string[]
+  active: boolean
+}
 
 export default function VIPMembershipPage() {
   const [isLoaded, setIsLoaded] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [vipTiers, setVipTiers] = useState<VIPTier[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [currentMembership, setCurrentMembership] = useState<any | null>(null)
+  const [purchasingPlanId, setPurchasingPlanId] = useState<string | null>(null)
+  const [purchaseError, setPurchaseError] = useState<string | null>(null)
+  const { user } = useAuth()
+
+  // Fetch VIP plans and user membership
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setIsLoading(true)
+        setError(null)
+
+        // Fetch available VIP plans
+        const plansResponse = await fetch('/api/vip/plans')
+        if (!plansResponse.ok) throw new Error('Failed to fetch VIP plans')
+        const plans = await plansResponse.json()
+        setVipTiers(plans)
+
+        // Fetch user's current membership if logged in
+        if (user?.id) {
+          const statusResponse = await fetch(`/api/vip/status?userId=${user.id}`)
+          if (statusResponse.ok) {
+            const statusData = await statusResponse.json()
+            if (statusData.has_active_membership) {
+              setCurrentMembership(statusData.membership)
+            }
+          }
+        }
+      } catch (err) {
+        console.error('[v0] Error fetching VIP data:', err)
+        setError(err instanceof Error ? err.message : 'Failed to load VIP plans')
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [user?.id])
 
   useEffect(() => {
     setIsLoaded(true)
   }, [])
+
+  const handlePurchase = async (planId: string) => {
+    if (!user?.id) {
+      setPurchaseError('Please log in to purchase a VIP membership')
+      return
+    }
+
+    setPurchasingPlanId(planId)
+    setPurchaseError(null)
+
+    try {
+      const response = await fetch('/api/vip/purchase', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id, planId }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        setPurchaseError(data.message || data.error || 'Purchase failed')
+        return
+      }
+
+      // Refresh membership status
+      const statusResponse = await fetch(`/api/vip/status?userId=${user.id}`)
+      if (statusResponse.ok) {
+        const statusData = await statusResponse.json()
+        if (statusData.has_active_membership) {
+          setCurrentMembership(statusData.membership)
+        }
+      }
+
+      setPurchaseError(null)
+      alert(`Success! ${data.message}`)
+    } catch (err) {
+      console.error('[v0] Purchase error:', err)
+      setPurchaseError(err instanceof Error ? err.message : 'Purchase failed')
+    } finally {
+      setPurchasingPlanId(null)
+    }
+  }
+
+  const isTierOwned = (tierLevel: number) => {
+    return currentMembership && currentMembership.tier_level === tierLevel
+  }
+
+  const canUpgradeTo = (tierLevel: number) => {
+    if (!currentMembership) return true
+    return tierLevel > currentMembership.tier_level
+  }
+
+  const getPurchaseButtonText = (tier: VIPTier) => {
+    if (isTierOwned(tier.tier_level)) {
+      return 'Currently Owned'
+    }
+    if (currentMembership && !canUpgradeTo(tier.tier_level)) {
+      return 'Cannot Downgrade'
+    }
+    if (currentMembership && canUpgradeTo(tier.tier_level)) {
+      return 'Upgrade Now'
+    }
+    return 'Purchase Now'
+  }
+
+  const getPurchaseButtonState = (tier: VIPTier) => {
+    return isTierOwned(tier.tier_level) || (currentMembership && !canUpgradeTo(tier.tier_level))
+  }
 
   return (
     <main className="w-full min-h-screen relative">
@@ -186,71 +231,131 @@ export default function VIPMembershipPage() {
             <motion.p variants={staggerItem} className="text-sm md:text-base text-muted-foreground max-w-2xl mx-auto">
               Choose a VIP membership tier and enjoy special perks, discounts, and rewards exclusive to our most valued members
             </motion.p>
-          </motion.div>
 
-          {/* VIP Tiers Grid */}
-          <motion.div
-            variants={staggerContainer}
-            initial="hidden"
-            animate={isLoaded ? 'visible' : 'hidden'}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-12"
-          >
-            {VIPTiers.map((tier, idx) => (
-              <motion.div
-                key={tier.name}
-                variants={staggerItem}
-                className={`relative group ${tier.featured ? 'lg:col-span-1' : ''}`}
-              >
-                {/* Glow effect background */}
-                <div className={`absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10 ${
-                  tier.glowColor === 'glow-cyan'
-                    ? 'bg-gradient-to-br from-accent/20 to-transparent blur-2xl'
-                    : ''
-                }`} />
-
-                {/* Card */}
-                <div className={`relative h-full flex flex-col bg-secondary/80 border border-accent/30 rounded-2xl p-4 hover:border-accent/60 transition-all duration-300 backdrop-blur-sm ${
-                  tier.featured ? 'ring-2 ring-accent/50' : ''
-                } ${tier.glowColor} animate-glow-cyan`}>
-                  {/* Featured badge */}
-                  {tier.featured && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                      <div className="px-3 py-0.5 bg-accent text-background text-xs font-bold rounded-full">
-                        MOST POPULAR
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Tier Info */}
-                  <div className="mb-4">
-                    <h3 className="text-xl font-bold text-foreground mb-1">{tier.name}</h3>
-                    <div className="flex items-baseline gap-2 mb-2">
-                      <span className="text-2xl font-bold text-accent">${tier.price.toFixed(2)}</span>
-                      <span className="text-xs text-muted-foreground">/{tier.duration}</span>
-                    </div>
-                    <p className="text-xs text-muted-foreground leading-snug">{tier.description}</p>
-                  </div>
-
-                  {/* Benefits List */}
-                  <div className="flex-1 mb-4 space-y-2">
-                    {tier.benefits.map((benefit, benefitIdx) => (
-                      <div key={benefitIdx} className="flex items-start gap-2">
-                        <Check className="w-3 h-3 text-accent flex-shrink-0 mt-0.5" />
-                        <span className="text-xs text-muted-foreground leading-snug">{benefit}</span>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Purchase Button */}
-                  <button className="w-full py-2 px-3 bg-gradient-to-r from-accent/80 to-accent text-background font-bold rounded-lg text-sm hover:shadow-lg hover:shadow-accent/50 transition-all duration-300 transform hover:scale-105 group/btn">
-                    <span className="relative z-10">Purchase Now</span>
-                    {/* Animated shine effect */}
-                    <div className="absolute inset-0 bg-white/20 translate-x-[-200%] group-hover/btn:translate-x-[200%] transition-transform duration-500 rounded-lg" />
-                  </button>
+            {/* Current Membership Status */}
+            {currentMembership && (
+              <motion.div variants={staggerItem} className="inline-block mt-4">
+                <div className="px-4 py-2 bg-green-400/10 border border-green-400/30 rounded-lg">
+                  <p className="text-sm text-green-400">
+                    ✓ Currently using <span className="font-semibold">{currentMembership.name}</span> membership
+                    {currentMembership.expires_at && (
+                      <span className="text-xs block text-green-400/70 mt-1">
+                        Expires: {new Date(currentMembership.expires_at).toLocaleDateString()}
+                      </span>
+                    )}
+                  </p>
                 </div>
               </motion.div>
-            ))}
+            )}
+
+            {/* Purchase Error */}
+            {purchaseError && (
+              <motion.div variants={staggerItem} className="inline-block mt-4">
+                <div className="px-4 py-2 bg-red-400/10 border border-red-400/30 rounded-lg flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-red-400" />
+                  <p className="text-sm text-red-400">{purchaseError}</p>
+                </div>
+              </motion.div>
+            )}
           </motion.div>
+
+          {/* Loading State */}
+          {isLoading && (
+            <div className="flex justify-center items-center py-20">
+              <div className="text-center">
+                <Loader className="w-8 h-8 text-accent animate-spin mx-auto mb-4" />
+                <p className="text-muted-foreground">Loading VIP plans...</p>
+              </div>
+            </div>
+          )}
+
+          {/* Error State */}
+          {error && !isLoading && (
+            <div className="text-center py-12">
+              <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
+              <p className="text-red-400 mb-4">{error}</p>
+              <button
+                onClick={() => window.location.reload()}
+                className="px-6 py-2 bg-accent/20 border border-accent/50 text-accent rounded-lg hover:bg-accent/30 transition-all"
+              >
+                Try Again
+              </button>
+            </div>
+          )}
+
+          {/* VIP Tiers Grid */}
+          {!isLoading && vipTiers.length > 0 && (
+            <motion.div
+              variants={staggerContainer}
+              initial="hidden"
+              animate={isLoaded ? 'visible' : 'hidden'}
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-12"
+            >
+              {vipTiers.map((tier, idx) => (
+                <motion.div
+                  key={tier.id}
+                  variants={staggerItem}
+                  className={`relative group`}
+                >
+                  {/* Glow effect background */}
+                  <div className={`absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10 bg-gradient-to-br from-accent/20 to-transparent blur-2xl`} />
+
+                  {/* Card */}
+                  <div className={`relative h-full flex flex-col bg-secondary/80 border border-accent/30 rounded-2xl p-4 hover:border-accent/60 transition-all duration-300 backdrop-blur-sm glow-cyan animate-glow-cyan ${
+                    tier.tier_level === 3 ? 'ring-2 ring-accent/50 lg:scale-105' : ''
+                  }`}>
+                    {/* Featured badge */}
+                    {tier.tier_level === 3 && (
+                      <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                        <div className="px-3 py-0.5 bg-accent text-background text-xs font-bold rounded-full">
+                          MOST POPULAR
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Tier Info */}
+                    <div className="mb-4">
+                      <h3 className="text-xl font-bold text-foreground mb-1">{tier.name}</h3>
+                      <div className="flex items-baseline gap-2 mb-2">
+                        <span className="text-2xl font-bold text-accent">${tier.price.toFixed(2)}</span>
+                        <span className="text-xs text-muted-foreground">/{Math.round(tier.duration_days / 30.4)} months</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground leading-snug">{tier.description}</p>
+                    </div>
+
+                    {/* Benefits List */}
+                    <div className="flex-1 mb-4 space-y-2">
+                      {tier.benefits.map((benefit, benefitIdx) => (
+                        <div key={benefitIdx} className="flex items-start gap-2">
+                          <Check className="w-3 h-3 text-accent flex-shrink-0 mt-0.5" />
+                          <span className="text-xs text-muted-foreground leading-snug">{benefit}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Purchase Button */}
+                    <button
+                      onClick={() => handlePurchase(tier.id)}
+                      disabled={getPurchaseButtonState(tier) || purchasingPlanId === tier.id}
+                      className={`w-full py-2 px-3 font-bold rounded-lg text-sm transition-all duration-300 transform hover:scale-105 group/btn relative overflow-hidden ${
+                        getPurchaseButtonState(tier)
+                          ? 'bg-white/10 text-white/50 cursor-not-allowed'
+                          : 'bg-gradient-to-r from-accent/80 to-accent text-background hover:shadow-lg hover:shadow-accent/50'
+                      }`}
+                    >
+                      <span className="relative z-10 flex items-center justify-center gap-2">
+                        {purchasingPlanId === tier.id && <Loader className="w-4 h-4 animate-spin" />}
+                        {getPurchaseButtonText(tier)}
+                      </span>
+                      {!getPurchaseButtonState(tier) && (
+                        <div className="absolute inset-0 bg-white/20 translate-x-[-200%] group-hover/btn:translate-x-[200%] transition-transform duration-500 rounded-lg" />
+                      )}
+                    </button>
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
+          )}
 
           {/* Additional Info Section */}
           <motion.div
