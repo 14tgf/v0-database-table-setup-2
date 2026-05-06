@@ -42,13 +42,29 @@ export default function VIPMembershipPage() {
         console.log('[v0] VIP page - Fetching plans from /api/vip/plans');
         const plansResponse = await fetch('/api/vip/plans')
         
+        console.log('[v0] VIP page - Response status:', plansResponse.status);
+        console.log('[v0] VIP page - Response headers:', {
+          contentType: plansResponse.headers.get('content-type'),
+          contentLength: plansResponse.headers.get('content-length'),
+        });
+
+        const responseText = await plansResponse.text()
+        console.log('[v0] VIP page - Raw response text:', responseText.substring(0, 500));
+
         if (!plansResponse.ok) {
-          const errorData = await plansResponse.json()
-          console.error('[v0] VIP plans API error:', {
+          let errorData;
+          try {
+            errorData = JSON.parse(responseText)
+          } catch {
+            errorData = { error: responseText || `HTTP ${plansResponse.status}` }
+          }
+
+          console.error('[v0] VIP plans API error response:', {
             status: plansResponse.status,
             error: errorData.error,
             details: errorData.details,
             errorType: errorData.errorType,
+            fullResponse: responseText.substring(0, 500),
           });
           
           throw new Error(
@@ -58,11 +74,29 @@ export default function VIPMembershipPage() {
           )
         }
         
-        const plans = await plansResponse.json()
+        let plans;
+        try {
+          plans = JSON.parse(responseText)
+        } catch (parseErr) {
+          console.error('[v0] VIP page - Failed to parse JSON response:', parseErr, 'Raw text:', responseText.substring(0, 500));
+          throw new Error(`Failed to parse API response: ${parseErr instanceof Error ? parseErr.message : 'Invalid JSON'}`);
+        }
         
-        if (!Array.isArray(plans) || plans.length === 0) {
-          console.warn('[v0] VIP plans - Empty or invalid response:', plans);
-          throw new Error('No VIP plans available in the database. Please contact support.')
+        console.log('[v0] VIP page - Parsed plans:', {
+          type: typeof plans,
+          isArray: Array.isArray(plans),
+          length: Array.isArray(plans) ? plans.length : 'N/A',
+          sample: Array.isArray(plans) ? plans[0] : 'N/A',
+        });
+        
+        if (!Array.isArray(plans)) {
+          console.error('[v0] VIP page - Plans is not an array:', plans);
+          throw new Error(`Invalid plans format: expected array but got ${typeof plans}. Response: ${JSON.stringify(plans).substring(0, 200)}`);
+        }
+
+        if (plans.length === 0) {
+          console.warn('[v0] VIP plans - Empty array returned. VIP plans table may be empty or schema not initialized.');
+          throw new Error('No VIP plans available. The database may not be initialized. Please run /api/admin/init-vip-schema and /api/admin/seed-vip-plans');
         }
         
         console.log('[v0] VIP page - Successfully fetched', plans.length, 'plans');
@@ -86,7 +120,11 @@ export default function VIPMembershipPage() {
         }
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : String(err)
-        console.error('[v0] VIP page - Fatal error:', errorMessage)
+        console.error('[v0] VIP page - FATAL ERROR:', {
+          message: errorMessage,
+          stack: err instanceof Error ? err.stack : 'N/A',
+          fullError: String(err),
+        })
         setError({ 
           message: 'Unable to load VIP plans',
           details: errorMessage,
