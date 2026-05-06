@@ -5,9 +5,9 @@ import { getStockQuote } from '@/lib/finnhub';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { userId, symbol, companyName, companyLogo } = body;
+    const { userId, symbol, companyName, companyLogo, investmentAmount = 500 } = body;
 
-    console.log('[v0] Portfolio add request:', { userId, symbol, companyName });
+    console.log('[v0] Portfolio add request:', { userId, symbol, companyName, investmentAmount });
 
     const missingFields = [];
     if (!userId) missingFields.push('userId');
@@ -22,9 +22,9 @@ export async function POST(request: NextRequest) {
 
     const db = sql();
 
-    // 1. Get the company share amount from the companies table
+    // 1. Verify the company exists in the companies table
     const company = (await db`
-      SELECT share_amount FROM companies WHERE symbol = ${symbol}
+      SELECT id, symbol, name FROM companies WHERE symbol = ${symbol}
     `) as any[];
 
     if (company.length === 0) {
@@ -35,7 +35,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const investmentAmount = parseFloat(company[0].share_amount);
     console.log('[v0] Investment amount for', symbol, ':', investmentAmount);
 
     // 2. Get live stock price from Finnhub
