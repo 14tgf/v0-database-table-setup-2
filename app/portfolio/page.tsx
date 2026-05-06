@@ -33,7 +33,8 @@ export default function PortfolioPage() {
     return () => console.log('[v0] Portfolio Page Unmounted');
   }, []);
 
-    // Calculate totals from real portfolio data
+  // Calculate totals from real portfolio data
+  const totals = useMemo(() => {
     if (!portfolioStocks || portfolioStocks.length === 0) {
       return {
         totalInvested: 0,
