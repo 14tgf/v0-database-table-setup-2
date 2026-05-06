@@ -10,6 +10,10 @@ export async function PUT(request: NextRequest) {
     console.log('[v0] Request body received:', JSON.stringify(requestBody));
     
     const { userId, amount, type, balanceType = 'wallet', reason } = requestBody;
+    
+    // Get database client
+    const db = sql();
+    console.log('[v0] Database client initialized');
 
     // Validate inputs
     if (!userId) {
@@ -40,9 +44,9 @@ export async function PUT(request: NextRequest) {
     console.log('[v0] STEP 1: Fetching user with ID:', userId);
     let userResult;
     try {
-      userResult = await sql`SELECT id, email, wallet_balance, full_name FROM users WHERE id = ${userId}`;
+      userResult = await db`SELECT id, email, wallet_balance, full_name FROM users WHERE id = ${userId}`;
       console.log('[v0] STEP 1 SUCCESS: User query returned:', userResult?.length || 0, 'rows');
-      console.log('[v0] STEP 1 DATA:', JSON.stringify(userResult));
+      console.log('[v0] STEP 1 DATA (raw):', JSON.stringify(userResult, null, 2));
     } catch (dbError) {
       console.error('[v0] STEP 1 FAILED: Database error fetching user:', dbError);
       throw new Error(`DB_FETCH_USER_FAILED: ${dbError instanceof Error ? dbError.message : String(dbError)}`);
@@ -56,7 +60,8 @@ export async function PUT(request: NextRequest) {
     // Step 2: Extract and validate user data
     console.log('[v0] STEP 2: Extracting user data');
     const user = userResult[0];
-    console.log('[v0] STEP 2 DATA: user object:', JSON.stringify(user));
+    console.log('[v0] STEP 2 DATA: user object:', JSON.stringify(user, null, 2));
+    console.log('[v0] STEP 2 DATA: user keys:', user ? Object.keys(user) : 'NULL USER');
     
     if (!user) {
       console.error('[v0] STEP 2 FAILED: user object is null/undefined');
@@ -101,7 +106,7 @@ export async function PUT(request: NextRequest) {
     // Step 6: Update user balance in database
     console.log('[v0] STEP 6: Updating user balance in database');
     try {
-      await sql`UPDATE users SET wallet_balance = ${newBalance}, updated_at = NOW() WHERE id = ${userId}`;
+      await db`UPDATE users SET wallet_balance = ${newBalance}, updated_at = NOW() WHERE id = ${userId}`;
       console.log('[v0] STEP 6 SUCCESS: User balance updated');
     } catch (updateError) {
       console.error('[v0] STEP 6 FAILED: Database error updating balance:', updateError);
@@ -118,7 +123,7 @@ export async function PUT(request: NextRequest) {
         type: type,
         reason: reason || 'No reason provided'
       });
-      await sql`INSERT INTO audit_logs (id, admin_id, action, entity_type, entity_id, new_values) 
+      await db`INSERT INTO audit_logs (id, admin_id, action, entity_type, entity_id, new_values) 
         VALUES (gen_random_uuid(), NULL, 'BALANCE_ADJUSTMENT', 'user', ${userId}, ${newValuesJson}::jsonb)`;
       console.log('[v0] STEP 7 SUCCESS: Audit log created');
     } catch (auditError) {
