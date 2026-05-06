@@ -1,8 +1,8 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { useState } from 'react';
-import { FileText, Eye, CheckCircle, X } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { FileText, Eye, CheckCircle, X, ChevronDown } from 'lucide-react';
 
 const staggerContainer = {
   hidden: { opacity: 0 },
@@ -24,41 +24,175 @@ const staggerItem = {
   },
 };
 
-interface KYCRequest {
+interface KYCSubmission {
   id: string;
-  userName: string;
-  userEmail: string;
+  user_id: string;
+  full_name: string;
+  id_type: string;
+  id_number: string;
+  id_front_image?: string;
+  id_back_image?: string;
+  selfie_image?: string;
+  address_document?: string;
   status: 'pending' | 'approved' | 'rejected';
-  submitDate: string;
-  documents: string[];
+  rejection_reason?: string;
+  submitted_at: string;
+  reviewed_at?: string;
+  user_email?: string;
 }
 
 export default function KYCPage() {
-  const [selectedRequest, setSelectedRequest] = useState<KYCRequest | null>(null);
-  const [actionNote, setActionNote] = useState('');
+  const [kycSubmissions, setKycSubmissions] = useState<KYCSubmission[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [rejectionNote, setRejectionNote] = useState('');
 
-  const kycRequests: KYCRequest[] = [];
+  useEffect(() => {
+    console.log('[v0] Admin KYC page mounted');
+    fetchKYCSubmissions();
+  }, []);
 
-  const pendingRequests = kycRequests.filter(r => r.status === 'pending');
-
-  const handleApprove = (request: KYCRequest) => {
-    console.log(`[v0] KYC Approved: ${request.userName}, Note: ${actionNote}`);
-    setSelectedRequest(null);
-    setActionNote('');
+  const fetchKYCSubmissions = async () => {
+    setIsLoading(true);
+    setMessage(null);
+    try {
+      const response = await fetch('/api/admin/kyc');
+      const data = await response.json();
+      
+      if (!response.ok) {
+        const errorMsg = data.error || data.message || 'Failed to fetch KYC submissions';
+        throw new Error(errorMsg);
+      }
+      
+      setKycSubmissions(data.kyc_submissions || []);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
+      console.error('[v0] Fetch KYC submissions error:', error);
+      setMessage({ 
+        type: 'error', 
+        text: `Failed to load KYC submissions: ${errorMessage}`
+      });
+      setKycSubmissions([]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleReject = (request: KYCRequest) => {
-    console.log(`[v0] KYC Rejected: ${request.userName}, Note: ${actionNote}`);
-    setSelectedRequest(null);
-    setActionNote('');
+  const handleApprove = async (submissionId: string) => {
+    setActionLoading(submissionId);
+    try {
+      const response = await fetch('/api/admin/kyc/approve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          kyc_id: submissionId,
+          action: 'approve',
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        const errorMsg = data.error || data.message || 'Failed to approve KYC';
+        setMessage({ 
+          type: 'error', 
+          text: errorMsg
+        });
+        return;
+      }
+
+      setMessage({ type: 'success', text: 'KYC submission approved successfully' });
+      
+      // Update local list
+      const updatedSubmissions = kycSubmissions.map(s => 
+        s.id === submissionId ? { ...s, status: 'approved' } : s
+      );
+      setKycSubmissions(updatedSubmissions);
+      setExpandedId(null);
+
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
+      console.error('[v0] Approve KYC error:', error);
+      setMessage({ 
+        type: 'error', 
+        text: `Failed to approve KYC: ${errorMessage}`
+      });
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleReject = async (submissionId: string) => {
+    setActionLoading(submissionId);
+    try {
+      const response = await fetch('/api/admin/kyc/approve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          kyc_id: submissionId,
+          action: 'reject',
+          rejection_reason: rejectionNote || null,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        const errorMsg = data.error || data.message || 'Failed to reject KYC';
+        setMessage({ 
+          type: 'error', 
+          text: errorMsg
+        });
+        return;
+      }
+
+      setMessage({ type: 'success', text: 'KYC submission rejected successfully' });
+      
+      // Update local list
+      const updatedSubmissions = kycSubmissions.map(s => 
+        s.id === submissionId ? { ...s, status: 'rejected' } : s
+      );
+      setKycSubmissions(updatedSubmissions);
+      setExpandedId(null);
+      setRejectionNote('');
+
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
+      console.error('[v0] Reject KYC error:', error);
+      setMessage({ 
+        type: 'error', 
+        text: `Failed to reject KYC: ${errorMessage}`
+      });
+    } finally {
+      setActionLoading(null);
+    }
   };
 
   const getStatusColor = (status: string) => {
-    switch(status) {
-      case 'pending': return 'bg-yellow-400/20 text-yellow-400';
-      case 'approved': return 'bg-green-400/20 text-green-400';
-      case 'rejected': return 'bg-red-400/20 text-red-400';
-      default: return 'bg-white/10 text-white/70';
+    switch (status) {
+      case 'approved':
+        return 'bg-green-400/10 border-green-400/30';
+      case 'rejected':
+        return 'bg-red-400/10 border-red-400/30';
+      case 'pending':
+        return 'bg-yellow-400/10 border-yellow-400/30';
+      default:
+        return 'bg-white/5 border-white/10';
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'approved':
+        return <CheckCircle className="w-5 h-5 text-green-400" />;
+      case 'rejected':
+        return <X className="w-5 h-5 text-red-400" />;
+      case 'pending':
+        return <FileText className="w-5 h-5 text-yellow-400" />;
+      default:
+        return null;
     }
   };
 
@@ -67,134 +201,156 @@ export default function KYCPage() {
       variants={staggerContainer}
       initial="hidden"
       animate="visible"
-      className="space-y-4"
+      className="space-y-4 max-w-6xl"
     >
-      {/* Page Title */}
       <motion.div variants={staggerItem}>
-        <h1 className="text-2xl font-bold text-foreground">KYC Requests</h1>
+        <h1 className="text-2xl font-bold text-foreground">KYC Submissions</h1>
         <p className="text-sm text-muted-foreground mt-1">Review and manage KYC verification requests</p>
       </motion.div>
 
-      {/* Tabs */}
-      <motion.div variants={staggerItem} className="flex gap-2 border-b border-white/10">
-        {['Pending', 'Approved', 'Rejected'].map((tab, idx) => (
-          <button
-            key={tab}
-            className={`px-3 py-2 text-xs font-semibold border-b-2 transition-colors ${
-              idx === 0
-                ? 'border-accent text-accent'
-                : 'border-transparent text-white/50 hover:text-white/70'
-            }`}
-          >
-            {tab} ({['pending', 'approved', 'rejected'].map(s => kycRequests.filter(r => r.status === s).length)[idx]})
-          </button>
-        ))}
-      </motion.div>
-
-      {/* Pending Requests Grid */}
-      <motion.div variants={staggerItem} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {pendingRequests.map((request) => (
-          <div
-            key={request.id}
-            className="bg-gradient-to-br from-secondary/40 via-secondary/30 to-background/50 border border-white/10 rounded-lg p-4 hover:border-accent/30 transition-colors"
-          >
-            <div className="flex items-start justify-between mb-3">
-              <div>
-                <h3 className="font-semibold text-foreground">{request.userName}</h3>
-                <p className="text-xs text-white/60">{request.userEmail}</p>
-              </div>
-              <span className="px-2 py-1 bg-yellow-400/20 text-yellow-400 rounded text-xs font-semibold">Pending</span>
-            </div>
-
-            <p className="text-xs text-white/60 mb-3">Submitted: {request.submitDate}</p>
-
-            <div className="mb-3">
-              <p className="text-xs font-semibold text-white/70 mb-2">Documents:</p>
-              <div className="flex flex-wrap gap-1">
-                {request.documents.map((doc) => (
-                  <span key={doc} className="px-2 py-1 bg-white/5 border border-white/10 rounded text-xs text-white/70 flex items-center gap-1">
-                    <FileText className="w-3 h-3" />
-                    {doc}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            <button
-              onClick={() => setSelectedRequest(request)}
-              className="w-full px-3 py-2 bg-accent/20 text-accent rounded-lg hover:bg-accent/30 transition-colors font-semibold text-sm flex items-center justify-center gap-2"
-            >
-              <Eye className="w-4 h-4" />
-              Review
-            </button>
-          </div>
-        ))}
-      </motion.div>
-
-      {/* Review Modal */}
-      {selectedRequest && (
+      {message && (
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-          onClick={() => setSelectedRequest(null)}
+          variants={staggerItem}
+          className={`p-4 rounded-lg border ${
+            message.type === 'success'
+              ? 'bg-green-400/10 border-green-400/30 text-green-300'
+              : 'bg-red-400/10 border-red-400/30 text-red-300'
+          }`}
         >
-          <motion.div
-            initial={{ scale: 0.95, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="bg-gradient-to-br from-secondary/40 via-secondary/30 to-background/50 border border-white/10 rounded-lg p-6 max-w-md w-full"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h2 className="text-lg font-bold text-foreground mb-1">Review KYC</h2>
-            <p className="text-xs text-white/60 mb-4">{selectedRequest.userName}</p>
+          {message.text}
+        </motion.div>
+      )}
 
-            <div className="space-y-4 mb-4">
-              <div>
-                <label className="block text-xs font-semibold text-white/70 mb-2">Email</label>
-                <p className="text-sm text-foreground">{selectedRequest.userEmail}</p>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-white/70 mb-2">Submitted Documents</label>
-                <div className="space-y-1">
-                  {selectedRequest.documents.map((doc) => (
-                    <p key={doc} className="text-xs text-white/70 flex items-center gap-2">
-                      <FileText className="w-3 h-3 text-accent" />
-                      {doc}
-                    </p>
-                  ))}
+      {isLoading ? (
+        <div className="flex items-center justify-center py-12">
+          <p className="text-white/60">Loading KYC submissions...</p>
+        </div>
+      ) : kycSubmissions.length === 0 ? (
+        <motion.div
+          variants={staggerItem}
+          className="p-6 bg-white/5 border border-white/10 rounded-lg text-center"
+        >
+          <p className="text-white/60">No pending KYC submissions</p>
+        </motion.div>
+      ) : (
+        <motion.div variants={staggerItem} className="space-y-3">
+          {kycSubmissions.map((submission) => (
+            <div
+              key={submission.id}
+              className={`border rounded-lg overflow-hidden transition-all ${getStatusColor(submission.status)}`}
+            >
+              <button
+                onClick={() => setExpandedId(expandedId === submission.id ? null : submission.id)}
+                className="w-full p-4 flex items-center justify-between hover:bg-white/5 transition-colors"
+              >
+                <div className="flex items-center gap-4 text-left flex-1">
+                  {getStatusIcon(submission.status)}
+                  <div>
+                    <p className="font-semibold text-foreground">{submission.full_name}</p>
+                    <p className="text-xs text-muted-foreground">{submission.user_email || submission.user_id}</p>
+                  </div>
+                  <div className="text-xs text-muted-foreground ml-auto">
+                    <p className="capitalize font-medium">{submission.status}</p>
+                    <p>{new Date(submission.submitted_at).toLocaleDateString()}</p>
+                  </div>
                 </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-white/70 mb-2">Action Note</label>
-                <textarea
-                  placeholder="Add notes for this action..."
-                  value={actionNote}
-                  onChange={(e) => setActionNote(e.target.value)}
-                  className="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-accent/50 text-sm resize-none h-20"
+                <ChevronDown
+                  className={`w-5 h-5 transition-transform ${expandedId === submission.id ? 'rotate-180' : ''}`}
                 />
-              </div>
-            </div>
+              </button>
 
-            <div className="flex gap-2">
-              <button
-                onClick={() => handleReject(selectedRequest)}
-                className="flex-1 px-4 py-2 bg-red-400/20 text-red-400 rounded-lg hover:bg-red-400/30 transition-colors font-medium text-sm flex items-center justify-center gap-2"
-              >
-                <X className="w-4 h-4" />
-                Reject
-              </button>
-              <button
-                onClick={() => handleApprove(selectedRequest)}
-                className="flex-1 px-4 py-2 bg-green-400/20 text-green-400 rounded-lg hover:bg-green-400/30 transition-colors font-medium text-sm flex items-center justify-center gap-2"
-              >
-                <CheckCircle className="w-4 h-4" />
-                Approve
-              </button>
+              {expandedId === submission.id && (
+                <div className="p-4 border-t border-white/10 bg-white/[0.02] space-y-3">
+                  <div className="grid grid-cols-2 gap-3 text-xs">
+                    <div>
+                      <p className="text-muted-foreground">Full Name</p>
+                      <p className="font-medium text-foreground">{submission.full_name}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">ID Type</p>
+                      <p className="font-medium text-foreground">{submission.id_type}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">ID Number</p>
+                      <p className="font-mono text-foreground">{submission.id_number}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Email</p>
+                      <p className="font-medium text-foreground">{submission.user_email}</p>
+                    </div>
+                  </div>
+
+                  <div className="border-t border-white/10 pt-3 space-y-2">
+                    <p className="text-xs font-semibold text-muted-foreground">Uploaded Documents:</p>
+                    <div className="flex flex-wrap gap-1">
+                      {submission.id_front_image && (
+                        <span className="px-2 py-1 bg-white/5 border border-white/10 rounded text-xs text-white/70 flex items-center gap-1">
+                          <FileText className="w-3 h-3" />
+                          ID Front
+                        </span>
+                      )}
+                      {submission.id_back_image && (
+                        <span className="px-2 py-1 bg-white/5 border border-white/10 rounded text-xs text-white/70 flex items-center gap-1">
+                          <FileText className="w-3 h-3" />
+                          ID Back
+                        </span>
+                      )}
+                      {submission.selfie_image && (
+                        <span className="px-2 py-1 bg-white/5 border border-white/10 rounded text-xs text-white/70 flex items-center gap-1">
+                          <FileText className="w-3 h-3" />
+                          Selfie
+                        </span>
+                      )}
+                      {submission.address_document && (
+                        <span className="px-2 py-1 bg-white/5 border border-white/10 rounded text-xs text-white/70 flex items-center gap-1">
+                          <FileText className="w-3 h-3" />
+                          Address
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {submission.status === 'pending' && (
+                    <div className="border-t border-white/10 pt-3 space-y-3">
+                      <div>
+                        <label className="block text-xs font-semibold text-white/70 mb-2">Rejection Reason (if applicable)</label>
+                        <textarea
+                          placeholder="Optional reason for rejection..."
+                          value={rejectionNote}
+                          onChange={(e) => setRejectionNote(e.target.value)}
+                          className="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-accent/50 text-sm resize-none h-16"
+                        />
+                      </div>
+
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleReject(submission.id)}
+                          disabled={actionLoading === submission.id}
+                          className="flex-1 px-3 py-2 bg-red-400/20 text-red-400 border border-red-400/50 rounded hover:bg-red-400/30 disabled:opacity-50 transition-colors text-sm font-medium"
+                        >
+                          {actionLoading === submission.id ? 'Processing...' : 'Reject'}
+                        </button>
+                        <button
+                          onClick={() => handleApprove(submission.id)}
+                          disabled={actionLoading === submission.id}
+                          className="flex-1 px-3 py-2 bg-green-400/20 text-green-400 border border-green-400/50 rounded hover:bg-green-400/30 disabled:opacity-50 transition-colors text-sm font-medium"
+                        >
+                          {actionLoading === submission.id ? 'Processing...' : 'Approve'}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {submission.status === 'rejected' && submission.rejection_reason && (
+                    <div className="border-t border-white/10 pt-3">
+                      <p className="text-xs font-semibold text-muted-foreground mb-1">Rejection Reason:</p>
+                      <p className="text-sm text-red-300">{submission.rejection_reason}</p>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
-          </motion.div>
+          ))}
         </motion.div>
       )}
     </motion.div>
