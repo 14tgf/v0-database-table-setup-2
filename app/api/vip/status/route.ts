@@ -12,8 +12,11 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Get the database client
+    const db = sql();
+
     // Get active VIP membership
-    const membership = await sql`
+    const membership = await db`
       SELECT 
         uvm.id,
         uvm.user_id,

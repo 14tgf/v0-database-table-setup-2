@@ -13,8 +13,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Get the database client
+    const db = sql();
+
     // Get the VIP plan
-    const plans = await sql`
+    const plans = await db`
       SELECT * FROM vip_plans WHERE id = ${planId} AND active = true
     `;
 
@@ -28,7 +31,7 @@ export async function POST(request: NextRequest) {
     const plan = plans[0];
 
     // Check if user already has this tier level (same VIP membership)
-    const existingMembership = await sql`
+    const existingMembership = await db`
       SELECT * FROM user_vip_memberships
       WHERE user_id = ${userId} 
       AND tier_level = ${plan.tier_level}
@@ -47,7 +50,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user can upgrade (new tier must be higher)
-    const currentMembership = await sql`
+    const currentMembership = await db`
       SELECT * FROM user_vip_memberships
       WHERE user_id = ${userId} 
       AND status = 'active'
@@ -71,7 +74,7 @@ export async function POST(request: NextRequest) {
 
       if (plan.tier_level > currentTier) {
         // Mark old membership as upgraded
-        await sql`
+        await db`
           UPDATE user_vip_memberships
           SET status = 'upgraded'
           WHERE user_id = ${userId} AND status = 'active'
@@ -80,7 +83,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check user wallet balance
-    const userWallet = await sql`
+    const userWallet = await db`
       SELECT wallet_balance FROM users WHERE id = ${userId}
     `;
 
@@ -107,7 +110,7 @@ export async function POST(request: NextRequest) {
 
     // Deduct from wallet
     const newBalance = balance - plan.price;
-    await sql`
+    await db`
       UPDATE users SET wallet_balance = ${newBalance} WHERE id = ${userId}
     `;
 
@@ -115,7 +118,7 @@ export async function POST(request: NextRequest) {
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + plan.duration_days);
 
-    const membership = await sql`
+    const membership = await db`
       INSERT INTO user_vip_memberships (
         user_id,
         vip_plan_id,
@@ -128,7 +131,7 @@ export async function POST(request: NextRequest) {
     `;
 
     // Log transaction
-    await sql`
+    await db`
       INSERT INTO wallet_transactions (
         user_id,
         transaction_type,
