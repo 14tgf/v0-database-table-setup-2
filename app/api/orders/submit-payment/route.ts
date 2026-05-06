@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
     // Link deposit to order and update order status
     await sql`
       UPDATE orders 
-      SET linked_deposit_id = ${depositId}, status = 'Payment Submitted', payment_method = ${method_name}, updated_at = NOW()
+      SET linked_deposit_id = ${depositId}, status = 'Payment Submitted', payment_method = ${method_name}, amount = ${amount}, updated_at = NOW()
       WHERE id = ${order_id} AND user_id = ${userId}
     `;
 
