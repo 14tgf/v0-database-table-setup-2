@@ -111,21 +111,27 @@ export default function InvestmentsDashboard() {
                     <th className="text-left py-2 px-2 text-white/70 font-medium">ROI</th>
                     <th className="text-left py-2 px-2 text-white/70 font-medium">Duration</th>
                     <th className="text-left py-2 px-2 text-white/70 font-medium">Status</th>
-                    <th className="text-left py-2 px-2 text-white/70 font-medium">Maturity</th>
+                    <th className="text-left py-2 px-2 text-white/70 font-medium">Maturity Date</th>
                   </tr>
                 </thead>
                 <tbody>
                   {investments.map((investment: any) => {
-                    const createdDate = new Date(investment.created_at);
-                    const durationMonths = parseInt(investment.duration_months) || 0;
-                    const maturityDate = new Date(createdDate.getTime() + durationMonths * 30 * 24 * 60 * 60 * 1000);
+                    // Use maturity_date from API if available, otherwise calculate it
+                    let maturityDate;
+                    if (investment.maturity_date) {
+                      maturityDate = new Date(investment.maturity_date);
+                    } else {
+                      const createdDate = new Date(investment.created_at);
+                      const durationMonths = parseInt(investment.duration_months) || 0;
+                      maturityDate = new Date(createdDate.getTime() + durationMonths * 30 * 24 * 60 * 60 * 1000);
+                    }
                     const isMatured = maturityDate <= new Date();
                     return (
                       <tr key={investment.id} className="border-b border-white/10 hover:bg-white/5 transition-colors">
                         <td className="py-2 px-2 text-white">{investment.plan_name}</td>
                         <td className="py-2 px-2 text-white">{formatCurrency(investment.amount)}</td>
                         <td className="py-2 px-2 text-green-400 font-semibold">{investment.returns}%</td>
-                        <td className="py-2 px-2 text-white/60">{durationMonths} months</td>
+                        <td className="py-2 px-2 text-white/60">{parseInt(investment.duration_months) || 0} months</td>
                         <td className="py-2 px-2">
                           <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                             isMatured
