@@ -41,10 +41,11 @@ export async function POST(request: NextRequest) {
     console.log('[v0] Processing order action:', { order_id, action, status: order.status });
 
     if (action === 'approve') {
-      // Update order status to Completed
+      // Update order status to Processing
+      // DO NOT credit wallet - product purchases are never funded from wallet
       await sql`
         UPDATE orders 
-        SET status = 'Completed', updated_at = NOW()
+        SET status = 'Processing', updated_at = NOW()
         WHERE id = ${order_id}
       `;
 
@@ -54,7 +55,7 @@ export async function POST(request: NextRequest) {
       if (order.email) {
         sendEmail({
           to: order.email,
-          subject: 'Order Confirmed! - #' + order_id.slice(0, 8),
+          subject: 'Order Approved! - #' + order_id.slice(0, 8),
           html: orderPaymentApprovedTemplate(
             order_id.slice(0, 8),
             order.product_name,
@@ -68,22 +69,24 @@ export async function POST(request: NextRequest) {
         subject: 'Product Order Approved',
         html: adminAlertTemplate(
           'Product Order Approved',
-          'A product order has been approved and marked as completed.',
+          'A product order has been approved and is now processing.',
           {
             'Order ID': order_id.slice(0, 8),
             'Product': order.product_name,
             'Amount': `$${order.amount}`,
             'Customer': order.full_name,
+            'Payment Method': order.payment_method,
           }
         ),
       }).catch(err => console.error('[v0] Failed to send admin notification:', err));
 
       return NextResponse.json({
         success: true,
-        message: 'Order approved successfully',
+        message: 'Order approved successfully and is now processing',
       });
     } else if (action === 'reject') {
       // Update order status to Rejected
+      // NO wallet changes - rejections don't affect customer funds
       await sql`
         UPDATE orders 
         SET status = 'Rejected', updated_at = NOW()
@@ -91,6 +94,20 @@ export async function POST(request: NextRequest) {
       `;
 
       console.log('[v0] Order rejected:', order_id);
+
+      // Send rejection notification to user (non-blocking)
+      if (order.email) {
+        sendEmail({
+          to: order.email,
+          subject: 'Order Rejected - #' + order_id.slice(0, 8),
+          html: `
+            <div style="font-family: Arial, sans-serif; color: #333;">
+              <p>Your order #${order_id.slice(0, 8)} for ${order.product_name} has been rejected.</p>
+              <p>Please contact our support team for more information.</p>
+            </div>
+          `,
+        }).catch(err => console.error('[v0] Failed to send rejection email:', err));
+      }
 
       // Notify admin (non-blocking)
       sendEmailToAdmin({

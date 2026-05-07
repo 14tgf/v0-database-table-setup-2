@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
 
     // Get order details and user email for the email notification
     const orderResult = await sql`
-      SELECT o.id, o.product_name, u.email, u.fullName 
+      SELECT o.id, o.product_name, u.email, u.full_name 
       FROM orders o
       JOIN users u ON o.user_id = u.id
       WHERE o.id = ${order_id} AND o.user_id = ${userId}
@@ -48,27 +48,16 @@ export async function POST(request: NextRequest) {
     const order = orderResult[0];
     const userEmail = order.email;
 
-    // Create deposit record for the order
-    const depositResult = await sql`
-      INSERT INTO deposits (user_id, method_name, amount, tx_hash, proof_upload, note, status)
-      VALUES (${userId}, ${method_name}, ${amount}, ${tx_hash}, ${proof_upload}, ${note}, 'pending')
-      RETURNING id
-    `;
-
-    if (!depositResult || depositResult.length === 0) {
-      return NextResponse.json({ error: 'Failed to create payment record' }, { status: 500 });
-    }
-
-    const depositId = depositResult[0].id;
-
-    // Link deposit to order and update order status
+    // Update order status to "Pending Payment Review" with payment details
+    // DO NOT create deposits or credit wallet - orders are separate from deposits
     await sql`
       UPDATE orders 
-      SET linked_deposit_id = ${depositId}, status = 'Payment Submitted', payment_method = ${method_name}, amount = ${amount}, updated_at = NOW()
+      SET status = 'Pending Payment Review', payment_method = ${method_name}, amount = ${amount}, 
+          tx_hash = ${tx_hash}, proof_upload = ${proof_upload}, payment_note = ${note}, updated_at = NOW()
       WHERE id = ${order_id} AND user_id = ${userId}
     `;
 
-    console.log('[v0] Order payment submitted:', { order_id, deposit_id: depositId, user_email: userEmail });
+    console.log('[v0] Order payment submitted:', { order_id, user_id: userId, payment_method: method_name, amount });
 
     // Send email notification to user (non-blocking)
     sendEmail({
@@ -79,7 +68,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      deposit_id: depositId,
       message: 'Payment submitted successfully. Pending admin approval.'
     });
   } catch (error) {
