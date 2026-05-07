@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { X, LogOut, LayoutGrid, Users, FileText, CreditCard, Settings, Crown } from 'lucide-react';
+import { X, LogOut, LayoutGrid, Users, FileText, CreditCard, Settings, Crown, MessageSquare } from 'lucide-react';
 
 interface AdminSidebarProps {
   isOpen: boolean;
@@ -16,6 +16,7 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
   const menuItems = [
     { icon: LayoutGrid, label: 'Dashboard', href: '/admin' },
     { icon: Users, label: 'Users', href: '/admin/users' },
+    { icon: MessageSquare, label: 'Support Tickets', href: '/admin/support' },
     { icon: FileText, label: 'KYC Requests', href: '/admin/kyc' },
     { icon: CreditCard, label: 'Membership Payments', href: '/admin/membership' },
     { icon: CreditCard, label: 'Deposits', href: '/admin/deposits' },

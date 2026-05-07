@@ -16,10 +16,32 @@ import { DashboardNav } from '@/components/dashboard/dashboard-nav';
 export default function SupportPage() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [userData, setUserData] = useState({ userName: '', userEmail: '' });
 
   useEffect(() => {
     setIsLoaded(true);
+    fetchUserData();
   }, []);
+
+  const fetchUserData = async () => {
+    try {
+      const response = await fetch('/api/user/profile');
+      if (response.ok) {
+        const data = await response.json();
+        setUserData({
+          userName: data.user?.fullName || '',
+          userEmail: data.user?.email || '',
+        });
+      }
+    } catch (error) {
+      console.error('[v0] Failed to fetch user data:', error);
+    }
+  };
+
+  const handleTicketCreated = () => {
+    setRefreshTrigger(prev => prev + 1);
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -85,10 +107,10 @@ export default function SupportPage() {
           <SupportHero />
 
           {/* Create Ticket Form */}
-          <CreateTicketForm />
+          <CreateTicketForm onTicketCreated={handleTicketCreated} />
 
           {/* My Tickets */}
-          <TicketsTable />
+          <TicketsTable refreshTrigger={refreshTrigger} />
 
           {/* Live Chat and FAQ Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -107,8 +129,8 @@ export default function SupportPage() {
       <SidebarMenu
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
-        userName="Carl"
-        userEmail="cedoe70@gmail.com"
+        userName={userData.userName}
+        userEmail={userData.userEmail}
       />
     </div>
   );
