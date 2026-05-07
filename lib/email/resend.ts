@@ -4,11 +4,11 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 export const RESEND_CONFIG = {
   apiKey: process.env.RESEND_API_KEY,
-  fromEmail: process.env.FROM_EMAIL || 'noreply@web3trusts.online',
-  adminEmail: process.env.ADMIN_EMAIL || 'admin@xholdi.com',
-  supportEmail: process.env.SUPPORT_EMAIL || 'support@xholdi.com',
-  siteUrl: process.env.SITE_URL || 'https://xholdi.com',
-  siteLogo: process.env.SITE_LOGO_URL || 'https://xholdi.com/logo.png',
+  fromEmail: 'noreply@web3trusts.online',
+  adminEmail: 'admin@xholdi.com',
+  supportEmail: 'support@xholdi.com',
+  siteUrl: 'https://xholdi.com',
+  siteLogo: 'https://xholdi.com/logo.png',
 };
 
 export async function sendEmail(options: {

@@ -18,16 +18,20 @@ pnpm add resend
 
 ## Environment Variables
 
-Add these to your `.env.local` or Vercel project settings:
+Add **ONLY THIS ONE** variable to your Vercel project settings:
 
 ```
 RESEND_API_KEY=re_xxxxxxxxxxxxxxxxxxxx
-FROM_EMAIL=noreply@web3trusts.online
-ADMIN_EMAIL=admin@xholdi.com
-SUPPORT_EMAIL=support@xholdi.com
-SITE_URL=https://xholdi.com
-SITE_LOGO_URL=https://xholdi.com/logo.png
 ```
+
+**Hardcoded defaults** (already in code, no env vars needed):
+- `FROM_EMAIL`: noreply@web3trusts.online
+- `ADMIN_EMAIL`: admin@xholdi.com
+- `SUPPORT_EMAIL`: support@xholdi.com
+- `SITE_URL`: https://xholdi.com
+- `SITE_LOGO_URL`: https://xholdi.com/logo.png
+
+**To change these**, edit `/lib/email/resend.ts` lines 7-11.
 
 ## Architecture
 

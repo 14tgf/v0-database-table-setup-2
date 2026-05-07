@@ -24,7 +24,7 @@ A production-ready centralized email notification system using **Resend** has be
 - EMAIL_INTEGRATION_SCRIPT.md - Pattern for remaining endpoints
 - EMAIL_IMPLEMENTATION_CHECKLIST.md - Complete tracking
 
-## 🚀 Deploy in 5 Minutes
+## 🚀 Deploy in 2 Minutes
 
 ### Step 1: Create Resend Account
 Visit https://resend.com and sign up (free, no credit card needed)
@@ -32,17 +32,19 @@ Visit https://resend.com and sign up (free, no credit card needed)
 ### Step 2: Get API Key
 Copy your Resend API key from dashboard
 
-### Step 3: Add Environment Variables to Vercel
+### Step 3: Add ONE Environment Variable to Vercel
 In Vercel Dashboard → Project Settings → Environment Variables, add:
 
 ```
 RESEND_API_KEY=re_xxxxxxxxxxxxxxxxxxxx
-FROM_EMAIL=noreply@web3trusts.online
-ADMIN_EMAIL=admin@xholdi.com
-SUPPORT_EMAIL=support@xholdi.com
-SITE_URL=https://xholdi.com
-SITE_LOGO_URL=https://xholdi.com/logo.png
 ```
+
+**That's it!** All other settings are hardcoded:
+- From Email: `noreply@web3trusts.online`
+- Admin Email: `admin@xholdi.com`
+- Support Email: `support@xholdi.com`
+- Site URL: `https://xholdi.com`
+- Logo: Hardcoded in templates
 
 ### Step 4: Deploy
 Vercel will auto-redeploy. Or manually trigger deployment.
