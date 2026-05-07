@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
+import { sendEmail, sendEmailToAdmin } from '@/lib/email/resend';
+import { depositApprovedTemplate, depositRejectedTemplate, adminAlertTemplate } from '@/lib/email/templates';
 
 function getSql() {
   if (!process.env.DATABASE_URL) {
@@ -34,8 +36,9 @@ export async function POST(request: NextRequest) {
     const deposit = depositResult[0];
 
     if (action === 'approve') {
-      const userResult = await sql`SELECT wallet_balance FROM users WHERE id = ${deposit.user_id}`;
+      const userResult = await sql`SELECT wallet_balance, email FROM users WHERE id = ${deposit.user_id}`;
       const currentBalance = userResult?.length > 0 ? parseFloat(userResult[0].wallet_balance || 0) : 0;
+      const userEmail = userResult?.[0]?.email;
       const newBalance = currentBalance + parseFloat(deposit.amount);
 
       await sql`UPDATE users SET wallet_balance = ${newBalance}, updated_at = NOW() WHERE id = ${deposit.user_id}`;
@@ -49,8 +52,20 @@ export async function POST(request: NextRequest) {
         console.log('[v0] No linked order found for deposit, skipping order update');
       }
 
+      // Send approval email (non-blocking)
+      if (userEmail) {
+        sendEmail({
+          to: userEmail,
+          subject: 'Deposit Approved!',
+          html: depositApprovedTemplate(String(deposit.amount)),
+        }).catch(err => console.error('[v0] Failed to send approval email:', err));
+      }
+
       return NextResponse.json({ success: true, message: 'Deposit approved', newBalance });
     } else {
+      const userResult = await sql`SELECT email FROM users WHERE id = ${deposit.user_id}`;
+      const userEmail = userResult?.[0]?.email;
+
       await sql`UPDATE deposits SET status = 'rejected', approved_by = ${userId || null}, approved_at = NOW(), updated_at = NOW() WHERE id = ${deposit_id}`;
       
       // Update linked order if this is a payment for an order (optional - only if exists)
@@ -58,6 +73,15 @@ export async function POST(request: NextRequest) {
         await sql`UPDATE orders SET status = 'Rejected', updated_at = NOW() WHERE linked_deposit_id = ${deposit_id}`;
       } catch (e) {
         console.log('[v0] No linked order found for deposit, skipping order update');
+      }
+
+      // Send rejection email (non-blocking)
+      if (userEmail) {
+        sendEmail({
+          to: userEmail,
+          subject: 'Deposit Review Status',
+          html: depositRejectedTemplate(String(deposit.amount)),
+        }).catch(err => console.error('[v0] Failed to send rejection email:', err));
       }
       
       return NextResponse.json({ success: true, message: 'Deposit rejected' });

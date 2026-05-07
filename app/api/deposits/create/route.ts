@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
 import { jwtVerify } from 'jose';
+import { sendEmail, sendEmailToAdmin } from '@/lib/email/resend';
+import { depositSubmittedTemplate, adminAlertTemplate } from '@/lib/email/templates';
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'default-secret-key-change-in-production');
 
@@ -78,11 +80,46 @@ export async function POST(request: NextRequest) {
       const depositRecord = result[0];
       console.log('[v0] DEPOSITS API - Deposit created:', depositRecord.id);
 
+      // Send confirmation email to user (non-blocking)
+      const userQuery = await sql`SELECT email FROM users WHERE id = ${userId}`;
+      const userEmail = userQuery?.[0]?.email;
+      if (userEmail) {
+        sendEmail({
+          to: userEmail,
+          subject: 'Deposit Received - Pending Approval',
+          html: depositSubmittedTemplate(String(amount), method_name),
+        }).catch(err => console.error('[v0] Failed to send deposit email:', err));
+      }
+
+      // Notify admin (non-blocking)
+      sendEmailToAdmin({
+        subject: 'New Deposit Submission',
+        html: adminAlertTemplate(
+          'New Deposit Submission',
+          'A new deposit has been submitted and requires review.',
+          {
+            'Amount': `$${amount}`,
+            'Method': method_name,
+            'User ID': userId,
+            'Status': 'Pending',
+          }
+        ),
+      }).catch(err => console.error('[v0] Failed to send admin notification:', err));
+
       return NextResponse.json({
         success: true,
         deposit: depositRecord,
         message: 'Deposit submitted successfully. Pending admin approval.',
       }, { status: 200 });
+      
+    } catch (sqlError) {
+      const errorMsg = sqlError instanceof Error ? sqlError.message : String(sqlError);
+      console.error('[v0] DEPOSITS API - Database error:', errorMsg);
+      return NextResponse.json(
+        { error: `Database error: ${errorMsg}` },
+        { status: 500 }
+      );
+    }
       
     } catch (sqlError) {
       const errorMsg = sqlError instanceof Error ? sqlError.message : String(sqlError);

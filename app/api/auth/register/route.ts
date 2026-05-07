@@ -3,6 +3,8 @@ import { SignJWT } from 'jose';
 import { neon } from '@neondatabase/serverless';
 import bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
+import { sendEmail, sendEmailToAdmin } from '@/lib/email/resend';
+import { welcomeEmailTemplate, adminAlertTemplate } from '@/lib/email/templates';
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || 'default-secret-key-change-in-production'
@@ -91,6 +93,28 @@ export async function POST(request: NextRequest) {
       });
 
       console.log('[v0] REGISTER: Success');
+      
+      // Send welcome email (non-blocking)
+      sendEmail({
+        to: user.email,
+        subject: 'Welcome to X Holding!',
+        html: welcomeEmailTemplate(user.email, user.full_name),
+      }).catch(err => console.error('[v0] Failed to send welcome email:', err));
+
+      // Notify admin (non-blocking)
+      sendEmailToAdmin({
+        subject: 'New User Registration',
+        html: adminAlertTemplate(
+          'New User Registration',
+          `A new user has registered with the following details:`,
+          {
+            'Email': user.email,
+            'Full Name': user.full_name,
+            'Timestamp': new Date().toISOString(),
+          }
+        ),
+      }).catch(err => console.error('[v0] Failed to send admin notification:', err));
+
       return response;
     } catch (dbError) {
       console.error('[v0] REGISTER: Database error:', dbError);

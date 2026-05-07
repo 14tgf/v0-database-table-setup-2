@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
+import { sendEmail, sendEmailToAdmin } from '@/lib/email/resend';
+import { supportTicketOpenedTemplate, adminAlertTemplate } from '@/lib/email/templates';
 
 export async function GET(request: NextRequest) {
   try {
@@ -67,6 +69,32 @@ export async function POST(request: NextRequest) {
       INSERT INTO support_messages (ticket_id, sender_type, sender_id, message)
       VALUES (${ticket.id}, 'user', ${user_id}, ${message})
     `;
+
+    // Send confirmation email to user (non-blocking)
+    const userQuery = await db`SELECT email FROM users WHERE id = ${user_id}`;
+    const userEmail = userQuery?.[0]?.email;
+    if (userEmail) {
+      sendEmail({
+        to: userEmail,
+        subject: 'Support Ticket Created',
+        html: supportTicketOpenedTemplate(ticket.id),
+      }).catch(err => console.error('[v0] Failed to send ticket email:', err));
+    }
+
+    // Notify admin (non-blocking)
+    sendEmailToAdmin({
+      subject: 'New Support Ticket',
+      html: adminAlertTemplate(
+        'New Support Ticket',
+        'A new support ticket has been submitted.',
+        {
+          'Ticket ID': ticket.id,
+          'Subject': subject,
+          'Category': category,
+          'Priority': priority,
+        }
+      ),
+    }).catch(err => console.error('[v0] Failed to send admin notification:', err));
 
     console.log('[v0] Support ticket created:', ticket.id);
     return NextResponse.json({ success: true, ticket });
