@@ -221,6 +221,21 @@ async function setupDatabase() {
     await sql`CREATE INDEX IF NOT EXISTS idx_prices_timestamp ON stock_prices(timestamp DESC)`;
     console.log('✅ Stock prices table created successfully\n');
 
+    // Create payment methods table for storing payment configurations
+    console.log('💳 Creating payment_methods table...');
+    await sql`
+      CREATE TABLE IF NOT EXISTS payment_methods (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        type VARCHAR(50) NOT NULL UNIQUE,
+        config JSONB,
+        status VARCHAR(50) DEFAULT 'active',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `;
+    await sql`CREATE INDEX IF NOT EXISTS idx_payment_methods_type ON payment_methods(type)`;
+    console.log('✅ Payment methods table created successfully\n');
+
     // Verify tables were created
     console.log('🔍 Verifying tables...');
     const tables = await sql`
