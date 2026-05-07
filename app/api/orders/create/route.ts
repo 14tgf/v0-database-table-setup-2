@@ -37,9 +37,9 @@ export async function POST(request: NextRequest) {
 
     // Create order record
     const orderResult = await sql`
-      INSERT INTO orders (user_id, product_id, product_name, quantity, amount, payment_method, order_type, status)
-      VALUES (${userId}, ${product_id}, ${product_name}, ${quantity}, ${total_amount}, 'pending', 'product_purchase', 'Pending Payment')
-      RETURNING id, user_id, product_id, product_name, quantity, amount, status, created_at
+      INSERT INTO orders (user_id, product_id, product_name, quantity, amount, total_amount, payment_method, order_type, status)
+      VALUES (${userId}, ${product_id}, ${product_name}, ${quantity}, ${total_amount}, ${total_amount}, 'pending', 'product_purchase', 'Pending Payment')
+      RETURNING id, user_id, product_id, product_name, quantity, amount, total_amount, status, created_at
     `;
 
     if (!orderResult || orderResult.length === 0) {
