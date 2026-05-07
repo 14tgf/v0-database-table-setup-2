@@ -6,7 +6,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 export const RESEND_CONFIG = {
   apiKey: process.env.RESEND_API_KEY,
-  fromEmail: 'noreply@web3trusts.online',
+  fromEmail: '"X-holdings" <noreply@web3trusts.online>',
   adminEmail: 'admin@xholdi.com',
   supportEmail: 'support@xholdi.com',
   siteUrl: 'https://xholdi.com',
