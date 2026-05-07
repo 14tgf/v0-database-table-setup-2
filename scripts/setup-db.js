@@ -100,6 +100,24 @@ async function setupDatabase() {
     `;
     console.log('✅ Sessions table created successfully\n');
 
+    // Create admin sessions table for managing admin sessions
+    console.log('🔐 Creating admin_sessions table...');
+    await sql`
+      CREATE TABLE IF NOT EXISTS admin_sessions (
+        id VARCHAR(255) PRIMARY KEY,
+        admin_id UUID NOT NULL REFERENCES admins(id) ON DELETE CASCADE,
+        token_hash VARCHAR(255) NOT NULL,
+        expires_at TIMESTAMP NOT NULL,
+        user_agent TEXT,
+        ip_address VARCHAR(45),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `;
+    await sql`CREATE INDEX IF NOT EXISTS idx_admin_sessions_admin_id ON admin_sessions(admin_id)`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_admin_sessions_token_hash ON admin_sessions(token_hash)`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_admin_sessions_expires_at ON admin_sessions(expires_at)`;
+    console.log('✅ Admin sessions table created successfully\n');
+
     // Verify tables were created
     console.log('🔍 Verifying tables...');
     const tables = await sql`
