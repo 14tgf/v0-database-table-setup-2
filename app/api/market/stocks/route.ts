@@ -170,7 +170,7 @@ export async function GET(request: NextRequest) {
           const ownedStocks = (await db2`
             SELECT DISTINCT c.symbol FROM user_portfolio_stocks ups
             JOIN companies c ON ups.company_id = c.id
-            WHERE ups.user_id = ${userId} AND ups.status = 'active'
+            WHERE ups.user_id = ${userId} AND ups.shares > 0
           `) as any[];
           
           console.log('[v0] Market API - Owned stocks found:', ownedStocks.length);
@@ -224,7 +224,7 @@ export async function GET(request: NextRequest) {
       const ownedStocks = (await db`
         SELECT DISTINCT c.symbol FROM user_portfolio_stocks ups
         JOIN companies c ON ups.company_id = c.id
-        WHERE ups.user_id = ${userId} AND ups.status = 'active'
+        WHERE ups.user_id = ${userId} AND ups.shares > 0
       `) as any[];
       
       const ownedSymbols = new Set(ownedStocks.map(s => s.symbol));
