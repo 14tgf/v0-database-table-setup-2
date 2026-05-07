@@ -27,7 +27,7 @@ const PROTECTED_ADMIN_ROUTES = ['/admin/users', '/admin/reports', '/admin/settin
 // Public auth routes
 const PUBLIC_AUTH_ROUTES = ['/auth', '/login', '/register', '/admin/login'];
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const authToken = request.cookies.get('auth_token')?.value;
   const adminToken = request.cookies.get('admin_session')?.value;
