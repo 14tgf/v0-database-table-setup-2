@@ -48,11 +48,27 @@ async function setupDatabase() {
     `;
     console.log('✅ Users table created successfully\n');
 
+    // Create admins table
+    console.log('👨‍💼 Creating admins table...');
+    await sql`
+      CREATE TABLE IF NOT EXISTS admins (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        email VARCHAR(255) UNIQUE NOT NULL,
+        password_hash VARCHAR(255) NOT NULL,
+        full_name VARCHAR(255) NOT NULL,
+        status VARCHAR(50) DEFAULT 'active',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `;
+    console.log('✅ Admins table created successfully\n');
+
     // Create indexes for better query performance
     console.log('📊 Creating database indexes...');
     await sql`CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)`;
     await sql`CREATE INDEX IF NOT EXISTS idx_users_status ON users(status)`;
     await sql`CREATE INDEX IF NOT EXISTS idx_users_created_at ON users(created_at DESC)`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_admins_email ON admins(email)`;
     console.log('✅ Indexes created successfully\n');
 
     // Create audit log table for tracking changes
