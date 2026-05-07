@@ -48,6 +48,8 @@ async function setupDatabase() {
         status VARCHAR(50) DEFAULT 'active',
         wallet_balance NUMERIC DEFAULT 0,
         preferred_currency VARCHAR(10) DEFAULT 'USD',
+        kyc_status VARCHAR(50) DEFAULT 'pending',
+        verification_status VARCHAR(50) DEFAULT 'unverified',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
