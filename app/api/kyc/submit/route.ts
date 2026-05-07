@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
+import { sendEmailSafely } from '@/lib/email/send';
+import { getKycSubmittedEmail, getAdminNotificationEmail } from '@/lib/email/templates';
 
 export async function POST(request: NextRequest) {
   try {
@@ -92,6 +94,34 @@ export async function POST(request: NextRequest) {
       SET kyc_status = 'pending', verification_status = 'pending'
       WHERE id = ${user_id}
     `;
+
+    // Get user email for notification
+    const userResult = await db`SELECT email FROM users WHERE id = ${user_id}`;
+    const userEmail = userResult?.[0]?.email || (Array.isArray(userResult) && userResult[0]?.email);
+
+    // Send KYC submitted confirmation email
+    if (userEmail) {
+      const emailHtml = getKycSubmittedEmail();
+      sendEmailSafely({
+        to: userEmail,
+        subject: 'KYC Verification Submitted',
+        html: emailHtml,
+      }).catch(err => console.error('[v0] Failed to send KYC submission email:', err));
+    }
+
+    // Notify admin
+    const adminEmail = process.env.ADMIN_EMAIL;
+    if (adminEmail) {
+      const adminHtml = getAdminNotificationEmail(
+        'New KYC Submission',
+        `New KYC submission from user ${user_id}: ${full_name}`
+      );
+      sendEmailSafely({
+        to: adminEmail,
+        subject: 'New KYC Submission',
+        html: adminHtml,
+      }).catch(err => console.error('[v0] Failed to send admin notification:', err));
+    }
 
     return NextResponse.json({
       success: true,

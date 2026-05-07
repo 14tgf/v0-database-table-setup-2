@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
 import { jwtVerify } from 'jose';
+import { sendEmailSafely } from '@/lib/email/send';
+import { getDepositSubmittedEmail, getAdminNotificationEmail } from '@/lib/email/templates';
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'default-secret-key-change-in-production');
 
@@ -77,6 +79,34 @@ export async function POST(request: NextRequest) {
 
       const depositRecord = result[0];
       console.log('[v0] DEPOSITS API - Deposit created:', depositRecord.id);
+
+      // Get user email for notification
+      const userResult = await sql`SELECT email FROM users WHERE id = ${userId}`;
+      const userEmail = userResult?.[0]?.email;
+
+      // Send deposit submitted confirmation email
+      if (userEmail) {
+        const emailHtml = getDepositSubmittedEmail(amount, method_name);
+        sendEmailSafely({
+          to: userEmail,
+          subject: 'Deposit Received',
+          html: emailHtml,
+        }).catch(err => console.error('[v0] Failed to send deposit email:', err));
+      }
+
+      // Notify admin
+      const adminEmail = process.env.ADMIN_EMAIL;
+      if (adminEmail) {
+        const adminHtml = getAdminNotificationEmail(
+          'New Deposit Submission',
+          `New deposit: $${amount} from user ${userId} via ${method_name}`
+        );
+        sendEmailSafely({
+          to: adminEmail,
+          subject: 'New Deposit Submission',
+          html: adminHtml,
+        }).catch(err => console.error('[v0] Failed to send admin notification:', err));
+      }
 
       return NextResponse.json({
         success: true,

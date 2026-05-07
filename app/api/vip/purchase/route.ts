@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
+import { sendEmailSafely } from '@/lib/email/send';
+import { getVipActivatedEmail, getAdminNotificationEmail } from '@/lib/email/templates';
 
 export async function POST(request: NextRequest) {
   try {
@@ -155,6 +157,34 @@ export async function POST(request: NextRequest) {
     `;
 
     console.log(`[v0] VIP membership purchased: ${plan.name} for user ${userId}`);
+
+    // Get user email for notification
+    const userResult = await db`SELECT email FROM users WHERE id = ${userId}`;
+    const userEmail = userResult?.[0]?.email;
+
+    // Send VIP activation email
+    if (userEmail) {
+      const emailHtml = getVipActivatedEmail(plan.name);
+      sendEmailSafely({
+        to: userEmail,
+        subject: 'VIP Membership Activated',
+        html: emailHtml,
+      }).catch(err => console.error('[v0] Failed to send VIP activation email:', err));
+    }
+
+    // Notify admin
+    const adminEmail = process.env.ADMIN_EMAIL;
+    if (adminEmail) {
+      const adminHtml = getAdminNotificationEmail(
+        'New VIP Purchase',
+        `New VIP purchase: ${plan.name} ($${plan.price}) from user ${userId}`
+      );
+      sendEmailSafely({
+        to: adminEmail,
+        subject: 'New VIP Purchase',
+        html: adminHtml,
+      }).catch(err => console.error('[v0] Failed to send admin notification:', err));
+    }
 
     return NextResponse.json(
       {

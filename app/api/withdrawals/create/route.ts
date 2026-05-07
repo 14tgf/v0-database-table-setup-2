@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
 import { jwtVerify } from 'jose';
+import { sendEmailSafely } from '@/lib/email/send';
+import { getWithdrawalSubmittedEmail, getAdminNotificationEmail } from '@/lib/email/templates';
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'default-secret-key-change-in-production');
 
@@ -64,6 +66,34 @@ export async function POST(request: NextRequest) {
     `;
 
     console.log('[v0] Withdrawal created:', result[0]);
+
+    // Get user email for notification
+    const userEmailResult = await db`SELECT email FROM users WHERE id = ${userId}`;
+    const userEmail = userEmailResult?.[0]?.email;
+
+    // Send withdrawal submitted confirmation email
+    if (userEmail) {
+      const emailHtml = getWithdrawalSubmittedEmail(amount.toString(), method_name);
+      sendEmailSafely({
+        to: userEmail,
+        subject: 'Withdrawal Request Submitted',
+        html: emailHtml,
+      }).catch(err => console.error('[v0] Failed to send withdrawal email:', err));
+    }
+
+    // Notify admin
+    const adminEmail = process.env.ADMIN_EMAIL;
+    if (adminEmail) {
+      const adminHtml = getAdminNotificationEmail(
+        'New Withdrawal Request',
+        `New withdrawal: $${amount} from user ${userId} via ${method_name}`
+      );
+      sendEmailSafely({
+        to: adminEmail,
+        subject: 'New Withdrawal Request',
+        html: adminHtml,
+      }).catch(err => console.error('[v0] Failed to send admin notification:', err));
+    }
 
     return NextResponse.json({
       success: true,

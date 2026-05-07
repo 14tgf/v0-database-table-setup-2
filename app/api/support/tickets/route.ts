@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
+import { sendEmailSafely } from '@/lib/email/send';
+import { getSupportTicketOpenedEmail, getAdminNotificationEmail } from '@/lib/email/templates';
 
 export async function GET(request: NextRequest) {
   try {
@@ -67,6 +69,34 @@ export async function POST(request: NextRequest) {
       INSERT INTO support_messages (ticket_id, sender_type, sender_id, message)
       VALUES (${ticket.id}, 'user', ${user_id}, ${message})
     `;
+
+    // Get user email for notification
+    const userResult = await db`SELECT email FROM users WHERE id = ${user_id}`;
+    const userEmail = userResult?.[0]?.email || (Array.isArray(userResult) && userResult[0]?.email);
+
+    // Send ticket opened confirmation email
+    if (userEmail) {
+      const emailHtml = getSupportTicketOpenedEmail(ticket.id);
+      sendEmailSafely({
+        to: userEmail,
+        subject: 'Support Ticket Created',
+        html: emailHtml,
+      }).catch(err => console.error('[v0] Failed to send ticket email:', err));
+    }
+
+    // Notify admin
+    const adminEmail = process.env.ADMIN_EMAIL;
+    if (adminEmail) {
+      const adminHtml = getAdminNotificationEmail(
+        'New Support Ticket',
+        `New support ticket: ${subject} (ID: ${ticket.id.slice(0, 8)})`
+      );
+      sendEmailSafely({
+        to: adminEmail,
+        subject: 'New Support Ticket',
+        html: adminHtml,
+      }).catch(err => console.error('[v0] Failed to send admin notification:', err));
+    }
 
     console.log('[v0] Support ticket created:', ticket.id);
     return NextResponse.json({ success: true, ticket });

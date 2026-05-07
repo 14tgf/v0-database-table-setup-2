@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
+import { sendEmailSafely } from '@/lib/email/send';
+import { getSupportTicketReplyEmail } from '@/lib/email/templates';
 
 export async function POST(request: NextRequest) {
   try {
@@ -25,6 +27,26 @@ export async function POST(request: NextRequest) {
       `;
       
       await db`UPDATE support_tickets SET updated_at = NOW() WHERE id = ${ticket_id}`;
+
+      // Get ticket user ID to send reply notification
+      const ticketResult = await db`SELECT user_id FROM support_tickets WHERE id = ${ticket_id}`;
+      const ticketArray = Array.isArray(ticketResult) ? ticketResult : (ticketResult?.rows || []);
+      const userId = ticketArray?.[0]?.user_id;
+
+      if (userId) {
+        const userResult = await db`SELECT email FROM users WHERE id = ${userId}`;
+        const userEmail = userResult?.[0]?.email || (Array.isArray(userResult) && userResult[0]?.email);
+
+        // Send reply notification email
+        if (userEmail) {
+          const emailHtml = getSupportTicketReplyEmail(ticket_id);
+          sendEmailSafely({
+            to: userEmail,
+            subject: 'Support Ticket Response',
+            html: emailHtml,
+          }).catch(err => console.error('[v0] Failed to send ticket reply email:', err));
+        }
+      }
     }
 
     console.log('[v0] Ticket updated:', ticket_id, 'action:', action);

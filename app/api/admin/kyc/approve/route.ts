@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
+import { sendEmailSafely } from '@/lib/email/send';
+import { getKycApprovedEmail, getKycRejectedEmail } from '@/lib/email/templates';
 
 export async function POST(request: NextRequest) {
   try {
@@ -33,6 +35,20 @@ export async function POST(request: NextRequest) {
       // Update user verification status
       await db`UPDATE users SET kyc_status = 'approved', verification_status = 'verified', updated_at = NOW() WHERE id = ${kycSubmission.user_id}`;
 
+      // Get user email for notification
+      const userResult = await db`SELECT email FROM users WHERE id = ${kycSubmission.user_id}`;
+      const userEmail = userResult?.[0]?.email || (Array.isArray(userResult) && userResult[0]?.email);
+
+      // Send KYC approved email
+      if (userEmail) {
+        const emailHtml = getKycApprovedEmail();
+        sendEmailSafely({
+          to: userEmail,
+          subject: 'KYC Verification Approved',
+          html: emailHtml,
+        }).catch(err => console.error('[v0] Failed to send KYC approval email:', err));
+      }
+
       return NextResponse.json({ success: true, message: 'KYC submission approved' });
     } else if (action === 'reject') {
       // Update KYC submission
@@ -40,6 +56,20 @@ export async function POST(request: NextRequest) {
       
       // Update user verification status
       await db`UPDATE users SET kyc_status = 'rejected', verification_status = 'rejected', updated_at = NOW() WHERE id = ${kycSubmission.user_id}`;
+
+      // Get user email for notification
+      const userResult = await db`SELECT email FROM users WHERE id = ${kycSubmission.user_id}`;
+      const userEmail = userResult?.[0]?.email || (Array.isArray(userResult) && userResult[0]?.email);
+
+      // Send KYC rejected email
+      if (userEmail) {
+        const emailHtml = getKycRejectedEmail(rejection_reason);
+        sendEmailSafely({
+          to: userEmail,
+          subject: 'KYC Verification Not Approved',
+          html: emailHtml,
+        }).catch(err => console.error('[v0] Failed to send KYC rejection email:', err));
+      }
 
       return NextResponse.json({ success: true, message: 'KYC submission rejected' });
     } else {
