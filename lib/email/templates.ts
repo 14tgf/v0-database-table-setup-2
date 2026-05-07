@@ -313,56 +313,6 @@ export function passwordChangedTemplate(fullName: string) {
   `);
 }
 
-export function withdrawalSubmittedTemplate(amount: string, method: string) {
-  return baseTemplate(`
-    <h2>Withdrawal Request Submitted ✓</h2>
-    <p>Your withdrawal request has been submitted successfully and is now pending approval.</p>
-    <div class="highlight">
-      <p><strong>Amount:</strong> $${amount}</p>
-      <p><strong>Method:</strong> ${method}</p>
-      <p><strong>Status:</strong> Pending Review</p>
-      <p><strong>Processing Time:</strong> 24-48 hours</p>
-    </div>
-    <p>Our team will review your withdrawal request. You'll receive a confirmation email once it's been processed.</p>
-    <p style="text-align: center;">
-      <a href="${RESEND_CONFIG.siteUrl}/dashboard/wallet" class="cta">View Withdrawal Status</a>
-    </p>
-  `);
-}
-
-export function withdrawalApprovedTemplate(amount: string, method: string) {
-  return baseTemplate(`
-    <h2>Withdrawal Approved! ✓</h2>
-    <p>Great news! Your withdrawal request has been approved and is being processed.</p>
-    <div class="highlight">
-      <p><strong>Amount:</strong> $${amount}</p>
-      <p><strong>Method:</strong> ${method}</p>
-      <p><strong>Status:</strong> Processing</p>
-      <p><strong>Expected Delivery:</strong> 2-5 business days</p>
-    </div>
-    <p>The funds will arrive in your account according to your payment method. You can track the status of your withdrawal in your dashboard.</p>
-    <p style="text-align: center;">
-      <a href="${RESEND_CONFIG.siteUrl}/dashboard/wallet" class="cta">Track Withdrawal</a>
-    </p>
-  `);
-}
-
-export function withdrawalRejectedTemplate(amount: string, reason?: string) {
-  return baseTemplate(`
-    <h2>Withdrawal Request Declined</h2>
-    <p>We are unable to process your withdrawal request at this time.</p>
-    <div class="highlight">
-      <p><strong>Amount:</strong> $${amount}</p>
-      <p><strong>Status:</strong> Declined</p>
-      ${reason ? `<p><strong>Reason:</strong> ${reason}</p>` : ''}
-    </div>
-    <p>Please contact our support team to understand why your request was declined and how to resolve this issue.</p>
-    <p style="text-align: center;">
-      <a href="${RESEND_CONFIG.siteUrl}/dashboard/support" class="cta">Contact Support</a>
-    </p>
-  `);
-}
-
 export function giveawayEntryApprovedTemplate(giveawayName: string) {
   return baseTemplate(`
     <h2>Giveaway Entry Confirmed! 🎉</h2>
@@ -395,22 +345,6 @@ export function giveawayWinnerTemplate(giveawayName: string, prizeAmount: string
   `);
 }
 
-export function vipActivatedTemplate(planName: string, validUntil: string) {
-  return baseTemplate(`
-    <h2>VIP Membership Activated! 🌟</h2>
-    <p>Congratulations! You have successfully activated your VIP membership.</p>
-    <div class="highlight">
-      <p><strong>Plan:</strong> ${planName}</p>
-      <p><strong>Status:</strong> Active</p>
-      <p><strong>Valid Until:</strong> ${validUntil}</p>
-    </div>
-    <p>You now have access to exclusive premium benefits, priority support, and special opportunities.</p>
-    <p style="text-align: center;">
-      <a href="${RESEND_CONFIG.siteUrl}/dashboard/vip" class="cta">View VIP Benefits</a>
-    </p>
-  `);
-}
-
 export function vipExpiringTemplate(planName: string, expiryDate: string, daysRemaining: number) {
   return baseTemplate(`
     <h2>VIP Membership Expiring Soon</h2>
@@ -423,21 +357,6 @@ export function vipExpiringTemplate(planName: string, expiryDate: string, daysRe
     <p>Renew your membership now to maintain your VIP status and continue enjoying exclusive benefits.</p>
     <p style="text-align: center;">
       <a href="${RESEND_CONFIG.siteUrl}/dashboard/vip/renew" class="cta">Renew VIP</a>
-    </p>
-  `);
-}
-
-export function supportTicketReplyTemplate(ticketId: string, senderName: string) {
-  return baseTemplate(`
-    <h2>New Response on Your Support Ticket 📧</h2>
-    <p>A new response has been added to your support ticket.</p>
-    <div class="highlight">
-      <p><strong>Ticket ID:</strong> ${ticketId}</p>
-      <p><strong>Response From:</strong> ${senderName}</p>
-    </div>
-    <p>Please check your dashboard to read the latest message from our support team.</p>
-    <p style="text-align: center;">
-      <a href="${RESEND_CONFIG.siteUrl}/dashboard/support/${ticketId}" class="cta">View Response</a>
     </p>
   `);
 }
@@ -504,6 +423,8 @@ export function depositRejectedWithReasonTemplate(amount: string, reason?: strin
     </p>
   `);
 }
+
+export function adminAlertTemplate(title: string, message: string, details?: Record<string, string>) {
   return baseTemplate(`
     <h2>${title}</h2>
     <p>${message}</p>

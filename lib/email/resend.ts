@@ -2,7 +2,14 @@ import { Resend } from 'resend';
 
 console.log('[v0] Resend - Initializing with API key:', process.env.RESEND_API_KEY ? 'Present' : 'MISSING');
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+let resend: Resend | null = null;
+
+function getResend() {
+  if (!resend && process.env.RESEND_API_KEY) {
+    resend = new Resend(process.env.RESEND_API_KEY);
+  }
+  return resend;
+}
 
 export const RESEND_CONFIG = {
   apiKey: process.env.RESEND_API_KEY,
@@ -28,8 +35,12 @@ export async function sendEmail(options: {
   }
 
   try {
+    const client = getResend();
+    if (!client) {
+      throw new Error('Resend client could not be initialized');
+    }
     console.log('[v0] sendEmail - Sending email via Resend');
-    const response = await resend.emails.send({
+    const response = await client.emails.send({
       from: RESEND_CONFIG.fromEmail,
       to: options.to,
       subject: options.subject,
