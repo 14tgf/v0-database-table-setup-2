@@ -31,7 +31,8 @@ export async function POST(request: NextRequest) {
       LIMIT 1
     `;
 
-    if (approvedCheck.length > 0) {
+    const approvedArray = Array.isArray(approvedCheck) ? approvedCheck : (approvedCheck?.rows || []);
+    if (approvedArray.length > 0) {
       return NextResponse.json(
         { error: 'You already have an approved KYC submission. No resubmission needed.' },
         { status: 409 }
@@ -45,7 +46,8 @@ export async function POST(request: NextRequest) {
       LIMIT 1
     `;
 
-    if (pendingCheck.length > 0) {
+    const pendingArray = Array.isArray(pendingCheck) ? pendingCheck : (pendingCheck?.rows || []);
+    if (pendingArray.length > 0) {
       return NextResponse.json(
         { error: 'You already have a pending KYC submission. Please wait for review.' },
         { status: 409 }
@@ -79,7 +81,8 @@ export async function POST(request: NextRequest) {
       RETURNING id, user_id, status, submitted_at
     `;
 
-    if (!result || result.length === 0) {
+    const resultArray = Array.isArray(result) ? result : (result?.rows || []);
+    if (!resultArray || resultArray.length === 0) {
       throw new Error('Failed to create KYC submission');
     }
 
@@ -93,7 +96,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: 'KYC submission created successfully',
-      submission: result[0],
+      submission: resultArray[0],
     });
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
@@ -135,9 +138,10 @@ export async function GET(request: NextRequest) {
       LIMIT 1
     `;
 
+    const submissionArray = Array.isArray(submission) ? submission : (submission?.rows || []);
     return NextResponse.json({
       success: true,
-      submission: submission.length > 0 ? submission[0] : null,
+      submission: submissionArray.length > 0 ? submissionArray[0] : null,
     });
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
