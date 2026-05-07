@@ -3,7 +3,8 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { ArrowLeft, RefreshCw } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
+import { useEffect } from 'react';
 import { MarketHeader } from '@/components/market/market-header';
 import { MarketFilters } from '@/components/market/market-filters';
 import { StockGrid } from '@/components/market/stock-grid';
@@ -21,6 +22,17 @@ export default function MarketPage() {
     lastRefresh,
     refetch,
   } = useMarketStocks();
+
+  // Log page state
+  useEffect(() => {
+    console.log('[v0] MarketPage - State updated:', {
+      stocksCount: stocks.length,
+      isLoading,
+      error,
+      sortBy,
+      searchQuery,
+    });
+  }, [stocks, isLoading, error, sortBy, searchQuery]);
 
   return (
     <main className="min-h-screen bg-background">
@@ -59,10 +71,25 @@ export default function MarketPage() {
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-6 p-4 rounded-lg border border-red-500/30 bg-red-500/10 text-red-400 text-sm"
+            className="mb-6 p-4 rounded-lg border border-red-500/30 bg-red-500/10"
           >
-            <p className="font-semibold">Error loading market data</p>
-            <p className="text-xs text-red-400/80">{error}</p>
+            <p className="font-semibold text-red-400">Error loading market data</p>
+            <p className="text-sm text-red-400/80 mt-1">{error}</p>
+            <details className="mt-3 text-xs">
+              <summary className="text-red-400/60 cursor-pointer hover:text-red-400 font-semibold">
+                View Details
+              </summary>
+              <div className="mt-2 bg-red-500/5 p-3 rounded border border-red-500/20 font-mono text-red-300/60 max-h-32 overflow-auto">
+                <p>Check the browser console (F12 → Console tab) for detailed error logs.</p>
+                <p className="mt-2 text-xs text-red-400/40">Error: {error}</p>
+              </div>
+            </details>
+            <button
+              onClick={refetch}
+              className="mt-3 px-4 py-2 rounded-lg bg-red-500/20 border border-red-500/50 text-red-400 hover:bg-red-500/30 transition-all text-sm font-semibold"
+            >
+              Try Again
+            </button>
           </motion.div>
         )}
 

@@ -29,6 +29,7 @@ export function useMarketStocks() {
   // Fetch stocks
   const fetchStocks = useCallback(async () => {
     try {
+      console.log('[v0] useMarketStocks - Fetch starting');
       setIsLoading(true);
       setError(null);
 
@@ -36,45 +37,100 @@ export function useMarketStocks() {
         ? `/api/market/stocks?userId=${user.id}`
         : '/api/market/stocks';
 
+      console.log('[v0] useMarketStocks - Fetching from URL:', url);
+
       const response = await fetch(url);
       
+      console.log('[v0] useMarketStocks - Response received:', {
+        status: response.status,
+        statusText: response.statusText,
+        headers: {
+          contentType: response.headers.get('content-type'),
+          cacheControl: response.headers.get('cache-control'),
+        },
+      });
+      
       if (!response.ok) {
-        throw new Error(`Failed to fetch stocks: ${response.status}`);
+        console.warn('[v0] useMarketStocks - Response not OK, attempting to parse error body');
+        let errorBody: any = {};
+        try {
+          const contentType = response.headers.get('content-type');
+          if (contentType?.includes('application/json')) {
+            errorBody = await response.json();
+            console.error('[v0] useMarketStocks - Error response body:', errorBody);
+          } else {
+            const text = await response.text();
+            console.error('[v0] useMarketStocks - Error response text:', text);
+            errorBody = { error: text };
+          }
+        } catch (parseErr) {
+          console.error('[v0] useMarketStocks - Failed to parse error response:', parseErr);
+        }
+        
+        const errorMessage = errorBody.details || errorBody.error || `HTTP ${response.status}`;
+        const fullError = `Failed to fetch stocks: ${response.status} - ${errorMessage}`;
+        console.error('[v0] useMarketStocks - Throwing error:', fullError);
+        throw new Error(fullError);
       }
 
+      console.log('[v0] useMarketStocks - Parsing response JSON');
       const data = await response.json();
+      
+      console.log('[v0] useMarketStocks - Response data received:', {
+        dataType: typeof data,
+        isArray: Array.isArray(data),
+        dataLength: Array.isArray(data) ? data.length : 'N/A',
+        sampleItem: Array.isArray(data) ? data[0] : undefined,
+      });
       
       // Handle both array response and object with stocks property
       const stocksArray = Array.isArray(data) ? data : (data.stocks || []);
       
       if (!Array.isArray(stocksArray)) {
+        console.error('[v0] useMarketStocks - Invalid data format:', {
+          received: typeof stocksArray,
+          data: stocksArray,
+        });
         throw new Error('Invalid stock data format received');
       }
 
+      console.log('[v0] useMarketStocks - Stocks loaded successfully:', stocksArray.length);
       setStocks(stocksArray);
       setLastRefresh(new Date());
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'Failed to fetch stock data';
-      console.error('[v0] Market fetch error:', errorMsg);
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      const errorStack = err instanceof Error ? err.stack : '';
+      console.error('[v0] useMarketStocks - Catch error:', {
+        message: errorMsg,
+        stack: errorStack,
+        error: err,
+      });
       setError(errorMsg);
       setStocks([]); // Clear stocks on error
     } finally {
+      console.log('[v0] useMarketStocks - Fetch complete, isLoading set to false');
       setIsLoading(false);
     }
   }, [user?.id]);
 
   // Initial fetch
   useEffect(() => {
+    console.log('[v0] useMarketStocks - useEffect initial fetch triggered');
     fetchStocks();
   }, [fetchStocks]);
 
   // Auto-refresh every 30 seconds
   useEffect(() => {
+    console.log('[v0] useMarketStocks - Setting up auto-refresh interval');
     const interval = setInterval(() => {
+      console.log('[v0] useMarketStocks - Auto-refresh triggered');
       fetchStocks();
     }, 30000);
 
-    return () => clearInterval(interval);
+    return () => {
+      console.log('[v0] useMarketStocks - Cleaning up auto-refresh interval');
+      clearInterval(interval);
+    };
   }, [fetchStocks]);
 
   // Filter and sort stocks
