@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
 import { sendEmail, sendEmailToAdmin } from '@/lib/email/resend';
-import { depositApprovedTemplate, depositRejectedTemplate, adminAlertTemplate } from '@/lib/email/templates';
+import { depositApprovedTemplate, depositRejectedTemplate, orderPaymentApprovedTemplate, adminAlertTemplate } from '@/lib/email/templates';
 
 function getSql() {
   if (!process.env.DATABASE_URL) {
@@ -46,19 +46,42 @@ export async function POST(request: NextRequest) {
       await sql`INSERT INTO wallet_transactions (user_id, transaction_type, amount, old_balance, new_balance, related_id, related_type, description) VALUES (${deposit.user_id}, 'deposit', ${deposit.amount}, ${currentBalance}, ${newBalance}, ${deposit_id}, 'deposit', 'Deposit approved')`;
 
       // Update linked order if this is a payment for an order (optional - only if exists)
+      let linkedOrderDetails = null;
       try {
-        await sql`UPDATE orders SET status = 'Processing', updated_at = NOW() WHERE linked_deposit_id = ${deposit_id}`;
+        const orderResult = await sql`
+          SELECT id, product_name, total_amount 
+          FROM orders 
+          WHERE linked_deposit_id = ${deposit_id}
+        `;
+        if (orderResult && orderResult.length > 0) {
+          linkedOrderDetails = orderResult[0];
+          await sql`UPDATE orders SET status = 'Completed', updated_at = NOW() WHERE linked_deposit_id = ${deposit_id}`;
+        }
       } catch (e) {
         console.log('[v0] No linked order found for deposit, skipping order update');
       }
 
       // Send approval email (non-blocking)
       if (userEmail) {
-        sendEmail({
-          to: userEmail,
-          subject: 'Deposit Approved!',
-          html: depositApprovedTemplate(String(deposit.amount)),
-        }).catch(err => console.error('[v0] Failed to send approval email:', err));
+        if (linkedOrderDetails) {
+          // Send order-specific approval email
+          sendEmail({
+            to: userEmail,
+            subject: 'Order Confirmed! - #' + linkedOrderDetails.id.slice(0, 8),
+            html: orderPaymentApprovedTemplate(
+              linkedOrderDetails.id.slice(0, 8),
+              linkedOrderDetails.product_name,
+              String(linkedOrderDetails.total_amount)
+            ),
+          }).catch(err => console.error('[v0] Failed to send order approval email:', err));
+        } else {
+          // Send generic deposit approval email
+          sendEmail({
+            to: userEmail,
+            subject: 'Deposit Approved!',
+            html: depositApprovedTemplate(String(deposit.amount)),
+          }).catch(err => console.error('[v0] Failed to send approval email:', err));
+        }
       }
 
       return NextResponse.json({ success: true, message: 'Deposit approved', newBalance });

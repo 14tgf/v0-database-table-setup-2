@@ -263,6 +263,40 @@ export function orderSubmittedTemplate(orderId: string, total: string) {
   `);
 }
 
+export function orderPaymentSubmittedTemplate(orderId: string, amount: string, paymentMethod: string) {
+  return baseTemplate(`
+    <h2>Payment Submitted ✓</h2>
+    <p>Thank you for submitting your payment! We have received your transaction details and your order is now pending admin approval.</p>
+    <div class="highlight">
+      <p><strong>Order ID:</strong> ${orderId}</p>
+      <p><strong>Amount:</strong> $${amount}</p>
+      <p><strong>Payment Method:</strong> ${paymentMethod}</p>
+      <p><strong>Status:</strong> Pending Approval</p>
+    </div>
+    <p>Our team will review your payment within 24 hours. Once approved, your order will be confirmed and you'll receive another notification.</p>
+    <p style="text-align: center;">
+      <a href="${RESEND_CONFIG.siteUrl}/dashboard/orders" class="cta">View Order</a>
+    </p>
+  `);
+}
+
+export function orderPaymentApprovedTemplate(orderId: string, productName: string, amount: string) {
+  return baseTemplate(`
+    <h2>Order Confirmed! 🎉</h2>
+    <p>Congratulations! Your payment has been approved and your order is confirmed.</p>
+    <div class="highlight">
+      <p><strong>Order ID:</strong> ${orderId}</p>
+      <p><strong>Product:</strong> ${productName}</p>
+      <p><strong>Amount Paid:</strong> $${amount}</p>
+      <p><strong>Status:</strong> Confirmed</p>
+    </div>
+    <p>Thank you for your purchase! You can view your order details anytime in your dashboard.</p>
+    <p style="text-align: center;">
+      <a href="${RESEND_CONFIG.siteUrl}/dashboard/orders" class="cta">View Order Details</a>
+    </p>
+  `);
+}
+
 export function adminAlertTemplate(title: string, message: string, details?: Record<string, string>) {
   return baseTemplate(`
     <h2>${title}</h2>
