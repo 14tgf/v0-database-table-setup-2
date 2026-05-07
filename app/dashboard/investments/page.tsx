@@ -22,8 +22,8 @@ export default function InvestmentsDashboard() {
   const timeline = useMemo(() => {
     return investments.slice(0, 5).map((inv: any) => ({
       title: `Invested in ${inv.plan_name}`,
-      description: `${formatCurrency(inv.amount)} invested with ${inv.roi_percent}% ROI`,
-      date: new Date(inv.invested_at).toLocaleDateString(),
+      description: `${formatCurrency(inv.amount)} invested with ${inv.returns}% ROI`,
+      date: new Date(inv.created_at).toLocaleDateString(),
       icon: TrendingUp,
     }));
   }, [investments]);
@@ -109,21 +109,23 @@ export default function InvestmentsDashboard() {
                     <th className="text-left py-2 px-2 text-white/70 font-medium">Plan</th>
                     <th className="text-left py-2 px-2 text-white/70 font-medium">Amount</th>
                     <th className="text-left py-2 px-2 text-white/70 font-medium">ROI</th>
-                    <th className="text-left py-2 px-2 text-white/70 font-medium">Profit</th>
+                    <th className="text-left py-2 px-2 text-white/70 font-medium">Duration</th>
                     <th className="text-left py-2 px-2 text-white/70 font-medium">Status</th>
                     <th className="text-left py-2 px-2 text-white/70 font-medium">Maturity</th>
                   </tr>
                 </thead>
                 <tbody>
                   {investments.map((investment: any) => {
-                    const maturityDate = new Date(investment.maturity_date);
+                    const createdDate = new Date(investment.created_at);
+                    const durationMonths = parseInt(investment.duration_months) || 0;
+                    const maturityDate = new Date(createdDate.getTime() + durationMonths * 30 * 24 * 60 * 60 * 1000);
                     const isMatured = maturityDate <= new Date();
                     return (
                       <tr key={investment.id} className="border-b border-white/10 hover:bg-white/5 transition-colors">
                         <td className="py-2 px-2 text-white">{investment.plan_name}</td>
                         <td className="py-2 px-2 text-white">{formatCurrency(investment.amount)}</td>
-                        <td className="py-2 px-2 text-green-400 font-semibold">{investment.roi_percent}%</td>
-                        <td className="py-2 px-2 text-white">{formatCurrency(investment.profit_earned)}</td>
+                        <td className="py-2 px-2 text-green-400 font-semibold">{investment.returns}%</td>
+                        <td className="py-2 px-2 text-white/60">{durationMonths} months</td>
                         <td className="py-2 px-2">
                           <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                             isMatured

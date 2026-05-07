@@ -32,7 +32,8 @@ export async function GET(request: NextRequest) {
         ui.created_at,
         ip.plan_name,
         ip.duration_months,
-        ip.expected_return
+        ip.expected_return,
+        (ui.created_at + (ip.duration_months || 0) * INTERVAL '1 month') as maturity_date
       FROM user_investments ui
       JOIN investment_plans ip ON ui.plan_id = ip.id
       WHERE ui.user_id = ${userId}
