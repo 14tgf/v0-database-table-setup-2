@@ -182,7 +182,7 @@ function CheckoutContent() {
               variants={staggerItem}
               className="p-4 bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 rounded-lg"
             >
-              {selectedMethod === 'crypto' && <CryptoForm type="deposit" onSubmit={handleSubmit} />}
+              {selectedMethod === 'crypto' && <CryptoForm type="deposit" onSubmit={handleSubmit} autoAmount={product.price * quantity + fees} />}
               {selectedMethod === 'paypal' && <PayPalForm type="deposit" onSubmit={handleSubmit} />}
               {selectedMethod === 'giftcard' && <GiftCardForm onSubmit={handleSubmit} />}
             </motion.div>

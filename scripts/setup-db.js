@@ -321,6 +321,30 @@ async function setupDatabase() {
     await sql`CREATE INDEX IF NOT EXISTS idx_giveaway_entries_created_at ON giveaway_entries(created_at)`;
     console.log('✅ Giveaway entries table created successfully\n');
 
+    // Create orders table for product purchases
+    console.log('🛒 Creating orders table...');
+    await sql`
+      CREATE TABLE IF NOT EXISTS orders (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        product_id VARCHAR(100),
+        product_name VARCHAR(255) NOT NULL,
+        quantity INTEGER DEFAULT 1,
+        amount NUMERIC(15, 2) NOT NULL,
+        status VARCHAR(50) DEFAULT 'Pending Payment Review',
+        payment_method VARCHAR(100),
+        tx_hash VARCHAR(255),
+        proof_upload VARCHAR(500),
+        payment_note TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `;
+    await sql`CREATE INDEX IF NOT EXISTS idx_orders_user_id ON orders(user_id)`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status)`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_orders_created_at ON orders(created_at DESC)`;
+    console.log('✅ Orders table created successfully\n');
+
     // Verify tables were created
     console.log('🔍 Verifying tables...');
     const tables = await sql`

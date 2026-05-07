@@ -8,11 +8,12 @@ import { CryptoType, CRYPTO_NETWORKS } from '@/lib/payments';
 interface CryptoFormProps {
   type: 'deposit' | 'withdraw';
   onSubmit: (data: any) => void;
+  autoAmount?: number; // Auto-fill amount for product purchases
 }
 
-export function CryptoForm({ type, onSubmit }: CryptoFormProps) {
+export function CryptoForm({ type, onSubmit, autoAmount }: CryptoFormProps) {
   const [selected, setSelected] = useState<CryptoType>('BTC');
-  const [amount, setAmount] = useState('');
+  const [amount, setAmount] = useState(autoAmount ? String(autoAmount) : '');
   const [walletAddress, setWalletAddress] = useState('');
   const [network, setNetwork] = useState('mainnet');
   const [file, setFile] = useState<File | null>(null);
@@ -159,9 +160,11 @@ export function CryptoForm({ type, onSubmit }: CryptoFormProps) {
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
           placeholder="0.00"
-          className="w-full px-3 py-2 bg-input border border-white/10 rounded-lg text-foreground text-xs placeholder:text-muted-foreground focus:outline-none focus:border-accent/50"
+          disabled={!!autoAmount}
+          className={`w-full px-3 py-2 bg-input border border-white/10 rounded-lg text-foreground text-xs placeholder:text-muted-foreground focus:outline-none focus:border-accent/50 ${autoAmount ? 'opacity-60 cursor-not-allowed' : ''}`}
           required
         />
+        {autoAmount && <p className="text-xs text-muted-foreground mt-1">Amount auto-filled from product price</p>}
       </div>
 
       {type === 'deposit' && (
