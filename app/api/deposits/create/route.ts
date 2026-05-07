@@ -120,15 +120,6 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       );
     }
-      
-    } catch (sqlError) {
-      const errorMsg = sqlError instanceof Error ? sqlError.message : String(sqlError);
-      console.error('[v0] DEPOSITS API - Database error:', errorMsg);
-      return NextResponse.json(
-        { error: `Database error: ${errorMsg}` },
-        { status: 500 }
-      );
-    }
 
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error);
