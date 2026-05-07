@@ -297,7 +297,213 @@ export function orderPaymentApprovedTemplate(orderId: string, productName: strin
   `);
 }
 
-export function adminAlertTemplate(title: string, message: string, details?: Record<string, string>) {
+export function passwordChangedTemplate(fullName: string) {
+  return baseTemplate(`
+    <h2>Password Changed Successfully ✓</h2>
+    <p>Hello ${fullName},</p>
+    <p>Your account password has been changed successfully.</p>
+    <div class="highlight">
+      <p><strong>Status:</strong> Updated</p>
+      <p><strong>Date:</strong> ${new Date().toLocaleString()}</p>
+    </div>
+    <p>If you did not make this change, please contact our support team immediately to secure your account.</p>
+    <p style="text-align: center;">
+      <a href="${RESEND_CONFIG.siteUrl}/dashboard/security" class="cta">View Security Settings</a>
+    </p>
+  `);
+}
+
+export function withdrawalSubmittedTemplate(amount: string, method: string) {
+  return baseTemplate(`
+    <h2>Withdrawal Request Submitted ✓</h2>
+    <p>Your withdrawal request has been submitted successfully and is now pending approval.</p>
+    <div class="highlight">
+      <p><strong>Amount:</strong> $${amount}</p>
+      <p><strong>Method:</strong> ${method}</p>
+      <p><strong>Status:</strong> Pending Review</p>
+      <p><strong>Processing Time:</strong> 24-48 hours</p>
+    </div>
+    <p>Our team will review your withdrawal request. You'll receive a confirmation email once it's been processed.</p>
+    <p style="text-align: center;">
+      <a href="${RESEND_CONFIG.siteUrl}/dashboard/wallet" class="cta">View Withdrawal Status</a>
+    </p>
+  `);
+}
+
+export function withdrawalApprovedTemplate(amount: string, method: string) {
+  return baseTemplate(`
+    <h2>Withdrawal Approved! ✓</h2>
+    <p>Great news! Your withdrawal request has been approved and is being processed.</p>
+    <div class="highlight">
+      <p><strong>Amount:</strong> $${amount}</p>
+      <p><strong>Method:</strong> ${method}</p>
+      <p><strong>Status:</strong> Processing</p>
+      <p><strong>Expected Delivery:</strong> 2-5 business days</p>
+    </div>
+    <p>The funds will arrive in your account according to your payment method. You can track the status of your withdrawal in your dashboard.</p>
+    <p style="text-align: center;">
+      <a href="${RESEND_CONFIG.siteUrl}/dashboard/wallet" class="cta">Track Withdrawal</a>
+    </p>
+  `);
+}
+
+export function withdrawalRejectedTemplate(amount: string, reason?: string) {
+  return baseTemplate(`
+    <h2>Withdrawal Request Declined</h2>
+    <p>We are unable to process your withdrawal request at this time.</p>
+    <div class="highlight">
+      <p><strong>Amount:</strong> $${amount}</p>
+      <p><strong>Status:</strong> Declined</p>
+      ${reason ? `<p><strong>Reason:</strong> ${reason}</p>` : ''}
+    </div>
+    <p>Please contact our support team to understand why your request was declined and how to resolve this issue.</p>
+    <p style="text-align: center;">
+      <a href="${RESEND_CONFIG.siteUrl}/dashboard/support" class="cta">Contact Support</a>
+    </p>
+  `);
+}
+
+export function giveawayEntryApprovedTemplate(giveawayName: string) {
+  return baseTemplate(`
+    <h2>Giveaway Entry Confirmed! 🎉</h2>
+    <p>Congratulations! Your entry to the <strong>${giveawayName}</strong> giveaway has been confirmed.</p>
+    <div class="highlight">
+      <p><strong>Giveaway:</strong> ${giveawayName}</p>
+      <p><strong>Status:</strong> Entered</p>
+      <p><strong>You're all set!</strong> Winners are drawn and announced regularly.</p>
+    </div>
+    <p>Good luck! We'll notify you immediately if you're selected as a winner.</p>
+    <p style="text-align: center;">
+      <a href="${RESEND_CONFIG.siteUrl}/dashboard/giveaways" class="cta">View My Entries</a>
+    </p>
+  `);
+}
+
+export function giveawayWinnerTemplate(giveawayName: string, prizeAmount: string) {
+  return baseTemplate(`
+    <h2>Congratulations - You Won! 🏆</h2>
+    <p>Amazing news! You have been selected as a winner in the <strong>${giveawayName}</strong> giveaway!</p>
+    <div class="highlight">
+      <p><strong>Giveaway:</strong> ${giveawayName}</p>
+      <p><strong>Prize:</strong> $${prizeAmount}</p>
+      <p><strong>Status:</strong> Winner!</p>
+    </div>
+    <p>Your prize will be credited to your wallet within 24 hours. Thank you for participating!</p>
+    <p style="text-align: center;">
+      <a href="${RESEND_CONFIG.siteUrl}/dashboard/wallet" class="cta">View Wallet</a>
+    </p>
+  `);
+}
+
+export function vipActivatedTemplate(planName: string, validUntil: string) {
+  return baseTemplate(`
+    <h2>VIP Membership Activated! 🌟</h2>
+    <p>Congratulations! You have successfully activated your VIP membership.</p>
+    <div class="highlight">
+      <p><strong>Plan:</strong> ${planName}</p>
+      <p><strong>Status:</strong> Active</p>
+      <p><strong>Valid Until:</strong> ${validUntil}</p>
+    </div>
+    <p>You now have access to exclusive premium benefits, priority support, and special opportunities.</p>
+    <p style="text-align: center;">
+      <a href="${RESEND_CONFIG.siteUrl}/dashboard/vip" class="cta">View VIP Benefits</a>
+    </p>
+  `);
+}
+
+export function vipExpiringTemplate(planName: string, expiryDate: string, daysRemaining: number) {
+  return baseTemplate(`
+    <h2>VIP Membership Expiring Soon</h2>
+    <p>Your VIP membership is expiring soon.</p>
+    <div class="highlight">
+      <p><strong>Plan:</strong> ${planName}</p>
+      <p><strong>Expires:</strong> ${expiryDate}</p>
+      <p><strong>Days Remaining:</strong> ${daysRemaining}</p>
+    </div>
+    <p>Renew your membership now to maintain your VIP status and continue enjoying exclusive benefits.</p>
+    <p style="text-align: center;">
+      <a href="${RESEND_CONFIG.siteUrl}/dashboard/vip/renew" class="cta">Renew VIP</a>
+    </p>
+  `);
+}
+
+export function supportTicketReplyTemplate(ticketId: string, senderName: string) {
+  return baseTemplate(`
+    <h2>New Response on Your Support Ticket 📧</h2>
+    <p>A new response has been added to your support ticket.</p>
+    <div class="highlight">
+      <p><strong>Ticket ID:</strong> ${ticketId}</p>
+      <p><strong>Response From:</strong> ${senderName}</p>
+    </div>
+    <p>Please check your dashboard to read the latest message from our support team.</p>
+    <p style="text-align: center;">
+      <a href="${RESEND_CONFIG.siteUrl}/dashboard/support/${ticketId}" class="cta">View Response</a>
+    </p>
+  `);
+}
+
+export function supportTicketResolvedTemplate(ticketId: string) {
+  return baseTemplate(`
+    <h2>Support Ticket Resolved ✓</h2>
+    <p>Your support ticket has been resolved and closed.</p>
+    <div class="highlight">
+      <p><strong>Ticket ID:</strong> ${ticketId}</p>
+      <p><strong>Status:</strong> Resolved</p>
+    </div>
+    <p>If you need further assistance, feel free to submit a new support ticket at any time.</p>
+    <p style="text-align: center;">
+      <a href="${RESEND_CONFIG.siteUrl}/dashboard/support" class="cta">Submit New Ticket</a>
+    </p>
+  `);
+}
+
+export function accountBalanceCreditedTemplate(amount: string, reason: string) {
+  return baseTemplate(`
+    <h2>Account Credit Received ✓</h2>
+    <p>Your account has been credited with funds.</p>
+    <div class="highlight">
+      <p><strong>Amount:</strong> $${amount}</p>
+      <p><strong>Reason:</strong> ${reason}</p>
+      <p><strong>Timestamp:</strong> ${new Date().toLocaleString()}</p>
+    </div>
+    <p>The funds are now available in your wallet for use.</p>
+    <p style="text-align: center;">
+      <a href="${RESEND_CONFIG.siteUrl}/dashboard/wallet" class="cta">View Wallet</a>
+    </p>
+  `);
+}
+
+export function accountBalanceDebitedTemplate(amount: string, reason: string) {
+  return baseTemplate(`
+    <h2>Account Debit Processed ✓</h2>
+    <p>A debit has been processed on your account.</p>
+    <div class="highlight">
+      <p><strong>Amount:</strong> $${amount}</p>
+      <p><strong>Reason:</strong> ${reason}</p>
+      <p><strong>Timestamp:</strong> ${new Date().toLocaleString()}</p>
+    </div>
+    <p>Your updated wallet balance is available in your dashboard.</p>
+    <p style="text-align: center;">
+      <a href="${RESEND_CONFIG.siteUrl}/dashboard/wallet" class="cta">View Balance</a>
+    </p>
+  `);
+}
+
+export function depositRejectedWithReasonTemplate(amount: string, reason?: string) {
+  return baseTemplate(`
+    <h2>Deposit Could Not Be Processed</h2>
+    <p>Unfortunately, we were unable to process your deposit at this time.</p>
+    <div class="highlight">
+      <p><strong>Amount:</strong> $${amount}</p>
+      <p><strong>Status:</strong> Rejected</p>
+      ${reason ? `<p><strong>Reason:</strong> ${reason}</p>` : ''}
+    </div>
+    <p>Please contact our support team to resolve this issue or to submit another deposit with corrected information.</p>
+    <p style="text-align: center;">
+      <a href="${RESEND_CONFIG.siteUrl}/dashboard/support" class="cta">Contact Support</a>
+    </p>
+  `);
+}
   return baseTemplate(`
     <h2>${title}</h2>
     <p>${message}</p>

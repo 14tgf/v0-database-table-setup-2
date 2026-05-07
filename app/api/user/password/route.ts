@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { jwtVerify } from 'jose';
 import { sql } from '@/lib/db';
+import { sendEmail } from '@/lib/email/resend';
+import { passwordChangedTemplate } from '@/lib/email/templates';
 import bcrypt from 'bcryptjs';
 
 const JWT_SECRET = new TextEncoder().encode(
@@ -69,6 +71,19 @@ export async function POST(request: NextRequest) {
       SET password_hash = ${newPasswordHash}, updated_at = NOW()
       WHERE id = ${userId}
     `;
+
+    // Get user email for confirmation (non-blocking email)
+    const emailQuery = await db`SELECT email, full_name FROM users WHERE id = ${userId}`;
+    const userEmail = emailQuery?.[0]?.email;
+    const fullName = emailQuery?.[0]?.full_name;
+
+    if (userEmail) {
+      sendEmail({
+        to: userEmail,
+        subject: 'Password Changed Successfully',
+        html: passwordChangedTemplate(fullName || 'User'),
+      }).catch(err => console.error('[v0] Failed to send password change email:', err));
+    }
 
     return NextResponse.json({
       success: true,

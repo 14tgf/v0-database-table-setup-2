@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
+import { sendEmail, sendEmailToAdmin } from '@/lib/email/resend';
+import { kycApprovedTemplate, kycRejectedTemplate, adminAlertTemplate } from '@/lib/email/templates';
 
 export async function POST(request: NextRequest) {
   try {
@@ -33,6 +35,31 @@ export async function POST(request: NextRequest) {
       // Update user verification status
       await db`UPDATE users SET kyc_status = 'approved', verification_status = 'verified', updated_at = NOW() WHERE id = ${kycSubmission.user_id}`;
 
+      // Get user email for confirmation (non-blocking)
+      const userQuery = await db`SELECT email, full_name FROM users WHERE id = ${kycSubmission.user_id}`;
+      const userEmail = userQuery?.[0]?.email;
+      if (userEmail) {
+        sendEmail({
+          to: userEmail,
+          subject: 'KYC Verification Approved',
+          html: kycApprovedTemplate(),
+        }).catch(err => console.error('[v0] Failed to send KYC approval email:', err));
+      }
+
+      // Notify admin (non-blocking)
+      sendEmailToAdmin({
+        subject: 'KYC Approved',
+        html: adminAlertTemplate(
+          'KYC Approved',
+          'A KYC submission has been approved.',
+          {
+            'User ID': kycSubmission.user_id,
+            'Full Name': kycSubmission.full_name,
+            'ID Type': kycSubmission.id_type,
+          }
+        ),
+      }).catch(err => console.error('[v0] Failed to send admin notification:', err));
+
       return NextResponse.json({ success: true, message: 'KYC submission approved' });
     } else if (action === 'reject') {
       // Update KYC submission
@@ -40,6 +67,31 @@ export async function POST(request: NextRequest) {
       
       // Update user verification status
       await db`UPDATE users SET kyc_status = 'rejected', verification_status = 'rejected', updated_at = NOW() WHERE id = ${kycSubmission.user_id}`;
+
+      // Get user email for notification (non-blocking)
+      const userQuery = await db`SELECT email, full_name FROM users WHERE id = ${kycSubmission.user_id}`;
+      const userEmail = userQuery?.[0]?.email;
+      if (userEmail) {
+        sendEmail({
+          to: userEmail,
+          subject: 'KYC Verification - Further Information Needed',
+          html: kycRejectedTemplate(rejection_reason || 'Your KYC submission could not be verified. Please try again with updated documents.'),
+        }).catch(err => console.error('[v0] Failed to send KYC rejection email:', err));
+      }
+
+      // Notify admin (non-blocking)
+      sendEmailToAdmin({
+        subject: 'KYC Rejected',
+        html: adminAlertTemplate(
+          'KYC Rejected',
+          'A KYC submission has been rejected.',
+          {
+            'User ID': kycSubmission.user_id,
+            'Full Name': kycSubmission.full_name,
+            'Reason': rejection_reason || 'No reason provided',
+          }
+        ),
+      }).catch(err => console.error('[v0] Failed to send admin notification:', err));
 
       return NextResponse.json({ success: true, message: 'KYC submission rejected' });
     } else {

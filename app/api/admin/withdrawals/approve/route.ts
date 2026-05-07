@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
+import { sendEmail, sendEmailToAdmin } from '@/lib/email/resend';
+import { withdrawalApprovedTemplate, withdrawalRejectedTemplate, adminAlertTemplate } from '@/lib/email/templates';
 
 export async function POST(request: NextRequest) {
   try {
@@ -64,6 +66,32 @@ export async function POST(request: NextRequest) {
         VALUES (${withdrawal.user_id}, 'withdrawal', ${withdrawal.amount}, ${currentBalance}, ${newBalance}, ${withdrawal_id}, 'withdrawal', 'Withdrawal approved')
       `;
 
+      // Send approval email to user (non-blocking)
+      const userQuery = await db`SELECT email, full_name FROM users WHERE id = ${withdrawal.user_id}`;
+      const userEmail = userQuery?.[0]?.email;
+      if (userEmail) {
+        sendEmail({
+          to: userEmail,
+          subject: 'Withdrawal Approved - Funds Being Processed',
+          html: withdrawalApprovedTemplate(String(withdrawal.amount), withdrawal.method_name || 'Unknown'),
+        }).catch(err => console.error('[v0] Failed to send withdrawal approval email:', err));
+      }
+
+      // Notify admin of approval (non-blocking)
+      sendEmailToAdmin({
+        subject: 'Withdrawal Approved',
+        html: adminAlertTemplate(
+          'Withdrawal Approved',
+          'A withdrawal request has been approved and processed.',
+          {
+            'Amount': `$${withdrawal.amount}`,
+            'Method': withdrawal.method_name,
+            'User ID': withdrawal.user_id,
+            'New Balance': `$${newBalance}`,
+          }
+        ),
+      }).catch(err => console.error('[v0] Failed to send admin notification:', err));
+
       return NextResponse.json({
         success: true,
         message: 'Withdrawal approved and wallet debited',
@@ -76,6 +104,31 @@ export async function POST(request: NextRequest) {
         SET status = 'rejected', approved_by = ${userId || null}, approved_at = NOW(), updated_at = NOW()
         WHERE id = ${withdrawal_id}
       `;
+
+      // Send rejection email to user (non-blocking)
+      const userQuery = await db`SELECT email, full_name FROM users WHERE id = ${withdrawal.user_id}`;
+      const userEmail = userQuery?.[0]?.email;
+      if (userEmail) {
+        sendEmail({
+          to: userEmail,
+          subject: 'Withdrawal Request Could Not Be Processed',
+          html: withdrawalRejectedTemplate(String(withdrawal.amount), 'Your withdrawal request could not be processed. Please contact support for more information.'),
+        }).catch(err => console.error('[v0] Failed to send withdrawal rejection email:', err));
+      }
+
+      // Notify admin of rejection (non-blocking)
+      sendEmailToAdmin({
+        subject: 'Withdrawal Rejected',
+        html: adminAlertTemplate(
+          'Withdrawal Rejected',
+          'A withdrawal request has been rejected.',
+          {
+            'Amount': `$${withdrawal.amount}`,
+            'Method': withdrawal.method_name,
+            'User ID': withdrawal.user_id,
+          }
+        ),
+      }).catch(err => console.error('[v0] Failed to send admin notification:', err));
 
       return NextResponse.json({
         success: true,

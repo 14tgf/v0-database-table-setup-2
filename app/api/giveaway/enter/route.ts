@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
+import { sendEmail, sendEmailToAdmin } from '@/lib/email/resend';
+import { giveawayEntryApprovedTemplate, adminAlertTemplate } from '@/lib/email/templates';
 import { checkGiveawayEligibility } from '@/lib/giveaway-helpers';
 
 export async function POST(request: NextRequest) {
@@ -64,6 +66,36 @@ export async function POST(request: NextRequest) {
     if (!entryArray || entryArray.length === 0) {
       throw new Error('Failed to create giveaway entry');
     }
+
+    // Get giveaway details and user email for confirmation
+    const giveawayDetails = await db`SELECT name FROM giveaways WHERE id = ${giveaway_id} LIMIT 1`;
+    const giveawayName = giveawayDetails?.[0]?.name || 'Grand Prize';
+
+    const userDetails = await db`SELECT email FROM users WHERE id = ${user_id} LIMIT 1`;
+    const userEmail = userDetails?.[0]?.email;
+
+    // Send confirmation email to user (non-blocking)
+    if (userEmail) {
+      sendEmail({
+        to: userEmail,
+        subject: `Entry Confirmed - ${giveawayName} Giveaway`,
+        html: giveawayEntryApprovedTemplate(giveawayName),
+      }).catch(err => console.error('[v0] Failed to send giveaway entry email:', err));
+    }
+
+    // Notify admin of new giveaway entry (non-blocking)
+    sendEmailToAdmin({
+      subject: 'New Giveaway Entry',
+      html: adminAlertTemplate(
+        'New Giveaway Entry',
+        'A new participant has entered a giveaway.',
+        {
+          'Giveaway': giveawayName,
+          'User ID': user_id,
+          'Entry ID': entryArray[0].id,
+        }
+      ),
+    }).catch(err => console.error('[v0] Failed to send admin notification:', err));
 
     return NextResponse.json({
       success: true,
