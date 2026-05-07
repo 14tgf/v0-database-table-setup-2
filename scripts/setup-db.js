@@ -236,6 +236,25 @@ async function setupDatabase() {
     await sql`CREATE INDEX IF NOT EXISTS idx_payment_methods_type ON payment_methods(type)`;
     console.log('✅ Payment methods table created successfully\n');
 
+    // Create wallet transactions table
+    console.log('💰 Creating wallet_transactions table...');
+    await sql`
+      CREATE TABLE IF NOT EXISTS wallet_transactions (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id UUID NOT NULL REFERENCES users(id),
+        transaction_type VARCHAR(50) NOT NULL,
+        amount NUMERIC(15, 2) NOT NULL,
+        old_balance NUMERIC(15, 2),
+        new_balance NUMERIC(15, 2),
+        related_id UUID,
+        related_type VARCHAR(50),
+        description TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `;
+    await sql`CREATE INDEX IF NOT EXISTS idx_wallet_transactions_user_id ON wallet_transactions(user_id)`;
+    console.log('✅ Wallet transactions table created successfully\n');
+
     // Verify tables were created
     console.log('🔍 Verifying tables...');
     const tables = await sql`
