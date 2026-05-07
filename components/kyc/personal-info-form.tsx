@@ -3,18 +3,23 @@
 import { motion } from 'framer-motion';
 import { staggerContainer, staggerItem } from '@/lib/animations';
 
-export function PersonalInfoForm() {
+interface PersonalInfoFormProps {
+  values: Record<string, string>;
+  onChange: (field: string, value: string) => void;
+}
+
+export function PersonalInfoForm({ values, onChange }: PersonalInfoFormProps) {
   const fields = [
-    { label: 'First Name', placeholder: 'Enter your first name', required: true },
-    { label: 'Last Name', placeholder: 'Enter your last name', required: true },
-    { label: 'Date of Birth', type: 'date', required: true },
-    { label: 'Nationality', placeholder: 'Select your nationality', required: true },
-    { label: 'Phone Number', type: 'tel', placeholder: '+1 (555) 000-0000', required: true },
-    { label: 'Residential Address', placeholder: 'Enter your full address', required: true },
-    { label: 'City', placeholder: 'Enter your city', required: true },
-    { label: 'State / Province', placeholder: 'Enter your state or province', required: true },
-    { label: 'Postal Code', placeholder: 'Enter your postal code', required: true },
-    { label: 'Country', placeholder: 'Select your country', required: true },
+    { label: 'First Name', key: 'firstName', placeholder: 'Enter your first name', required: true },
+    { label: 'Last Name', key: 'lastName', placeholder: 'Enter your last name', required: true },
+    { label: 'Date of Birth', key: 'dateOfBirth', type: 'date', required: true },
+    { label: 'Nationality', key: 'nationality', placeholder: 'Select your nationality', required: true },
+    { label: 'Phone Number', key: 'phoneNumber', type: 'tel', placeholder: '+1 (555) 000-0000', required: true },
+    { label: 'Residential Address', key: 'address', placeholder: 'Enter your full address', required: true },
+    { label: 'City', key: 'city', placeholder: 'Enter your city', required: true },
+    { label: 'State / Province', key: 'state', placeholder: 'Enter your state or province', required: true },
+    { label: 'Postal Code', key: 'postalCode', placeholder: 'Enter your postal code', required: true },
+    { label: 'Country', key: 'country', placeholder: 'Select your country', required: true },
   ];
 
   return (
@@ -29,13 +34,15 @@ export function PersonalInfoForm() {
       </motion.h2>
 
       <motion.div variants={staggerContainer} className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        {fields.map((field, idx) => (
-          <motion.div key={field.label} variants={staggerItem}>
+        {fields.map((field) => (
+          <motion.div key={field.key} variants={staggerItem}>
             <label className="block text-xs font-semibold text-muted-foreground mb-1">
               {field.label} {field.required && <span className="text-red-400">*</span>}
             </label>
             <input
               type={field.type || 'text'}
+              value={values[field.key] || ''}
+              onChange={(e) => onChange(field.key, e.target.value)}
               placeholder={field.placeholder}
               className="w-full px-3 py-2 bg-input border border-border rounded-lg text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 transition-all text-xs"
             />

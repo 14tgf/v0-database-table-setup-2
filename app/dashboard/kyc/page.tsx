@@ -18,13 +18,65 @@ export default function KYCPage() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [kycStatus, setKycStatus] = useState<'not_started' | 'pending_review' | 'verified' | 'rejected'>('not_started');
+  const [userId, setUserId] = useState<string | null>(null);
+  const [formData, setFormData] = useState<Record<string, string>>({});
+  const [isLoadingStatus, setIsLoadingStatus] = useState(true);
 
   useEffect(() => {
+    // Get user ID from session or localStorage
+    const storedUserId = localStorage.getItem('userId');
+    console.log('[v0] Stored user ID:', storedUserId);
+    setUserId(storedUserId);
     setIsLoaded(true);
+
+    // Fetch KYC status from database
+    if (storedUserId) {
+      fetchKYCStatus(storedUserId);
+    }
   }, []);
 
-  const handleSubmit = () => {
+  const fetchKYCStatus = async (userId: string) => {
+    setIsLoadingStatus(true);
+    try {
+      const response = await fetch(`/api/kyc/submit?user_id=${userId}`);
+      const data = await response.json();
+
+      if (data.submission) {
+        const submission = data.submission;
+        console.log('[v0] KYC submission fetched:', submission);
+        
+        // Map database status to UI status
+        if (submission.status === 'approved') {
+          setKycStatus('verified');
+        } else if (submission.status === 'pending') {
+          setKycStatus('pending_review');
+        } else if (submission.status === 'rejected') {
+          setKycStatus('rejected');
+        }
+      }
+    } catch (error) {
+      console.error('[v0] Error fetching KYC status:', error);
+    } finally {
+      setIsLoadingStatus(false);
+    }
+  };
+
+  const handleFormChange = (field: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const handleSubmitSuccess = () => {
+    console.log('[v0] KYC submitted successfully');
     setKycStatus('pending_review');
+    // Refresh status after a short delay to ensure database is updated
+    setTimeout(() => {
+      if (userId) {
+        fetchKYCStatus(userId);
+      }
+    }, 1000);
   };
 
   return (
@@ -87,7 +139,13 @@ export default function KYCPage() {
           animate={isLoaded ? 'visible' : 'hidden'}
           className="mb-4"
         >
-          <KYCStatusCard status={kycStatus} />
+          {isLoadingStatus ? (
+            <div className="p-4 bg-white/5 border border-white/10 rounded-lg text-center">
+              <p className="text-sm text-muted-foreground">Loading KYC status...</p>
+            </div>
+          ) : (
+            <KYCStatusCard status={kycStatus} />
+          )}
         </motion.div>
 
         {/* Sections */}
@@ -98,7 +156,7 @@ export default function KYCPage() {
           className="space-y-3"
         >
           {/* Personal Information */}
-          <PersonalInfoForm />
+          <PersonalInfoForm values={formData} onChange={handleFormChange} />
 
           {/* Identity Document Upload */}
           <DocumentUpload
@@ -115,7 +173,12 @@ export default function KYCPage() {
           <SelfieUpload />
 
           {/* Submit Section */}
-          <SubmitVerification onSubmit={handleSubmit} status={kycStatus} />
+          <SubmitVerification 
+            status={kycStatus} 
+            formData={formData}
+            userId={userId || undefined}
+            onSubmitSuccess={handleSubmitSuccess}
+          />
         </motion.div>
       </main>
 

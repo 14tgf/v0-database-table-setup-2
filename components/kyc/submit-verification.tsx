@@ -1,16 +1,81 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { CheckCircle } from 'lucide-react';
+import { CheckCircle, Loader } from 'lucide-react';
 import { staggerContainer, staggerItem } from '@/lib/animations';
+import { useState } from 'react';
 
 interface SubmitVerificationProps {
-  onSubmit?: () => void;
   status?: 'not_started' | 'pending_review' | 'verified' | 'rejected';
+  formData: Record<string, string>;
+  userId?: string;
+  onSubmitSuccess?: () => void;
 }
 
-export function SubmitVerification({ onSubmit, status = 'not_started' }: SubmitVerificationProps) {
+export function SubmitVerification({ 
+  status = 'not_started', 
+  formData,
+  userId,
+  onSubmitSuccess 
+}: SubmitVerificationProps) {
   const isSubmitted = status === 'pending_review' || status === 'verified';
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [agreed, setAgreed] = useState(false);
+
+  const handleSubmit = async () => {
+    if (!agreed) {
+      setError('Please agree to the terms and conditions');
+      return;
+    }
+
+    if (!userId) {
+      setError('User ID is missing');
+      return;
+    }
+
+    // Validate required fields
+    const fullName = `${formData.firstName || ''} ${formData.lastName || ''}`.trim();
+    if (!fullName || !formData.dateOfBirth || !formData.phoneNumber) {
+      setError('Please fill in all required personal information fields');
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch('/api/kyc/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: userId,
+          full_name: fullName,
+          id_type: 'passport', // Default for now
+          id_number: '123456', // Placeholder - should come from document upload component
+          id_front_image: formData.idFrontImage || null,
+          id_back_image: formData.idBackImage || null,
+          selfie_image: formData.selfieImage || null,
+          address_document: formData.addressDocument || null,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || data.message || 'Failed to submit KYC');
+      }
+
+      console.log('[v0] KYC submitted successfully:', data);
+      onSubmitSuccess?.();
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'An unexpected error occurred';
+      console.error('[v0] Submit KYC error:', error);
+      setError(errorMsg);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <motion.div
@@ -23,10 +88,22 @@ export function SubmitVerification({ onSubmit, status = 'not_started' }: SubmitV
         Submission
       </motion.h2>
 
+      {/* Error Message */}
+      {error && (
+        <motion.div variants={staggerItem} className="mb-3 p-3 bg-red-400/10 border border-red-400/30 rounded-lg">
+          <p className="text-xs text-red-300">{error}</p>
+        </motion.div>
+      )}
+
       {/* Terms and Conditions */}
       <motion.div variants={staggerItem} className="mb-3 p-3 bg-white/5 border border-white/10 rounded-lg">
         <label className="flex items-start gap-2 cursor-pointer">
-          <input type="checkbox" className="mt-0.5 rounded border-white/20" />
+          <input 
+            type="checkbox" 
+            checked={agreed}
+            onChange={(e) => setAgreed(e.target.checked)}
+            className="mt-0.5 rounded border-white/20" 
+          />
           <span className="text-xs text-muted-foreground">
             I certify that the information provided is accurate and I authorize verification of my identity. I understand that providing false information may result in account suspension.
           </span>
@@ -56,15 +133,24 @@ export function SubmitVerification({ onSubmit, status = 'not_started' }: SubmitV
           Save Draft
         </button>
         <button
-          onClick={onSubmit}
-          disabled={isSubmitted}
-          className={`px-3 py-2 font-semibold rounded text-xs transition-all ${
-            isSubmitted
+          onClick={handleSubmit}
+          disabled={isSubmitted || isLoading}
+          className={`px-3 py-2 font-semibold rounded text-xs transition-all flex items-center justify-center gap-2 ${
+            isSubmitted || isLoading
               ? 'bg-white/10 text-muted-foreground cursor-not-allowed'
               : 'bg-accent text-background hover:bg-accent/90'
           }`}
         >
-          {isSubmitted ? 'Already Submitted' : 'Submit Verification'}
+          {isLoading ? (
+            <>
+              <Loader className="w-3 h-3 animate-spin" />
+              Submitting...
+            </>
+          ) : isSubmitted ? (
+            'Already Submitted'
+          ) : (
+            'Submit Verification'
+          )}
         </button>
       </motion.div>
     </motion.div>
