@@ -27,41 +27,44 @@ export async function GET(request: NextRequest) {
       SELECT 
         ui.id,
         ui.amount,
-        ui.roi_percent,
-        ui.profit_earned,
+        ui.returns,
         ui.status,
-        ui.invested_at,
-        ui.maturity_date,
-        ui.claimed_at,
-        ip.name as plan_name,
-        ip.duration_days
+        ui.created_at,
+        ip.plan_name,
+        ip.duration_months,
+        ip.expected_return
       FROM user_investments ui
       JOIN investment_plans ip ON ui.plan_id = ip.id
       WHERE ui.user_id = ${userId}
-      ORDER BY ui.invested_at DESC
+      ORDER BY ui.created_at DESC
     `) as any[];
 
     // Calculate totals
-    const totalInvested = investments.reduce((sum, inv) => sum + parseFloat(inv.amount), 0);
-    const totalProfit = investments.reduce((sum, inv) => sum + parseFloat(inv.profit_earned || 0), 0);
+    const totalInvested = investments.reduce((sum, inv) => sum + parseFloat(inv.amount || 0), 0);
     const activeCount = investments.filter(inv => inv.status === 'active').length;
+
+    // Calculate potential profit based on returns percentage and expected ROI
+    const totalPotentialProfit = investments.reduce((sum, inv) => {
+      const amount = parseFloat(inv.amount || 0);
+      const roiPercent = parseFloat(inv.returns || 0);
+      return sum + (amount * roiPercent / 100);
+    }, 0);
 
     return NextResponse.json({
       success: true,
       data: {
         investments,
         totals: {
-          totalInvested,
-          totalProfit,
+          totalInvested: parseFloat(totalInvested.toFixed(2)),
+          totalPotentialProfit: parseFloat(totalPotentialProfit.toFixed(2)),
           activeCount,
-          averageRoi: activeCount > 0 ? (totalProfit / totalInvested * 100).toFixed(2) : 0,
         },
       },
     });
   } catch (error) {
     console.error('[v0] Fetch user investments error:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch investments' },
+      { error: error instanceof Error ? error.message : 'Failed to fetch investments' },
       { status: 500 }
     );
   }
