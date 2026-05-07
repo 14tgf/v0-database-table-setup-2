@@ -21,7 +21,7 @@ export default function InvestmentPlansPage() {
 
   const walletBalance = wallet?.balance || 0;
   const amount = parseFloat(investmentAmount) || 0;
-  const isValidAmount = selectedPlan && amount >= parseFloat(selectedPlan.minimum_amount) && (selectedPlan.maximum_amount === null || amount <= parseFloat(selectedPlan.maximum_amount));
+  const isValidAmount = selectedPlan && amount >= parseFloat(selectedPlan.min_investment) && (selectedPlan.max_investment === null || amount <= parseFloat(selectedPlan.max_investment));
   const hasInsufficientFunds = amount > walletBalance && amount > 0;
 
   const handleInvest = async () => {
@@ -30,13 +30,13 @@ export default function InvestmentPlansPage() {
       return;
     }
 
-    if (amount < parseFloat(selectedPlan.minimum_amount)) {
-      setMessage({ type: 'error', text: `Minimum investment is $${selectedPlan.minimum_amount}` });
+    if (amount < parseFloat(selectedPlan.min_investment)) {
+      setMessage({ type: 'error', text: `Minimum investment is $${selectedPlan.min_investment}` });
       return;
     }
 
-    if (selectedPlan.maximum_amount && amount > parseFloat(selectedPlan.maximum_amount)) {
-      setMessage({ type: 'error', text: `Maximum investment is $${selectedPlan.maximum_amount}` });
+    if (selectedPlan.max_investment && amount > parseFloat(selectedPlan.max_investment)) {
+      setMessage({ type: 'error', text: `Maximum investment is $${selectedPlan.max_investment}` });
       return;
     }
 
@@ -49,18 +49,22 @@ export default function InvestmentPlansPage() {
     setMessage(null);
 
     try {
+      console.log('[v0] Investment Page - Calling createInvestment with plan:', selectedPlan.id, 'amount:', amount);
       const result = await createInvestment(selectedPlan.id, amount);
+      console.log('[v0] Investment Page - Result:', result);
       
       // Refresh wallet balance after successful investment
+      console.log('[v0] Investment Page - Refreshing wallet');
       await refreshWallet();
       
-      setMessage({ type: 'success', text: `Successfully invested $${amount.toFixed(2)} in ${selectedPlan.name}!` });
+      setMessage({ type: 'success', text: `Successfully invested $${amount.toFixed(2)} in ${selectedPlan.plan_name}!` });
       setInvestmentAmount('');
       setSelectedPlan(null);
       
       // Keep message visible for 4 seconds
       setTimeout(() => setMessage(null), 4000);
     } catch (error) {
+      console.error('[v0] Investment Page - Error:', error);
       const errorMsg = error instanceof Error ? error.message : 'Investment failed';
       setMessage({ type: 'error', text: errorMsg });
     } finally {
@@ -144,7 +148,7 @@ export default function InvestmentPlansPage() {
                   }`}
                 >
                   <div className="mb-4">
-                    <h3 className="text-lg font-bold text-white mb-1">{plan.name}</h3>
+                    <h3 className="text-lg font-bold text-white mb-1">{plan.plan_name}</h3>
                     <p className="text-white/60 text-sm">{plan.description}</p>
                   </div>
 
@@ -152,7 +156,7 @@ export default function InvestmentPlansPage() {
                     <div className="flex items-center gap-3">
                       <TrendingUp className="w-4 h-4 text-green-400" />
                       <span className="text-white">
-                        <span className="font-bold text-lg text-green-400">{plan.roi_percent}%</span>
+                        <span className="font-bold text-lg text-green-400">{plan.expected_return}%</span>
                         <span className="text-white/60 ml-1">ROI</span>
                       </span>
                     </div>
@@ -160,15 +164,15 @@ export default function InvestmentPlansPage() {
                     <div className="flex items-center gap-3">
                       <Calendar className="w-4 h-4 text-accent" />
                       <span className="text-white">
-                        <span className="font-bold">{plan.duration_days}</span>
-                        <span className="text-white/60 ml-1">days</span>
+                        <span className="font-bold">{plan.duration_months}</span>
+                        <span className="text-white/60 ml-1">months</span>
                       </span>
                     </div>
 
                     <div className="flex items-center gap-3">
                       <DollarSign className="w-4 h-4 text-blue-400" />
                       <span className="text-white text-sm">
-                        ${parseFloat(plan.minimum_amount).toFixed(2)} - {plan.maximum_amount ? `$${parseFloat(plan.maximum_amount).toFixed(2)}` : 'Unlimited'}
+                        ${parseFloat(plan.min_investment).toFixed(2)} - {plan.max_investment ? `$${parseFloat(plan.max_investment).toFixed(2)}` : 'Unlimited'}
                       </span>
                     </div>
                   </div>
@@ -189,7 +193,7 @@ export default function InvestmentPlansPage() {
         {/* Investment Form */}
         {selectedPlan && (
           <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-secondary/40 via-secondary/30 to-background/50 p-6 backdrop-blur-xl mb-24">
-            <h3 className="text-xl font-bold text-white mb-4">Invest in {selectedPlan.name}</h3>
+            <h3 className="text-xl font-bold text-white mb-4">Invest in {selectedPlan.plan_name}</h3>
 
             <div className="space-y-4">
               {/* Amount Input */}
@@ -203,12 +207,12 @@ export default function InvestmentPlansPage() {
                     type="number"
                     value={investmentAmount}
                     onChange={(e) => setInvestmentAmount(e.target.value)}
-                    placeholder={`Min: $${parseFloat(selectedPlan.minimum_amount).toFixed(2)}`}
+                    placeholder={`Min: $${parseFloat(selectedPlan.min_investment).toFixed(2)}`}
                     className="w-full pl-6 pr-4 py-2 rounded-lg bg-white/5 border border-white/20 text-white placeholder-white/40 focus:outline-none focus:border-accent"
                   />
                 </div>
                 <p className="text-white/60 text-xs mt-2">
-                  Min: ${parseFloat(selectedPlan.minimum_amount).toFixed(2)} {selectedPlan.maximum_amount && `• Max: $${parseFloat(selectedPlan.maximum_amount).toFixed(2)}`}
+                  Min: ${parseFloat(selectedPlan.min_investment).toFixed(2)} {selectedPlan.max_investment && `• Max: $${parseFloat(selectedPlan.max_investment).toFixed(2)}`}
                 </p>
               </div>
 
@@ -221,15 +225,15 @@ export default function InvestmentPlansPage() {
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-white/70">Expected ROI:</span>
-                    <span className="text-green-400 font-semibold">${(amount * parseFloat(selectedPlan.roi_percent) / 100).toFixed(2)}</span>
+                    <span className="text-green-400 font-semibold">${(amount * parseFloat(selectedPlan.expected_return) / 100).toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-white/70">Duration:</span>
-                    <span className="text-white font-semibold">{selectedPlan.duration_days} days</span>
+                    <span className="text-white font-semibold">{selectedPlan.duration_months} months</span>
                   </div>
                   <div className="border-t border-white/10 pt-2 flex justify-between text-sm">
                     <span className="text-white/70">Total Return:</span>
-                    <span className="text-white font-bold">${(amount * (1 + parseFloat(selectedPlan.roi_percent) / 100)).toFixed(2)}</span>
+                    <span className="text-white font-bold">${(amount * (1 + parseFloat(selectedPlan.expected_return) / 100)).toFixed(2)}</span>
                   </div>
                 </div>
               )}
