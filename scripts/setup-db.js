@@ -57,6 +57,7 @@ async function setupDatabase() {
         password_hash VARCHAR(255) NOT NULL,
         full_name VARCHAR(255) NOT NULL,
         status VARCHAR(50) DEFAULT 'active',
+        last_login TIMESTAMP,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
