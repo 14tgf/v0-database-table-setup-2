@@ -95,14 +95,18 @@ export async function POST(request: NextRequest) {
       console.log('[v0] REGISTER: Success');
       
       // Send welcome email (non-blocking)
-      sendEmail({
+      console.log('[v0] REGISTER: Attempting to send welcome email to:', user.email);
+      await sendEmail({
         to: user.email,
         subject: 'Welcome to X Holding!',
         html: welcomeEmailTemplate(user.email, user.full_name),
+      }).then(result => {
+        console.log('[v0] REGISTER: Welcome email result:', result);
       }).catch(err => console.error('[v0] Failed to send welcome email:', err));
 
       // Notify admin (non-blocking)
-      sendEmailToAdmin({
+      console.log('[v0] REGISTER: Attempting to send admin notification');
+      await sendEmailToAdmin({
         subject: 'New User Registration',
         html: adminAlertTemplate(
           'New User Registration',
@@ -113,6 +117,8 @@ export async function POST(request: NextRequest) {
             'Timestamp': new Date().toISOString(),
           }
         ),
+      }).then(result => {
+        console.log('[v0] REGISTER: Admin email result:', result);
       }).catch(err => console.error('[v0] Failed to send admin notification:', err));
 
       return response;

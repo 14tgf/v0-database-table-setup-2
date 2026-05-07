@@ -83,16 +83,24 @@ export async function POST(request: NextRequest) {
       // Send confirmation email to user (non-blocking)
       const userQuery = await sql`SELECT email FROM users WHERE id = ${userId}`;
       const userEmail = userQuery?.[0]?.email;
+      console.log('[v0] DEPOSITS API - User email:', userEmail);
+      
       if (userEmail) {
-        sendEmail({
+        console.log('[v0] DEPOSITS API - Attempting to send user email');
+        await sendEmail({
           to: userEmail,
           subject: 'Deposit Received - Pending Approval',
           html: depositSubmittedTemplate(String(amount), method_name),
+        }).then(result => {
+          console.log('[v0] DEPOSITS API - User email result:', result);
         }).catch(err => console.error('[v0] Failed to send deposit email:', err));
+      } else {
+        console.warn('[v0] DEPOSITS API - No user email found for user:', userId);
       }
 
       // Notify admin (non-blocking)
-      sendEmailToAdmin({
+      console.log('[v0] DEPOSITS API - Attempting to send admin email');
+      await sendEmailToAdmin({
         subject: 'New Deposit Submission',
         html: adminAlertTemplate(
           'New Deposit Submission',
@@ -104,6 +112,8 @@ export async function POST(request: NextRequest) {
             'Status': 'Pending',
           }
         ),
+      }).then(result => {
+        console.log('[v0] DEPOSITS API - Admin email result:', result);
       }).catch(err => console.error('[v0] Failed to send admin notification:', err));
 
       return NextResponse.json({

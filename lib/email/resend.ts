@@ -1,5 +1,7 @@
 import { Resend } from 'resend';
 
+console.log('[v0] Resend - Initializing with API key:', process.env.RESEND_API_KEY ? 'Present' : 'MISSING');
+
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export const RESEND_CONFIG = {
@@ -17,12 +19,16 @@ export async function sendEmail(options: {
   html: string;
   replyTo?: string;
 }) {
+  console.log('[v0] sendEmail - Called with:', options.to, options.subject);
+  
   if (!RESEND_CONFIG.apiKey) {
-    console.warn('[v0] RESEND_API_KEY not configured. Email not sent:', options.subject);
-    return { success: false, error: 'Email service not configured' };
+    console.error('[v0] sendEmail - CRITICAL: RESEND_API_KEY is not configured!');
+    console.warn('[v0] sendEmail - Email not sent:', options.subject);
+    return { success: false, error: 'Email service not configured - RESEND_API_KEY missing' };
   }
 
   try {
+    console.log('[v0] sendEmail - Sending email via Resend');
     const response = await resend.emails.send({
       from: RESEND_CONFIG.fromEmail,
       to: options.to,
@@ -31,10 +37,11 @@ export async function sendEmail(options: {
       replyTo: options.replyTo,
     });
 
-    console.log('[v0] Email sent successfully:', options.subject, 'to:', options.to);
+    console.log('[v0] sendEmail - Email sent successfully:', options.subject, 'to:', options.to, 'Response:', response);
     return { success: true, id: response.data?.id };
   } catch (error) {
-    console.error('[v0] Failed to send email:', error);
+    console.error('[v0] sendEmail - ERROR sending email:', error);
+    console.error('[v0] sendEmail - Error details:', JSON.stringify(error));
     // Fail gracefully - never throw
     return { success: false, error: String(error) };
   }
