@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
-import { sendEmailSafely } from '@/lib/email/send';
-import { getWithdrawalApprovedEmail, getWithdrawalRejectedEmail } from '@/lib/email/templates';
 
 export async function POST(request: NextRequest) {
   try {
@@ -31,11 +29,10 @@ export async function POST(request: NextRequest) {
     if (action === 'approve') {
       // Get user's current balance
       const userResult = await db`
-        SELECT wallet_balance, email FROM users WHERE id = ${withdrawal.user_id}
+        SELECT wallet_balance FROM users WHERE id = ${withdrawal.user_id}
       `;
 
       const currentBalance = userResult?.length > 0 ? parseFloat(userResult[0].wallet_balance || 0) : 0;
-      const userEmail = userResult?.[0]?.email;
 
       // Check if user still has sufficient balance
       if (currentBalance < withdrawal.amount) {
@@ -67,42 +64,18 @@ export async function POST(request: NextRequest) {
         VALUES (${withdrawal.user_id}, 'withdrawal', ${withdrawal.amount}, ${currentBalance}, ${newBalance}, ${withdrawal_id}, 'withdrawal', 'Withdrawal approved')
       `;
 
-      // Send approval email to user
-      if (userEmail) {
-        const emailHtml = getWithdrawalApprovedEmail(withdrawal.amount, withdrawal.method_name);
-        sendEmailSafely({
-          to: userEmail,
-          subject: 'Withdrawal Approved',
-          html: emailHtml,
-        }).catch(err => console.error('[v0] Failed to send withdrawal approval email:', err));
-      }
-
       return NextResponse.json({
         success: true,
         message: 'Withdrawal approved and wallet debited',
         newBalance,
       });
     } else {
-      // Get user email for rejection notification
-      const userResult = await db`SELECT email FROM users WHERE id = ${withdrawal.user_id}`;
-      const userEmail = userResult?.[0]?.email;
-
       // Reject withdrawal
       await db`
         UPDATE withdrawals 
         SET status = 'rejected', approved_by = ${userId || null}, approved_at = NOW(), updated_at = NOW()
         WHERE id = ${withdrawal_id}
       `;
-
-      // Send rejection email to user
-      if (userEmail) {
-        const emailHtml = getWithdrawalRejectedEmail(withdrawal.amount);
-        sendEmailSafely({
-          to: userEmail,
-          subject: 'Withdrawal Request Declined',
-          html: emailHtml,
-        }).catch(err => console.error('[v0] Failed to send withdrawal rejection email:', err));
-      }
 
       return NextResponse.json({
         success: true,
