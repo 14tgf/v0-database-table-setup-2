@@ -7,18 +7,19 @@ export async function GET(request: NextRequest) {
 
     const plans = (await db`
       SELECT 
-        id,
-        name,
-        description,
-        minimum_amount,
-        maximum_amount,
-        roi_percent,
-        duration_days,
-        payout_type,
-        status
-      FROM investment_plans
-      WHERE status = 'active'
-      ORDER BY roi_percent ASC
+        ip.id,
+        ip.plan_name,
+        ip.description,
+        ip.min_investment,
+        ip.max_investment,
+        ip.expected_return,
+        ip.duration_months,
+        c.symbol,
+        c.name as company_name
+      FROM investment_plans ip
+      LEFT JOIN companies c ON ip.company_id = c.id
+      WHERE ip.status = 'active'
+      ORDER BY ip.expected_return ASC
     `) as any[];
 
     return NextResponse.json({

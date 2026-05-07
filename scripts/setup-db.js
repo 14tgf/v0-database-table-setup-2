@@ -10,7 +10,13 @@ if (fs.existsSync(envPath)) {
   envContent.split('\n').forEach(line => {
     const [key, ...valueParts] = line.split('=');
     if (key && valueParts.length > 0) {
-      process.env[key.trim()] = valueParts.join('=').trim();
+      let value = valueParts.join('=').trim();
+      // Remove quotes if present
+      if ((value.startsWith('"') && value.endsWith('"')) || 
+          (value.startsWith("'") && value.endsWith("'"))) {
+        value = value.slice(1, -1);
+      }
+      process.env[key.trim()] = value;
     }
   });
 }
@@ -118,6 +124,99 @@ async function setupDatabase() {
     await sql`CREATE INDEX IF NOT EXISTS idx_admin_sessions_token_hash ON admin_sessions(token_hash)`;
     await sql`CREATE INDEX IF NOT EXISTS idx_admin_sessions_expires_at ON admin_sessions(expires_at)`;
     console.log('✅ Admin sessions table created successfully\n');
+
+    // Create companies table for stock trading
+    console.log('🏢 Creating companies table...');
+    await sql`
+      CREATE TABLE IF NOT EXISTS companies (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        symbol VARCHAR(10) UNIQUE NOT NULL,
+        name VARCHAR(255) NOT NULL,
+        logo VARCHAR(500),
+        exchange VARCHAR(50),
+        sector VARCHAR(100),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `;
+    await sql`CREATE INDEX IF NOT EXISTS idx_companies_symbol ON companies(symbol)`;
+    console.log('✅ Companies table created successfully\n');
+
+    // Create investment plans table
+    console.log('💼 Creating investment_plans table...');
+    await sql`
+      CREATE TABLE IF NOT EXISTS investment_plans (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        company_id UUID REFERENCES companies(id) ON DELETE CASCADE,
+        plan_name VARCHAR(255) NOT NULL,
+        description TEXT,
+        min_investment NUMERIC NOT NULL,
+        max_investment NUMERIC NOT NULL,
+        expected_return NUMERIC NOT NULL,
+        duration_months INTEGER NOT NULL,
+        status VARCHAR(50) DEFAULT 'active',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `;
+    await sql`CREATE INDEX IF NOT EXISTS idx_plans_status ON investment_plans(status)`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_plans_company ON investment_plans(company_id)`;
+    console.log('✅ Investment plans table created successfully\n');
+
+    // Create user investments table
+    console.log('🎯 Creating user_investments table...');
+    await sql`
+      CREATE TABLE IF NOT EXISTS user_investments (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        plan_id UUID NOT NULL REFERENCES investment_plans(id) ON DELETE CASCADE,
+        amount NUMERIC NOT NULL,
+        shares NUMERIC,
+        status VARCHAR(50) DEFAULT 'active',
+        returns NUMERIC DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `;
+    await sql`CREATE INDEX IF NOT EXISTS idx_user_investments_user ON user_investments(user_id)`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_user_investments_plan ON user_investments(plan_id)`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_user_investments_status ON user_investments(status)`;
+    console.log('✅ User investments table created successfully\n');
+
+    // Create user portfolio stocks table
+    console.log('📈 Creating user_portfolio_stocks table...');
+    await sql`
+      CREATE TABLE IF NOT EXISTS user_portfolio_stocks (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+        shares NUMERIC NOT NULL DEFAULT 0,
+        average_cost NUMERIC NOT NULL,
+        current_value NUMERIC DEFAULT 0,
+        gain_loss NUMERIC DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(user_id, company_id)
+      )
+    `;
+    await sql`CREATE INDEX IF NOT EXISTS idx_portfolio_user ON user_portfolio_stocks(user_id)`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_portfolio_company ON user_portfolio_stocks(company_id)`;
+    console.log('✅ User portfolio stocks table created successfully\n');
+
+    // Create stock prices table for historical tracking
+    console.log('💹 Creating stock_prices table...');
+    await sql`
+      CREATE TABLE IF NOT EXISTS stock_prices (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+        price NUMERIC NOT NULL,
+        change NUMERIC,
+        percent_change NUMERIC,
+        timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `;
+    await sql`CREATE INDEX IF NOT EXISTS idx_prices_company ON stock_prices(company_id)`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_prices_timestamp ON stock_prices(timestamp DESC)`;
+    console.log('✅ Stock prices table created successfully\n');
 
     // Verify tables were created
     console.log('🔍 Verifying tables...');
