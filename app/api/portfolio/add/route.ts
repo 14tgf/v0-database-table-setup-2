@@ -114,9 +114,9 @@ export async function POST(request: NextRequest) {
         ${company[0].id}, 
         ${symbol},
         ${shares}, 
-        ${currentPrice}, 
-        ${currentPrice},
-        ${investmentAmount}, 
+        CAST(${currentPrice} AS NUMERIC(15,2)), 
+        CAST(${currentPrice} AS NUMERIC(15,2)),
+        CAST(${investmentAmount} AS NUMERIC(15,2)), 
         0,
         'active',
         NOW(), 
@@ -124,10 +124,10 @@ export async function POST(request: NextRequest) {
       )
       ON CONFLICT (user_id, company_id) DO UPDATE SET
         symbol = ${symbol},
-        shares = user_portfolio_stocks.shares + ${shares},
-        average_cost = ((user_portfolio_stocks.average_cost * user_portfolio_stocks.shares) + (${currentPrice} * ${shares})) / (user_portfolio_stocks.shares + ${shares}),
-        current_price = ${currentPrice},
-        current_value = user_portfolio_stocks.current_value + ${investmentAmount},
+        shares = user_portfolio_stocks.shares + CAST(${shares} AS NUMERIC(15,8)),
+        average_cost = (CAST(user_portfolio_stocks.average_cost AS NUMERIC(15,2)) * CAST(user_portfolio_stocks.shares AS NUMERIC(15,8)) + CAST(${currentPrice} AS NUMERIC(15,2)) * CAST(${shares} AS NUMERIC(15,8))) / (CAST(user_portfolio_stocks.shares AS NUMERIC(15,8)) + CAST(${shares} AS NUMERIC(15,8))),
+        current_price = CAST(${currentPrice} AS NUMERIC(15,2)),
+        current_value = user_portfolio_stocks.current_value + CAST(${investmentAmount} AS NUMERIC(15,2)),
         status = 'active',
         updated_at = NOW()
       RETURNING *
