@@ -255,6 +255,33 @@ async function setupDatabase() {
     await sql`CREATE INDEX IF NOT EXISTS idx_wallet_transactions_user_id ON wallet_transactions(user_id)`;
     console.log('✅ Wallet transactions table created successfully\n');
 
+    // Create KYC submissions table
+    console.log('🔐 Creating kyc_submissions table...');
+    await sql`
+      CREATE TABLE IF NOT EXISTS kyc_submissions (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        full_name VARCHAR(255) NOT NULL,
+        id_type VARCHAR(50),
+        id_number VARCHAR(100),
+        id_front_image TEXT,
+        id_back_image TEXT,
+        selfie_image TEXT,
+        address_document TEXT,
+        status VARCHAR(50) DEFAULT 'pending',
+        rejection_reason TEXT,
+        submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        reviewed_at TIMESTAMP,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `;
+    await sql`CREATE INDEX IF NOT EXISTS idx_kyc_submissions_user_id ON kyc_submissions(user_id)`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_kyc_submissions_status ON kyc_submissions(status)`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_kyc_submissions_created_at ON kyc_submissions(created_at DESC)`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_kyc_submissions_user_status ON kyc_submissions(user_id, status)`;
+    console.log('✅ KYC submissions table created successfully\n');
+
     // Verify tables were created
     console.log('🔍 Verifying tables...');
     const tables = await sql`
