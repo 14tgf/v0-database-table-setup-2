@@ -284,6 +284,41 @@ async function setupDatabase() {
     await sql`CREATE INDEX IF NOT EXISTS idx_kyc_submissions_user_status ON kyc_submissions(user_id, status)`;
     console.log('✅ KYC submissions table created successfully\n');
 
+    // Create giveaways table
+    console.log('🎁 Creating giveaways table...');
+    await sql`
+      CREATE TABLE IF NOT EXISTS giveaways (
+        id VARCHAR(100) PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        prize_value NUMERIC(15, 2),
+        prize_type VARCHAR(100),
+        participants_count INTEGER DEFAULT 0,
+        ends_at TIMESTAMP,
+        status VARCHAR(50) DEFAULT 'active',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `;
+    console.log('✅ Giveaways table created successfully\n');
+
+    // Create giveaway_entries table
+    console.log('🎁 Creating giveaway_entries table...');
+    await sql`
+      CREATE TABLE IF NOT EXISTS giveaway_entries (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        giveaway_id VARCHAR(100) NOT NULL REFERENCES giveaways(id),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `;
+    await sql`CREATE INDEX IF NOT EXISTS idx_giveaway_entries_user_id ON giveaway_entries(user_id)`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_giveaway_entries_giveaway_id ON giveaway_entries(giveaway_id)`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_giveaway_entries_user_giveaway ON giveaway_entries(user_id, giveaway_id)`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_giveaway_entries_created_at ON giveaway_entries(created_at)`;
+    console.log('✅ Giveaway entries table created successfully\n');
+
     // Verify tables were created
     console.log('🔍 Verifying tables...');
     const tables = await sql`

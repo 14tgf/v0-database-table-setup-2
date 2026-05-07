@@ -21,9 +21,11 @@ export async function checkGiveawayEligibility(
   giveawayId: string
 ): Promise<GiveawayEligibility> {
   try {
+    console.log('[v0] checkGiveawayEligibility - Starting for user:', userId, 'giveaway:', giveawayId);
     const db = sql();
 
     // Check 1: Active VIP membership
+    console.log('[v0] checkGiveawayEligibility - Checking VIP membership');
     const vipCheck = await db`
       SELECT id FROM user_vip_memberships
       WHERE user_id = ${userId} 
@@ -33,15 +35,20 @@ export async function checkGiveawayEligibility(
     `;
     const vipArray = Array.isArray(vipCheck) ? vipCheck : (vipCheck?.rows || []);
     const hasVip = vipArray.length > 0;
+    console.log('[v0] checkGiveawayEligibility - VIP check result:', { hasVip, vipArrayLength: vipArray.length });
 
     // Check 2: KYC verified
+    console.log('[v0] checkGiveawayEligibility - Checking KYC status');
     const kycCheck = await db`
       SELECT kyc_status FROM users WHERE id = ${userId}
     `;
     const kycArray = Array.isArray(kycCheck) ? kycCheck : (kycCheck?.rows || []);
+    console.log('[v0] checkGiveawayEligibility - KYC check result:', { kycArray, length: kycArray.length });
     const isKycVerified = kycArray.length > 0 && kycArray[0].kyc_status === 'approved';
+    console.log('[v0] checkGiveawayEligibility - KYC verified:', isKycVerified, 'status:', kycArray[0]?.kyc_status);
 
     // Check 3: Last entry within 30 days
+    console.log('[v0] checkGiveawayEligibility - Checking last entry');
     const lastEntry = await db`
       SELECT created_at FROM giveaway_entries
       WHERE user_id = ${userId} AND giveaway_id = ${giveawayId}
@@ -49,6 +56,7 @@ export async function checkGiveawayEligibility(
       LIMIT 1
     `;
     const lastEntryArray = Array.isArray(lastEntry) ? lastEntry : (lastEntry?.rows || []);
+    console.log('[v0] checkGiveawayEligibility - Last entry result:', { lastEntryLength: lastEntryArray.length });
 
     let canEnterAgain = true;
     let daysUntilEligible = 0;
@@ -62,10 +70,12 @@ export async function checkGiveawayEligibility(
         canEnterAgain = false;
         daysUntilEligible = 30 - daysSinceEntry;
       }
+      console.log('[v0] checkGiveawayEligibility - Entry cooldown:', { daysSinceEntry, canEnterAgain, daysUntilEligible });
     }
 
     // Determine overall eligibility
     const isEligible = hasVip && isKycVerified && canEnterAgain;
+    console.log('[v0] checkGiveawayEligibility - Final eligibility:', { isEligible, hasVip, isKycVerified, canEnterAgain });
 
     // Determine reason for ineligibility
     let reason: string | undefined;
@@ -86,13 +96,15 @@ export async function checkGiveawayEligibility(
       daysUntilEligible: daysUntilEligible > 0 ? daysUntilEligible : undefined,
     };
   } catch (error) {
-    console.error('[v0] Giveaway eligibility check error:', error);
+    const errorMsg = error instanceof Error ? error.message : JSON.stringify(error);
+    console.error('[v0] Giveaway eligibility check error:', errorMsg);
+    console.error('[v0] Giveaway eligibility check full error:', error);
     return {
       isEligible: false,
       hasVipMembership: false,
       isKycVerified: false,
       canEnterAgain: false,
-      reason: 'Error checking eligibility',
+      reason: `Error checking eligibility: ${errorMsg}`,
     };
   }
 }
