@@ -11,6 +11,7 @@ export async function GET(request: NextRequest) {
     const cookie = request.cookies.get('auth_token')?.value;
 
     if (!cookie) {
+      console.log('[v0] User investments API - No auth token');
       return NextResponse.json(
         { error: 'Not authenticated' },
         { status: 401 }
@@ -19,6 +20,8 @@ export async function GET(request: NextRequest) {
 
     const { payload } = await jwtVerify(cookie, JWT_SECRET);
     const userId = payload.sub as string;
+
+    console.log('[v0] User investments API - Fetching for userId:', userId);
 
     const db = sql();
 
@@ -40,6 +43,8 @@ export async function GET(request: NextRequest) {
       ORDER BY ui.created_at DESC
     `) as any[];
 
+    console.log('[v0] User investments API - Found investments:', investments.length);
+
     // Calculate totals
     const totalInvested = investments.reduce((sum, inv) => sum + parseFloat(inv.amount || 0), 0);
     const activeCount = investments.filter(inv => inv.status === 'active').length;
@@ -51,17 +56,27 @@ export async function GET(request: NextRequest) {
       return sum + (amount * roiPercent / 100);
     }, 0);
 
-    return NextResponse.json({
+    // Calculate average ROI
+    const averageRoi = activeCount > 0 
+      ? investments.filter(inv => inv.status === 'active').reduce((sum, inv) => sum + parseFloat(inv.returns || 0), 0) / activeCount
+      : 0;
+
+    const response = {
       success: true,
       data: {
         investments,
         totals: {
           totalInvested: parseFloat(totalInvested.toFixed(2)),
+          totalProfit: parseFloat(totalPotentialProfit.toFixed(2)),
           totalPotentialProfit: parseFloat(totalPotentialProfit.toFixed(2)),
           activeCount,
+          averageRoi: parseFloat(averageRoi.toFixed(2)),
         },
       },
-    });
+    };
+
+    console.log('[v0] User investments API - Response:', response.data.totals);
+    return NextResponse.json(response);
   } catch (error) {
     console.error('[v0] Fetch user investments error:', error);
     return NextResponse.json(

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Bell, Sun, TrendingUp, TrendingDown, Zap, DollarSign, Calendar, Eye, RefreshCw, Download, Activity, ArrowUpRight, ArrowDownLeft, Clock, ArrowUp, BarChart2, RefreshCcw, Send } from 'lucide-react';
@@ -11,6 +11,15 @@ import { useInvestments } from '@/hooks/useInvestments';
 export default function InvestmentsDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { plans, investments, totals, plansLoading, investmentsLoading } = useInvestments();
+
+  useEffect(() => {
+    console.log('[v0] InvestmentsDashboard - Mounted');
+    console.log('[v0] InvestmentsDashboard - Current state:', { 
+      investmentsCount: investments.length,
+      investmentsLoading,
+      totalsData: totals
+    });
+  }, [investments, investmentsLoading, totals]);
 
   // Format currency
   const formatCurrency = (value: any) => {
@@ -89,7 +98,7 @@ export default function InvestmentsDashboard() {
 
           <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-secondary/40 via-secondary/30 to-background/50 p-3 sm:p-4 backdrop-blur-xl glow-cyan-hover">
             <p className="text-white/70 text-xs mb-1">Total Returns</p>
-            <p className="text-lg sm:text-2xl font-bold text-white mb-1">{formatCurrency(totals.totalProfit || 0)}</p>
+            <p className="text-lg sm:text-2xl font-bold text-white mb-1">{formatCurrency(totals.totalProfit || totals.totalPotentialProfit || 0)}</p>
             <p className="text-green-400 text-xs">{totals.averageRoi || 0}% avg ROI</p>
           </div>
         </div>
