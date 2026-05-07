@@ -47,7 +47,7 @@ export function PasswordSettings({ onPasswordChange }: PasswordSettingsProps) {
     }));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const newErrors: { [key: string]: string } = {};
 
     if (!passwords.current) newErrors.current = 'Current password is required';
@@ -60,9 +60,31 @@ export function PasswordSettings({ onPasswordChange }: PasswordSettingsProps) {
       return;
     }
 
-    onPasswordChange?.(passwords.new);
-    setPasswords({ current: '', new: '', confirm: '' });
-    setPasswordStrength(null);
+    try {
+      const response = await fetch('/api/user/password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          currentPassword: passwords.current,
+          newPassword: passwords.new,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setErrors({ current: data.error || 'Failed to change password' });
+        return;
+      }
+
+      onPasswordChange?.(passwords.new);
+      setPasswords({ current: '', new: '', confirm: '' });
+      setPasswordStrength(null);
+      alert('Password changed successfully. Please log in again.');
+    } catch (error) {
+      console.error('[v0] Password change error:', error);
+      setErrors({ current: 'Failed to change password' });
+    }
   };
 
   const PasswordInput = ({ field, label, show }: { field: string; label: string; show: boolean }) => (

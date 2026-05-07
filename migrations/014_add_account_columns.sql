@@ -1,0 +1,7 @@
+-- Add account-related columns to users table
+ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_image VARCHAR(500);
+ALTER TABLE users ADD COLUMN IF NOT EXISTS phone_number VARCHAR(20);
+ALTER TABLE users ADD COLUMN IF NOT EXISTS vip_status VARCHAR(50) DEFAULT 'inactive';
+ALTER TABLE users ADD COLUMN IF NOT EXISTS vip_level VARCHAR(50);
+ALTER TABLE users ADD COLUMN IF NOT EXISTS kyc_status VARCHAR(50) DEFAULT 'not_verified';
+ALTER TABLE users ADD COLUMN IF NOT EXISTS username VARCHAR(255) UNIQUE;

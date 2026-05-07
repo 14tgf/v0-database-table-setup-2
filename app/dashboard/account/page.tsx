@@ -17,11 +17,28 @@ export default function AccountPage() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [userData, setUserData] = useState({ userName: '', userEmail: '' });
   const { selectedCurrency } = useCurrency();
 
   useEffect(() => {
     setIsLoaded(true);
+    fetchUserData();
   }, []);
+
+  const fetchUserData = async () => {
+    try {
+      const response = await fetch('/api/user/profile');
+      if (response.ok) {
+        const data = await response.json();
+        setUserData({
+          userName: data.user?.fullName || '',
+          userEmail: data.user?.email || '',
+        });
+      }
+    } catch (error) {
+      console.error('[v0] Failed to fetch user data:', error);
+    }
+  };
 
   const handleSave = () => {
     setSaveSuccess(true);
@@ -117,8 +134,8 @@ export default function AccountPage() {
       <SidebarMenu
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
-        userName="Carl"
-        userEmail="cedoe70@gmail.com"
+        userName={userData.userName}
+        userEmail={userData.userEmail}
       />
     </div>
   );
