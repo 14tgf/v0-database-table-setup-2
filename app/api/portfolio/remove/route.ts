@@ -1,17 +1,38 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
+import { jwtVerify } from 'jose';
+
+const JWT_SECRET = new TextEncoder().encode(
+  process.env.JWT_SECRET || 'default-secret-key-change-in-production'
+);
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { userId, symbol } = body;
+    // Get auth_token from cookies
+    const cookie = request.cookies.get('auth_token')?.value;
 
-    if (!userId || !symbol) {
+    if (!cookie) {
       return NextResponse.json(
-        { message: 'Missing required fields: userId and symbol' },
+        { message: 'Not authenticated' },
+        { status: 401 }
+      );
+    }
+
+    // Verify JWT to get userId
+    const { payload } = await jwtVerify(cookie, JWT_SECRET);
+    const userId = payload.sub as string;
+
+    const body = await request.json();
+    const { symbol } = body;
+
+    if (!symbol) {
+      return NextResponse.json(
+        { message: 'Missing required field: symbol' },
         { status: 400 }
       );
     }
+
+    console.log('[v0] Portfolio remove - Starting for:', { userId, symbol });
 
     const db = sql();
 
@@ -39,6 +60,8 @@ export async function POST(request: NextRequest) {
     const currentValue = parseFloat(stock.current_value) || saleValue;
     const realizedProfitLoss = currentValue - saleValue;
 
+    console.log('[v0] Portfolio remove - Calculated:', { shares, averageCost, saleValue, currentValue, realizedProfitLoss });
+
     // 3. Get user's wallet
     const user = (await db`
       SELECT wallet_balance FROM users WHERE id = ${userId}
@@ -50,6 +73,8 @@ export async function POST(request: NextRequest) {
 
     const currentBalance = parseFloat(user[0].wallet_balance) || 0;
     const newBalance = currentBalance + currentValue;
+
+    console.log('[v0] Portfolio remove - Wallet:', { currentBalance, currentValue, newBalance });
 
     // 4. Credit sale value to wallet
     await db`
@@ -64,6 +89,8 @@ export async function POST(request: NextRequest) {
       SET status = 'removed', updated_at = NOW()
       WHERE user_id = ${userId} AND company_id = ${stock.company_id}
     `;
+
+    console.log('[v0] Portfolio remove - Complete:', symbol);
 
     return NextResponse.json(
       {

@@ -25,7 +25,7 @@ export function usePortfolio() {
 
   // Fetch portfolio stocks
   const { data: stocks = [], isLoading, error, mutate: mutateStocks } = useSWR(
-    isInitialized && user ? `/api/portfolio/stocks?userId=${user.id}` : null,
+    isInitialized && user ? `/api/portfolio/stocks` : null,
     fetcher,
     { revalidateOnFocus: false, revalidateOnReconnect: true, dedupingInterval: 2000 }
   );
@@ -76,24 +76,20 @@ export function usePortfolio() {
 
   // Add stock to portfolio
   const addStock = useCallback(
-    async (symbol: string, companyName: string, companyLogo: string, initialPrice: number) => {
+    async (symbol: string, companyName: string, companyLogo: string, initialPrice: number, investmentAmount: number = 500) => {
       if (!user?.id) {
         console.error('[v0] addStock - User not authenticated');
         throw new Error('User not authenticated');
       }
 
       try {
-        console.log('[v0] addStock - Starting:', { symbol, companyName, initialPrice, userId: user.id });
+        console.log('[v0] addStock - Starting:', { symbol, companyName, initialPrice, investmentAmount, userId: user.id });
         const response = await fetch('/api/portfolio/add', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            userId: user.id,
             symbol,
-            companyName,
-            companyLogo,
-            initialPrice,
-            currentPrice: initialPrice,
+            investmentAmount,
           }),
         });
 
@@ -142,7 +138,7 @@ export function usePortfolio() {
         const response = await fetch('/api/portfolio/remove', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId: user.id, symbol }),
+          body: JSON.stringify({ symbol }),
         });
 
         if (!response.ok) {

@@ -28,15 +28,17 @@ export async function GET(request: NextRequest) {
         ups.id,
         ups.user_id,
         ups.company_id,
-        ups.shares,
-        ups.average_cost,
+        ups.shares as quantity,
+        ups.average_cost as invested_amount,
+        ups.current_price,
         ups.current_value,
         ups.gain_loss,
         ups.status,
         ups.created_at,
         ups.updated_at,
         c.symbol,
-        c.name as company_name
+        c.name as company_name,
+        c.logo as company_logo
       FROM user_portfolio_stocks ups
       LEFT JOIN companies c ON ups.company_id = c.id
       WHERE ups.user_id = ${userId} AND ups.status = 'active'
@@ -44,14 +46,9 @@ export async function GET(request: NextRequest) {
     `) as any[];
 
     console.log('[v0] Portfolio Stocks - Fetched', stocks.length, 'stocks for user:', userId);
+    console.log('[v0] Portfolio Stocks - Sample data:', stocks.length > 0 ? stocks[0] : 'No stocks');
     
-    return NextResponse.json(
-      {
-        success: true,
-        data: stocks,
-      },
-      { status: 200 }
-    );
+    return NextResponse.json(stocks, { status: 200 });
   } catch (error) {
     console.error('[v0] Portfolio Stocks - Error:', error instanceof Error ? error.message : String(error));
     return NextResponse.json(
