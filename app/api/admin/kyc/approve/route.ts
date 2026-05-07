@@ -1,12 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { neon } from '@neondatabase/serverless';
-
-function getSql() {
-  if (!process.env.DATABASE_URL) {
-    throw new Error('DATABASE_URL not set');
-  }
-  return neon(process.env.DATABASE_URL);
-}
+import { sql } from '@/lib/db';
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,38 +10,36 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid request format' }, { status: 400 });
     }
 
-    const { kyc_id, action, userId } = body;
+    const { kyc_id, action, rejection_reason } = body;
 
     if (!kyc_id || !action) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    const sql = getSql();
+    const db = sql();
 
     // Get KYC submission details
-    const kycResult = await sql`SELECT * FROM kyc_submissions WHERE id = ${kyc_id}`;
+    const kycResult = await db`SELECT * FROM kyc_submissions WHERE id = ${kyc_id}`;
     if (!kycResult || kycResult.length === 0) {
       return NextResponse.json({ error: 'KYC submission not found' }, { status: 404 });
     }
 
-    const kycSubmission = kycResult[0];
+    const kycSubmission = Array.isArray(kycResult) ? kycResult[0] : kycResult;
 
     if (action === 'approve') {
       // Update KYC submission
-      await sql`UPDATE kyc_submissions SET status = 'approved', reviewed_by = ${userId || null}, reviewed_at = NOW(), updated_at = NOW() WHERE id = ${kyc_id}`;
+      await db`UPDATE kyc_submissions SET status = 'approved', reviewed_at = NOW(), updated_at = NOW() WHERE id = ${kyc_id}`;
       
       // Update user verification status
-      await sql`UPDATE users SET kyc_status = 'approved', verification_status = 'verified', updated_at = NOW() WHERE id = ${kycSubmission.user_id}`;
+      await db`UPDATE users SET kyc_status = 'approved', verification_status = 'verified', updated_at = NOW() WHERE id = ${kycSubmission.user_id}`;
 
       return NextResponse.json({ success: true, message: 'KYC submission approved' });
     } else if (action === 'reject') {
-      const { rejection_reason } = body;
-      
       // Update KYC submission
-      await sql`UPDATE kyc_submissions SET status = 'rejected', rejection_reason = ${rejection_reason || null}, reviewed_by = ${userId || null}, reviewed_at = NOW(), updated_at = NOW() WHERE id = ${kyc_id}`;
+      await db`UPDATE kyc_submissions SET status = 'rejected', rejection_reason = ${rejection_reason || null}, reviewed_at = NOW(), updated_at = NOW() WHERE id = ${kyc_id}`;
       
       // Update user verification status
-      await sql`UPDATE users SET kyc_status = 'rejected', verification_status = 'rejected', updated_at = NOW() WHERE id = ${kycSubmission.user_id}`;
+      await db`UPDATE users SET kyc_status = 'rejected', verification_status = 'rejected', updated_at = NOW() WHERE id = ${kycSubmission.user_id}`;
 
       return NextResponse.json({ success: true, message: 'KYC submission rejected' });
     } else {
@@ -56,7 +47,7 @@ export async function POST(request: NextRequest) {
     }
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
-    console.error('[v0] Error approving KYC submission:', msg);
+    console.error('[v0] Error processing KYC submission:', msg);
     return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
