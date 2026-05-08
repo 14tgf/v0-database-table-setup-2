@@ -55,17 +55,24 @@ export default function AdminOrdersPage() {
       const response = await fetch('/api/admin/orders');
       const data = await response.json();
 
+      console.log('[v0] Admin orders API response:', { success: response.ok, data });
+
       if (!response.ok) {
         const errorMsg = data.error || data.message || 'Failed to fetch orders';
         throw new Error(errorMsg);
       }
 
       // Ensure amount is a number (Postgres NUMERIC can come as string)
-      const ordersWithNumbers = (data.orders || []).map((order: any) => ({
-        ...order,
-        amount: typeof order.amount === 'string' ? parseFloat(order.amount) : Number(order.amount),
-      }));
+      const ordersWithNumbers = (data.orders || []).map((order: any) => {
+        const convertedOrder = {
+          ...order,
+          amount: typeof order.amount === 'string' ? parseFloat(order.amount) : Number(order.amount),
+        };
+        console.log('[v0] Converted order:', { id: convertedOrder.id, amount: convertedOrder.amount, status: convertedOrder.status });
+        return convertedOrder;
+      });
 
+      console.log('[v0] Final orders to set:', ordersWithNumbers);
       setOrders(ordersWithNumbers);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
@@ -300,7 +307,7 @@ export default function AdminOrdersPage() {
                     </div>
                   </div>
 
-                  {(order.status === 'Payment Submitted' || order.status === 'Pending') && (
+                  {(order.status === 'Payment Submitted' || order.status === 'Pending' || order.status === 'Pending Payment Review' || order.status === 'Pending Payment') && (
                     <div className="flex gap-2 pt-2">
                       <button
                         onClick={() => handleApprove(order.id)}

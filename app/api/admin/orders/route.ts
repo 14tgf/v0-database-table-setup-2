@@ -32,6 +32,17 @@ export async function GET() {
 
     const ordersArray = Array.isArray(orders) ? orders : (orders?.rows || []);
     console.log('[v0] Fetched', ordersArray.length, 'pending orders');
+    
+    // Log first order details for debugging
+    if (ordersArray.length > 0) {
+      const firstOrder = ordersArray[0];
+      console.log('[v0] First order details:', {
+        id: firstOrder.id,
+        amount: firstOrder.amount,
+        amountType: typeof firstOrder.amount,
+        status: firstOrder.status,
+      });
+    }
 
     return NextResponse.json({
       success: true,
