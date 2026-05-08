@@ -5,42 +5,42 @@ import { Star } from 'lucide-react'
 
 const testimonials = [
   {
-    name: 'James Mitchell',
+    name: 'Robert Wilson',
     location: 'London, United Kingdom',
     role: 'Investment Manager',
     content: 'X-Holding transformed how I trade Tesla products. The platform is incredibly intuitive and the security features give me peace of mind.',
     rating: 5,
   },
   {
-    name: 'Sarah Johnson',
+    name: 'Jennifer Taylor',
     location: 'New York, United States',
     role: 'Tech Entrepreneur',
     content: 'Finally, a marketplace I can trust. The real-time pricing and instant settlement have saved me thousands in trading costs.',
     rating: 5,
   },
   {
-    name: 'David Richardson',
+    name: 'Paul Davies',
     location: 'Manchester, United Kingdom',
     role: 'Energy Consultant',
     content: 'The Powerwall and Solar integration on X-Holding is seamless. I\'ve completed more transactions here than any other platform.',
     rating: 5,
   },
   {
-    name: 'Emily Rodriguez',
+    name: 'Amanda Stewart',
     location: 'California, United States',
     role: 'Business Owner',
     content: 'Outstanding customer service and lightning-fast transactions. X-Holding is my go-to marketplace for Tesla products.',
     rating: 5,
   },
   {
-    name: 'Michael Thompson',
+    name: 'Christopher Brown',
     location: 'Edinburgh, United Kingdom',
     role: 'Financial Advisor',
     content: 'The VIP membership program is exceptional. The benefits and dedicated support have exceeded all my expectations.',
     rating: 5,
   },
   {
-    name: 'Jessica Chen',
+    name: 'Michelle Garcia',
     location: 'Texas, United States',
     role: 'Property Developer',
     content: 'Trading on X-Holding is smooth and efficient. Their zero-friction approach has made me a regular customer.',
