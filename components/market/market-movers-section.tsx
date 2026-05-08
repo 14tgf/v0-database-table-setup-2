@@ -8,16 +8,14 @@ import { LosersList } from './losers-list';
 export function MarketMoversSection() {
   const { gainers, losers, loading, error, lastUpdate } = useMarketMovers();
 
+  // Remove section if there's an error loading data
   if (error && !loading) {
-    return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="my-16 p-8 rounded-xl border border-red-400/30 bg-red-400/5 backdrop-blur-sm text-center"
-      >
-        <p className="text-red-400 font-medium">{error}</p>
-      </motion.div>
-    );
+    return null;
+  }
+
+  // If no data available, don't render
+  if (!loading && (!gainers || gainers.length === 0) && (!losers || losers.length === 0)) {
+    return null;
   }
 
   return (
