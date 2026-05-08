@@ -263,9 +263,10 @@ export function orderSubmittedTemplate(orderId: string, total: string) {
   `);
 }
 
-export function orderPaymentSubmittedTemplate(orderId: string, amount: string, paymentMethod: string) {
+export function orderPaymentSubmittedTemplate(orderId: string, amount: string, paymentMethod: string, productImage?: string) {
   return baseTemplate(`
     <h2>Payment Submitted ✓</h2>
+    ${productImage ? `<img src="${productImage}" alt="Product" style="width: 100%; max-width: 400px; height: auto; border-radius: 8px; margin: 15px 0;">` : ''}
     <p>Thank you for submitting your payment! We have received your transaction details and your order is now pending admin approval.</p>
     <div class="highlight">
       <p><strong>Order ID:</strong> ${orderId}</p>
@@ -280,9 +281,10 @@ export function orderPaymentSubmittedTemplate(orderId: string, amount: string, p
   `);
 }
 
-export function orderPaymentApprovedTemplate(orderId: string, productName: string, amount: string) {
+export function orderPaymentApprovedTemplate(orderId: string, productName: string, amount: string, productImage?: string) {
   return baseTemplate(`
     <h2>Order Confirmed! 🎉</h2>
+    ${productImage ? `<img src="${productImage}" alt="${productName}" style="width: 100%; max-width: 400px; height: auto; border-radius: 8px; margin: 15px 0;">` : ''}
     <p>Congratulations! Your payment has been approved and your order is confirmed.</p>
     <div class="highlight">
       <p><strong>Order ID:</strong> ${orderId}</p>

@@ -51,6 +51,19 @@ export async function POST(request: NextRequest) {
 
       console.log('[v0] Order approved:', order_id);
 
+      // Get product image if available
+      let productImage: string | undefined;
+      try {
+        const { PRODUCTS } = await import('@/lib/products');
+        const product = PRODUCTS.find(p => p.id === order.product_id);
+        if (product && product.image) {
+          // Ensure absolute URL
+          productImage = product.image.startsWith('http') ? product.image : `${process.env.NEXT_PUBLIC_SITE_URL || 'https://v0-database-table-setup-2-gamma.vercel.app'}${product.image}`;
+        }
+      } catch (error) {
+        console.log('[v0] Could not load product image:', error);
+      }
+
       // Send confirmation email to user (non-blocking)
       if (order.email) {
         sendEmail({
@@ -59,7 +72,8 @@ export async function POST(request: NextRequest) {
           html: orderPaymentApprovedTemplate(
             order_id.slice(0, 8),
             order.product_name,
-            String(order.amount)
+            String(order.amount),
+            productImage
           ),
         }).catch(err => console.error('[v0] Failed to send order approval email:', err));
       }
