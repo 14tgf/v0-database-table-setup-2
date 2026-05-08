@@ -60,7 +60,13 @@ export default function AdminOrdersPage() {
         throw new Error(errorMsg);
       }
 
-      setOrders(data.orders || []);
+      // Ensure amount is a number (Postgres NUMERIC can come as string)
+      const ordersWithNumbers = (data.orders || []).map((order: any) => ({
+        ...order,
+        amount: typeof order.amount === 'string' ? parseFloat(order.amount) : Number(order.amount),
+      }));
+
+      setOrders(ordersWithNumbers);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
       console.error('[v0] Fetch orders error:', error);
@@ -174,6 +180,11 @@ export default function AdminOrdersPage() {
     }
   };
 
+  const formatAmount = (amount: any): string => {
+    const num = typeof amount === 'string' ? parseFloat(amount) : Number(amount);
+    return isNaN(num) ? '0.00' : num.toFixed(2);
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Completed':
@@ -247,7 +258,7 @@ export default function AdminOrdersPage() {
                     <p className="text-xs text-muted-foreground">{order.full_name || order.user_email}</p>
                   </div>
                   <div className="ml-auto mr-4 text-right">
-                    <p className="font-bold text-foreground">${order.amount.toFixed(2)}</p>
+                    <p className="font-bold text-foreground">${formatAmount(order.amount)}</p>
                     <p className="text-xs text-muted-foreground">{order.payment_method}</p>
                   </div>
                   <div className="text-xs text-muted-foreground">
@@ -269,7 +280,7 @@ export default function AdminOrdersPage() {
                     </div>
                     <div>
                       <p className="text-muted-foreground">Amount</p>
-                      <p className="font-medium text-foreground">${order.amount.toFixed(2)}</p>
+                      <p className="font-medium text-foreground">${formatAmount(order.amount)}</p>
                     </div>
                     <div>
                       <p className="text-muted-foreground">Payment Method</p>
