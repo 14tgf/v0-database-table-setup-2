@@ -54,8 +54,8 @@ export async function POST(request: NextRequest) {
       const { PRODUCTS } = await import('@/lib/products');
       const product = PRODUCTS.find(p => p.id === order.product_id);
       if (product && product.image) {
-        // Ensure absolute URL
-        productImage = product.image.startsWith('http') ? product.image : `${process.env.NEXT_PUBLIC_SITE_URL || 'https://v0-database-table-setup-2-gamma.vercel.app'}${product.image}`;
+        // Use xholdi.com domain for absolute URL in emails
+        productImage = product.image.startsWith('http') ? product.image : `https://xholdi.com${product.image}`;
       }
     } catch (error) {
       console.log('[v0] Could not load product image:', error);
