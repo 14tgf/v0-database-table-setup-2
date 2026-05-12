@@ -60,12 +60,6 @@ export default function WithdrawPage() {
 
       const result = await response.json();
       
-      if (response.status === 401) {
-        console.error('[v0] Unauthorized - redirecting to login');
-        window.location.href = '/login';
-        return;
-      }
-      
       if (!response.ok) {
         console.error('[v0] Withdrawal API error:', result);
         alert(`Error: ${result.error || 'Failed to submit withdrawal'}`);

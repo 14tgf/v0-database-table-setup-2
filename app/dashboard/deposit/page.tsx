@@ -80,12 +80,6 @@ export default function DepositPage() {
 
       console.log('[v0] API response status:', response.status);
 
-      if (response.status === 401) {
-        console.error('[v0] Unauthorized - redirecting to login');
-        window.location.href = '/login';
-        return;
-      }
-
       if (!response.ok) {
         const errorData = await response.json();
         console.error('[v0] API error response:', errorData);
