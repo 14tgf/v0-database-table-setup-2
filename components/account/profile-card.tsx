@@ -25,25 +25,30 @@ export function ProfileCard() {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
+        console.log('[v0] Fetching user profile...');
         const response = await fetch('/api/user/profile');
-        if (response.ok) {
-          const data = await response.json();
-          if (data.user) {
-            setProfileData({
-              fullName: data.user.fullName || '',
-              email: data.user.email || '',
-              phoneNumber: data.user.phoneNumber || '',
-              accountId: data.user.id || '',
-              preferredCurrency: data.user.preferredCurrency || 'USD',
-              vipStatus: data.user.vipStatus || 'inactive',
-              vipLevel: data.user.vipLevel || '',
-              kycStatus: data.user.kycStatus || 'not_verified',
-              profileImage: data.user.profileImage || '',
-              createdAt: data.user.createdAt || '',
-            });
-          }
+        console.log('[v0] Profile fetch response status:', response.status);
+        
+        const data = await response.json();
+        console.log('[v0] Profile data received:', data);
+        
+        if (response.ok && data.user) {
+          setProfileData({
+            fullName: data.user.fullName || '',
+            email: data.user.email || '',
+            phoneNumber: data.user.phoneNumber || '',
+            accountId: data.user.id || '',
+            preferredCurrency: data.user.preferredCurrency || 'USD',
+            vipStatus: data.user.vipStatus || 'inactive',
+            vipLevel: data.user.vipLevel || '',
+            kycStatus: data.user.kycStatus || 'not_verified',
+            profileImage: data.user.profileImage || '',
+            createdAt: data.user.createdAt || '',
+          });
+          setError(null);
         } else {
-          setError('Failed to load profile data');
+          console.error('[v0] API response not ok or missing user data:', data);
+          setError(data.error || 'Failed to load profile data');
         }
       } catch (error) {
         console.error('[v0] Failed to fetch user profile:', error);

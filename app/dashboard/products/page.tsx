@@ -351,7 +351,7 @@ export default function ProductsPage() {
       </footer>
 
       {/* Sidebar Menu */}
-      <SidebarMenu isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} userName="Carl" userEmail="cedoe70@gmail.com" />
+      <SidebarMenu isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
     </div>
   )
 }
