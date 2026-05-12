@@ -345,6 +345,48 @@ async function setupDatabase() {
     await sql`CREATE INDEX IF NOT EXISTS idx_orders_created_at ON orders(created_at DESC)`;
     console.log('✅ Orders table created successfully\n');
 
+    // Create deposits table for deposit requests
+    console.log('💵 Creating deposits table...');
+    await sql`
+      CREATE TABLE IF NOT EXISTS deposits (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        method_name VARCHAR(100) NOT NULL,
+        amount NUMERIC(15, 2) NOT NULL,
+        tx_hash VARCHAR(255),
+        proof_upload VARCHAR(500),
+        note TEXT,
+        status VARCHAR(50) DEFAULT 'pending',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `;
+    await sql`CREATE INDEX IF NOT EXISTS idx_deposits_user_id ON deposits(user_id)`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_deposits_status ON deposits(status)`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_deposits_created_at ON deposits(created_at DESC)`;
+    console.log('✅ Deposits table created successfully\n');
+
+    // Create withdrawals table for withdrawal requests
+    console.log('🏦 Creating withdrawals table...');
+    await sql`
+      CREATE TABLE IF NOT EXISTS withdrawals (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        method_name VARCHAR(100) NOT NULL,
+        amount NUMERIC(15, 2) NOT NULL,
+        destination_address VARCHAR(500),
+        destination_bank_details TEXT,
+        note TEXT,
+        status VARCHAR(50) DEFAULT 'pending',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `;
+    await sql`CREATE INDEX IF NOT EXISTS idx_withdrawals_user_id ON withdrawals(user_id)`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_withdrawals_status ON withdrawals(status)`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_withdrawals_created_at ON withdrawals(created_at DESC)`;
+    console.log('✅ Withdrawals table created successfully\n');
+
     // Verify tables were created
     console.log('🔍 Verifying tables...');
     const tables = await sql`
