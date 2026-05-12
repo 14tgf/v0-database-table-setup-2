@@ -4,11 +4,12 @@ import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { ArrowLeft, CheckCircle, AlertCircle } from 'lucide-react';
+import { ArrowLeft, AlertCircle } from 'lucide-react';
 import { PaymentMethodSelector } from '@/components/payments/payment-method-selector';
 import { CryptoForm } from '@/components/payments/crypto-form';
 import { PayPalForm } from '@/components/payments/paypal-form';
 import { GiftCardForm } from '@/components/payments/giftcard-form';
+import { SuccessModal } from '@/components/success-modal';
 import { staggerContainer, staggerItem } from '@/lib/animations';
 
 export default function DepositPage() {
@@ -106,7 +107,7 @@ export default function DepositPage() {
       setTimeout(() => {
         setSubmitted(false);
         setSelectedMethod('crypto');
-      }, 5000);
+      }, 4000);
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Unknown error';
       console.error('[v0] Deposit submission error:', errorMsg);
@@ -140,7 +141,15 @@ export default function DepositPage() {
           animate="visible"
           className="space-y-4"
         >
-          {/* Error Message */}
+        {/* Success Modal */}
+        <SuccessModal
+          isOpen={submitted}
+          title="Deposit Request Received!"
+          message="Your deposit request has been submitted successfully. You'll be notified via email once our team reviews and processes your deposit."
+          onClose={() => setSubmitted(false)}
+        />
+
+        {/* Error Message */}
           {error && (
             <motion.div
               initial={{ opacity: 0, y: -20 }}
@@ -152,22 +161,6 @@ export default function DepositPage() {
               <div>
                 <p className="text-xs font-bold text-red-400">Deposit Submission Failed</p>
                 <p className="text-xs text-red-400/80 mt-1">{error}</p>
-              </div>
-            </motion.div>
-          )}
-
-          {/* Success Message */}
-          {submitted && (
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="p-4 bg-green-400/10 border border-green-400/30 rounded-lg flex items-start gap-3"
-            >
-              <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="text-xs font-bold text-green-400">Deposit Request Submitted</p>
-                <p className="text-xs text-green-400/80 mt-1">Your deposit is pending admin approval. You'll be notified once processed.</p>
               </div>
             </motion.div>
           )}

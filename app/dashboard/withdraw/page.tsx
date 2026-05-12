@@ -3,11 +3,12 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { ArrowLeft, CheckCircle } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { PaymentMethodSelector } from '@/components/payments/payment-method-selector';
 import { CryptoForm } from '@/components/payments/crypto-form';
 import { PayPalForm } from '@/components/payments/paypal-form';
 import { BankForm } from '@/components/payments/bank-form';
+import { SuccessModal } from '@/components/success-modal';
 import { staggerContainer, staggerItem } from '@/lib/animations';
 
 export default function WithdrawPage() {
@@ -77,7 +78,7 @@ export default function WithdrawPage() {
       setTimeout(() => {
         setSubmitted(false);
         setSelectedMethod('crypto');
-      }, 5000);
+      }, 4000);
     } catch (error) {
       console.error('[v0] Withdrawal submission error:', error);
       alert(error instanceof Error ? error.message : 'Failed to submit withdrawal');
@@ -108,21 +109,13 @@ export default function WithdrawPage() {
           animate="visible"
           className="space-y-4"
         >
-          {/* Success Message */}
-          {submitted && (
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="p-4 bg-green-400/10 border border-green-400/30 rounded-lg flex items-start gap-3"
-            >
-              <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="text-xs font-bold text-green-400">Withdrawal Request Submitted</p>
-                <p className="text-xs text-green-400/80 mt-1">Your withdrawal is pending admin approval. You'll be notified once processed.</p>
-              </div>
-            </motion.div>
-          )}
+          {/* Success Modal */}
+          <SuccessModal
+            isOpen={submitted}
+            title="Withdrawal Request Received!"
+            message="Your withdrawal request has been submitted successfully. You'll be notified via email once our team reviews and processes your withdrawal."
+            onClose={() => setSubmitted(false)}
+          />
 
           {/* Method Selector */}
           <motion.div variants={staggerItem}>
