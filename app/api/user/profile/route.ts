@@ -43,13 +43,11 @@ export async function GET(request: NextRequest) {
         id,
         email,
         full_name,
-        username,
-        phone_number,
-        profile_image,
-        preferred_currency,
+        account_type,
+        status,
         wallet_balance,
-        vip_status,
-        vip_level,
+        preferred_currency,
+        verification_status,
         kyc_status,
         created_at,
         updated_at
@@ -77,13 +75,11 @@ export async function GET(request: NextRequest) {
         id: user.id,
         email: user.email,
         fullName: user.full_name,
-        username: user.username,
-        phoneNumber: user.phone_number,
-        profileImage: user.profile_image,
+        accountType: user.account_type,
+        status: user.status,
         preferredCurrency: user.preferred_currency || 'USD',
         walletBalance: user.wallet_balance,
-        vipStatus: user.vip_status,
-        vipLevel: user.vip_level,
+        verificationStatus: user.verification_status,
         kycStatus: user.kyc_status,
         createdAt: user.created_at,
         updatedAt: user.updated_at,
@@ -116,7 +112,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { fullName, phoneNumber, profileImage } = body;
+    const { fullName } = body;
 
     const db = sql();
 
@@ -124,13 +120,11 @@ export async function PUT(request: NextRequest) {
       UPDATE users 
       SET 
         full_name = COALESCE(${fullName || null}, full_name),
-        phone_number = COALESCE(${phoneNumber || null}, phone_number),
-        profile_image = COALESCE(${profileImage || null}, profile_image),
         updated_at = NOW()
       WHERE id = ${userId}
       RETURNING 
-        id, email, full_name, username, phone_number, profile_image, 
-        preferred_currency, wallet_balance, vip_status, vip_level, kyc_status
+        id, email, full_name, account_type, status,
+        preferred_currency, wallet_balance, verification_status, kyc_status
     `;
 
     const resultArray = Array.isArray(result) ? result : (result?.rows || []);
@@ -146,13 +140,11 @@ export async function PUT(request: NextRequest) {
         id: user.id,
         email: user.email,
         fullName: user.full_name,
-        username: user.username,
-        phoneNumber: user.phone_number,
-        profileImage: user.profile_image,
+        accountType: user.account_type,
+        status: user.status,
         preferredCurrency: user.preferred_currency || 'USD',
         walletBalance: user.wallet_balance,
-        vipStatus: user.vip_status,
-        vipLevel: user.vip_level,
+        verificationStatus: user.verification_status,
         kycStatus: user.kyc_status,
       },
     });
