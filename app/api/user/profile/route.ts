@@ -9,9 +9,19 @@ const JWT_SECRET = new TextEncoder().encode(
 // GET user profile with all data
 export async function GET(request: NextRequest) {
   try {
+    // Check if DATABASE_URL is set
+    if (!process.env.DATABASE_URL) {
+      console.error('[v0] DATABASE_URL environment variable is not set');
+      return NextResponse.json(
+        { error: 'Database connection error', details: 'DATABASE_URL not configured' },
+        { status: 500 }
+      );
+    }
+
     const cookie = request.cookies.get('auth_token')?.value;
 
     if (!cookie) {
+      console.log('[v0] No auth token found');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -19,11 +29,14 @@ export async function GET(request: NextRequest) {
     try {
       const { payload } = await jwtVerify(cookie, JWT_SECRET);
       userId = payload.sub as string;
+      console.log('[v0] JWT verified, userId:', userId);
     } catch (error) {
+      console.error('[v0] JWT verification failed:', error);
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 
     const db = sql();
+    console.log('[v0] Fetching user with id:', userId);
     
     const result = await db`
       SELECT 
@@ -45,12 +58,19 @@ export async function GET(request: NextRequest) {
       LIMIT 1
     `;
 
-    const resultArray = Array.isArray(result) ? result : (result?.rows || []);
+    console.log('[v0] Query result:', result);
+    
+    const resultArray = Array.isArray(result) ? result : (result?.rows || result || []);
+    console.log('[v0] Result array:', resultArray);
+    
     if (!resultArray || resultArray.length === 0) {
+      console.error('[v0] User not found for id:', userId);
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     const user = resultArray[0];
+    console.log('[v0] User data:', user);
+    
     return NextResponse.json({
       success: true,
       user: {
@@ -72,7 +92,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('[v0] Profile GET error:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch profile' },
+      { error: 'Failed to fetch profile', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }
