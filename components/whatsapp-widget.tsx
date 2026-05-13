@@ -12,7 +12,7 @@ export function WhatsAppWidget() {
       href={whatsappURL}
       target="_blank"
       rel="noopener noreferrer"
-      className="fixed bottom-8 right-8 z-40 flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-br from-green-400 to-green-600 hover:from-green-500 hover:to-green-700 transition-all duration-300 shadow-lg hover:shadow-2xl hover:scale-110 group"
+      className="fixed bottom-8 right-8 z-50 flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-br from-green-400 to-green-600 hover:from-green-500 hover:to-green-700 transition-all duration-300 shadow-lg hover:shadow-2xl hover:scale-110 group"
       aria-label="Contact us on WhatsApp"
       title="Chat with us on WhatsApp"
     >
