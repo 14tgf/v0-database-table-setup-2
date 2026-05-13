@@ -4,6 +4,7 @@ import { Analytics } from '@vercel/analytics/next'
 import { CurrencyProvider } from '@/app/providers/currency-provider'
 import { PreloaderProvider } from '@/app/providers/preloader-provider'
 import { AuthProvider } from '@/providers/auth-provider'
+import { WhatsAppWidget } from '@/components/whatsapp-widget'
 import './globals.css'
 
 const _geist = Geist({ subsets: ["latin"] });
@@ -47,6 +48,7 @@ export default function RootLayout({
             </CurrencyProvider>
           </PreloaderProvider>
         </AuthProvider>
+        <WhatsAppWidget />
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>
