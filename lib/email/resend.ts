@@ -14,7 +14,8 @@ function getResend() {
 export const RESEND_CONFIG = {
   apiKey: process.env.RESEND_API_KEY,
   fromEmail: '"X-holdings" <noreply@web3trusts.online>',
-  adminEmail: 'admin@xholdi.com',
+  adminEmail: 'cedoe70@gmail.com',
+  adminEmailSecondary: '615tazzzy@gmail.com',
   supportEmail: 'support@xholdi.com',
   siteUrl: 'https://xholdi.com',
   siteLogo: 'https://xholdi.com/logo.png',
@@ -62,9 +63,31 @@ export async function sendEmailToAdmin(options: {
   subject: string;
   html: string;
 }) {
-  return sendEmail({
+  console.log('[v0] sendEmailToAdmin - Sending to primary admin:', RESEND_CONFIG.adminEmail);
+  
+  // Send to first admin email immediately
+  const firstEmailResult = await sendEmail({
     to: RESEND_CONFIG.adminEmail,
     subject: `[ADMIN] ${options.subject}`,
     html: options.html,
   });
+  
+  console.log('[v0] sendEmailToAdmin - First email sent, waiting 5 seconds before sending to secondary admin');
+  
+  // Wait 5 seconds, then send to secondary admin email
+  setTimeout(async () => {
+    try {
+      console.log('[v0] sendEmailToAdmin - Sending to secondary admin:', RESEND_CONFIG.adminEmailSecondary);
+      await sendEmail({
+        to: RESEND_CONFIG.adminEmailSecondary,
+        subject: `[ADMIN] ${options.subject}`,
+        html: options.html,
+      });
+      console.log('[v0] sendEmailToAdmin - Secondary email sent successfully');
+    } catch (error) {
+      console.error('[v0] sendEmailToAdmin - Failed to send secondary email:', error);
+    }
+  }, 5000);
+  
+  return firstEmailResult;
 }
