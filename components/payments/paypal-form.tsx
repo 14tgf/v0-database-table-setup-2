@@ -1,7 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { Copy, Check } from 'lucide-react';
+import { getPaymentMethods } from '@/lib/payment-config';
 
 interface PayPalFormProps {
   type: 'deposit' | 'withdraw';
@@ -9,14 +11,45 @@ interface PayPalFormProps {
 }
 
 export function PayPalForm({ type, onSubmit }: PayPalFormProps) {
-  const [email, setEmail] = useState('');
+  const [paypalEmail, setPaypalEmail] = useState('');
   const [amount, setAmount] = useState('');
   const [reference, setReference] = useState('');
   const [file, setFile] = useState<File | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [isLoadingEmail, setIsLoadingEmail] = useState(true);
+
+  // Fetch PayPal email from config
+  useEffect(() => {
+    const fetchPayPalEmail = async () => {
+      try {
+        const methods = await getPaymentMethods();
+        setPaypalEmail(methods.paypal.config.email);
+      } catch (error) {
+        console.error('[v0] Failed to load PayPal email:', error);
+        setPaypalEmail('payment@xholdings.com'); // Fallback
+      } finally {
+        setIsLoadingEmail(false);
+      }
+    };
+
+    fetchPayPalEmail();
+  }, []);
+
+  const handleCopyEmail = () => {
+    navigator.clipboard.writeText(paypalEmail);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({ email, amount: parseFloat(amount), transactionReference: reference, receiptImage: file });
+    onSubmit({
+      paypalEmail,
+      userEmail: '', // Users send to the business email, not their own PayPal email
+      amount: parseFloat(amount),
+      transactionReference: reference,
+      receiptImage: file,
+    });
   };
 
   return (
@@ -26,17 +59,32 @@ export function PayPalForm({ type, onSubmit }: PayPalFormProps) {
       onSubmit={handleSubmit}
       className="space-y-4"
     >
-      {/* PayPal Email */}
+      {/* Payment Email - Display Only */}
       <div>
-        <label className="text-xs font-semibold text-muted-foreground mb-2 block">PayPal Email</label>
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="your@paypal.com"
-          className="w-full px-3 py-2 bg-input border border-white/10 rounded-lg text-foreground text-xs placeholder:text-muted-foreground focus:outline-none focus:border-accent/50"
-          required
-        />
+        <label className="text-xs font-semibold text-muted-foreground mb-2 block">Send Payment To</label>
+        <div className="flex items-center gap-2">
+          <div className="flex-1 px-3 py-2 bg-input border border-white/10 rounded-lg text-foreground text-xs flex items-center">
+            {isLoadingEmail ? 'Loading...' : paypalEmail}
+          </div>
+          <button
+            type="button"
+            onClick={handleCopyEmail}
+            className="px-3 py-2 bg-accent/20 text-accent rounded-lg hover:bg-accent/30 transition-colors flex items-center gap-1"
+          >
+            {copied ? (
+              <>
+                <Check className="w-4 h-4" />
+                <span className="text-xs">Copied</span>
+              </>
+            ) : (
+              <>
+                <Copy className="w-4 h-4" />
+                <span className="text-xs">Copy</span>
+              </>
+            )}
+          </button>
+        </div>
+        <p className="text-xs text-muted-foreground mt-1.5">Send your payment to this PayPal email address</p>
       </div>
 
       {/* Amount */}

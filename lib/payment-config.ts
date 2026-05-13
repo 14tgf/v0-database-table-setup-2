@@ -50,7 +50,7 @@ export const DEFAULT_PAYMENT_CONFIG: PaymentMethodsData = {
     type: 'paypal',
     status: 'active',
     config: {
-      email: 'business@xholding.com',
+      email: 'payment@xholdings.com',
     },
     updated_at: new Date().toISOString(),
   },
