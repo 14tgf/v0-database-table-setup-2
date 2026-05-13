@@ -44,13 +44,18 @@ export function useWallet() {
       revalidateOnFocus: true,
       revalidateOnReconnect: true,
       dedupingInterval: 0,
-      focusThrottleInterval: 30000,
+      focusThrottleInterval: 0,
+      compare: (a, b) => {
+        // Always consider data as different to force re-render on mutate calls
+        return a === b;
+      },
     }
   );
 
   const refreshWallet = async () => {
-    console.log('[v0] refreshWallet - Called, forcing revalidation');
-    return await mutate(undefined, { revalidate: true });
+    console.log('[v0] refreshWallet - Called, forcing fresh fetch with dedupingInterval: 0');
+    // Force a complete revalidation by clearing the cache
+    return await mutate(undefined, { revalidate: true, populateCache: true });
   };
 
   return {
