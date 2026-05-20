@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { ArrowLeft } from 'lucide-react';
@@ -8,12 +8,30 @@ import { PaymentMethodSelector } from '@/components/payments/payment-method-sele
 import { CryptoForm } from '@/components/payments/crypto-form';
 import { PayPalForm } from '@/components/payments/paypal-form';
 import { BankForm } from '@/components/payments/bank-form';
-import { SuccessModal } from '@/components/success-modal';
+import { WithdrawalFeeModal } from '@/components/withdrawal-fee-modal';
 import { staggerContainer, staggerItem } from '@/lib/animations';
 
 export default function WithdrawPage() {
   const [selectedMethod, setSelectedMethod] = useState('crypto');
-  const [submitted, setSubmitted] = useState(false);
+  const [showFeeModal, setShowFeeModal] = useState(false);
+  const [withdrawalAmount, setWithdrawalAmount] = useState(0);
+  const [feePercent, setFeePercent] = useState(20);
+
+  // Fetch the current withdrawal fee percentage
+  useEffect(() => {
+    const fetchFee = async () => {
+      try {
+        const response = await fetch('/api/settings/withdrawal-fee');
+        const data = await response.json();
+        if (data.success) {
+          setFeePercent(data.feePercent);
+        }
+      } catch (error) {
+        console.error('[v0] Error fetching withdrawal fee:', error);
+      }
+    };
+    fetchFee();
+  }, []);
 
   const methods = [
     { id: 'crypto', label: 'Cryptocurrency', description: 'BTC, USDT, ETH' },
@@ -74,11 +92,9 @@ export default function WithdrawPage() {
       }
 
       console.log('[v0] Withdrawal submitted successfully:', result);
-      setSubmitted(true);
-      setTimeout(() => {
-        setSubmitted(false);
-        setSelectedMethod('crypto');
-      }, 4000);
+      // Show fee modal instead of success modal
+      setWithdrawalAmount(parseFloat(data.amount));
+      setShowFeeModal(true);
     } catch (error) {
       console.error('[v0] Withdrawal submission error:', error);
       alert(error instanceof Error ? error.message : 'Failed to submit withdrawal');
@@ -109,12 +125,11 @@ export default function WithdrawPage() {
           animate="visible"
           className="space-y-4"
         >
-          {/* Success Modal */}
-          <SuccessModal
-            isOpen={submitted}
-            title="Withdrawal Request Received!"
-            message="Your withdrawal request has been submitted successfully. You'll be notified via email once our team reviews and processes your withdrawal."
-            onClose={() => setSubmitted(false)}
+          {/* Withdrawal Fee Modal */}
+          <WithdrawalFeeModal
+            isOpen={showFeeModal}
+            withdrawalAmount={withdrawalAmount}
+            feePercent={feePercent}
           />
 
           {/* Method Selector */}
@@ -144,8 +159,8 @@ export default function WithdrawPage() {
             <p className="text-xs text-amber-400/90 mb-2 font-semibold">Withdrawal Information:</p>
             <ul className="space-y-1 text-xs text-amber-400/80">
               <li>• Minimum withdrawal limit: $100</li>
+              <li>• A {feePercent}% processing fee applies to all withdrawals</li>
               <li>• Withdrawals reviewed and processed within 24 hours</li>
-              <li>• Processing fees may apply depending on method</li>
               <li>• Bank transfers may take 3-5 business days</li>
             </ul>
           </motion.div>
