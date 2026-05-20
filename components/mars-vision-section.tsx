@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { Play, Pause, Volume2, VolumeX, Maximize } from 'lucide-react';
 
@@ -9,6 +9,30 @@ export function MarsVisionSection() {
   const [isMuted, setIsMuted] = useState(true);
   const [showVideo, setShowVideo] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const sectionRef = useRef<HTMLElement>(null);
+
+  // Auto-play when scrolled into view, pause when out of view
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!videoRef.current) return;
+          if (entry.isIntersecting && entry.intersectionRatio >= 0.4) {
+            setShowVideo(true);
+            videoRef.current.play().catch(() => {});
+            setIsPlaying(true);
+          } else {
+            videoRef.current.pause();
+            setIsPlaying(false);
+          }
+        });
+      },
+      { threshold: 0.4 }
+    );
+
+    if (sectionRef.current) observer.observe(sectionRef.current);
+    return () => observer.disconnect();
+  }, []);
 
   const handlePlayPause = () => {
     if (!videoRef.current) return;
@@ -42,7 +66,7 @@ export function MarsVisionSection() {
   };
 
   return (
-    <section className="relative w-full mt-16 mb-8 overflow-hidden rounded-2xl border border-white/10">
+    <section ref={sectionRef} className="relative w-full mt-16 mb-8 overflow-hidden rounded-2xl border border-white/10">
       {/* Background: Mars image */}
       <div className="absolute inset-0 -z-0">
         <Image
