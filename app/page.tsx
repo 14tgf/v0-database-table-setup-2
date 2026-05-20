@@ -9,6 +9,7 @@ import { MarketSection } from '@/components/market/market-section'
 import { MarketMoversSection } from '@/components/market/market-movers-section'
 import { MarketNewsSection } from '@/components/market/market-news-section'
 import { InventorySection } from '@/components/inventory/inventory-section'
+import { MarsVisionSection } from '@/components/mars-vision-section'
 import { TestimonialsSection } from '@/components/testimonials/testimonials-section'
 import { PremiumCtaSection } from '@/components/premium-cta-section'
 import { PremiumFooter } from '@/components/premium-footer'
@@ -277,6 +278,9 @@ export default function Home() {
 
           {/* Inventory Section */}
           <InventorySection />
+
+          {/* Mars Vision & SpaceX Video Section */}
+          <MarsVisionSection />
 
           {/* Testimonials Section */}
           <TestimonialsSection />
