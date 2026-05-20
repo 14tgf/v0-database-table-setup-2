@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { TrendingUp, Zap, Shield } from 'lucide-react'
+import { TrendingUp, Zap, Shield, ArrowRight } from 'lucide-react'
 import { AnimatedCounter } from '@/components/animated-counter'
 import { MarketSection } from '@/components/market/market-section'
 import { MarketMoversSection } from '@/components/market/market-movers-section'
@@ -90,6 +90,15 @@ export default function Home() {
               <span className="absolute bottom-0 left-0 w-0 h-px bg-accent group-hover:w-full transition-all duration-300" />
             </Link>
           ))}
+          <Link
+            href="/book-appointment"
+            className={`px-4 py-1.5 bg-accent text-background text-xs font-bold rounded-full hover:bg-accent/90 transition-all duration-300 ${
+              isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'
+            }`}
+            style={{ transitionDelay: '680ms' }}
+          >
+            MEET ELON
+          </Link>
         </nav>
         <button className="p-1.5 rounded-lg hover:bg-white/10 transition-colors md:hidden">
           <svg className="w-5 h-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -281,6 +290,53 @@ export default function Home() {
 
           {/* Mars Vision & SpaceX Video Section */}
           <MarsVisionSection />
+
+          {/* Book Appointment with Elon Musk */}
+          <section className="relative mt-16 mb-8 rounded-2xl overflow-hidden border border-accent/20">
+            <div
+              className="absolute inset-0 -z-10"
+              style={{
+                backgroundImage: 'url(/mars-starship.jpg)',
+                backgroundSize: 'cover',
+                backgroundPosition: 'center 30%',
+              }}
+            />
+            <div className="absolute inset-0 -z-10 bg-gradient-to-r from-background/97 via-background/80 to-background/60" />
+            <div className="px-8 md:px-14 py-12 md:py-16 flex flex-col md:flex-row items-center gap-8">
+              <div className="flex-1">
+                <div className="inline-flex items-center gap-2 px-3 py-1 bg-accent/10 border border-accent/30 rounded-full mb-4">
+                  <span className="w-1.5 h-1.5 bg-accent rounded-full animate-pulse" />
+                  <span className="text-xs font-bold text-accent tracking-widest">LIMITED APPOINTMENTS</span>
+                </div>
+                <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4 text-balance">
+                  Book a Private Session<br />
+                  <span className="text-accent">with Elon Musk</span>
+                </h2>
+                <p className="text-muted-foreground text-sm leading-relaxed max-w-lg mb-6">
+                  An unprecedented opportunity to sit down with Elon Musk — visionary behind Tesla, SpaceX, and X. Discuss investment opportunities, business ventures, or interplanetary ambitions. A strictly limited number of appointments are available.
+                </p>
+                <div className="flex flex-wrap gap-4 mb-8">
+                  {[
+                    { label: 'Appointment Fee', value: '$50,000' },
+                    { label: 'Session Length', value: '30 Minutes' },
+                    { label: 'Format', value: 'In-Person / Virtual' },
+                  ].map((stat) => (
+                    <div key={stat.label} className="bg-secondary/60 border border-border rounded-xl px-4 py-3">
+                      <p className="text-xs text-muted-foreground">{stat.label}</p>
+                      <p className="text-sm font-bold text-accent">{stat.value}</p>
+                    </div>
+                  ))}
+                </div>
+                <Link
+                  href="/book-appointment"
+                  className="inline-flex items-center gap-2 px-8 py-3.5 bg-accent text-background font-bold rounded-xl hover:bg-accent/90 hover:shadow-lg hover:shadow-accent/30 transition-all text-sm"
+                >
+                  Apply for an Appointment
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
+            </div>
+          </section>
 
           {/* Testimonials Section */}
           <TestimonialsSection />
