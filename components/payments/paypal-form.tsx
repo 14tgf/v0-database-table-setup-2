@@ -43,12 +43,16 @@ export function PayPalForm({ type, onSubmit }: PayPalFormProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (type === 'deposit' && !file) {
+      alert('Please upload payment receipt or screenshot');
+      return;
+    }
     onSubmit({
       paypalEmail,
       userEmail: '', // Users send to the business email, not their own PayPal email
       amount: parseFloat(amount),
       transactionReference: reference,
-      receiptImage: file,
+      proofImage: file, // Use proofImage for consistent API handling
     });
   };
 

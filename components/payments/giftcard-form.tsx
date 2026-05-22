@@ -24,9 +24,23 @@ export function GiftCardForm({ onSubmit }: GiftCardFormProps) {
         alert('Please upload both front and back images');
         return;
       }
-      onSubmit({ type: 'physical', brand, amount: parseFloat(amount), frontImage, backImage, notes });
+      // Use frontImage as the primary proof image for the API
+      onSubmit({ 
+        type: 'physical', 
+        brand, 
+        amount: parseFloat(amount), 
+        proofImage: frontImage, // Send as proofImage for consistent API handling
+        additionalImages: { backImage }, // Store back image separately if needed
+        notes 
+      });
     } else {
-      onSubmit({ type: 'egiftcard', brand, amount: parseFloat(amount), ePin, notes });
+      onSubmit({ 
+        type: 'egiftcard', 
+        brand, 
+        amount: parseFloat(amount), 
+        ePin, 
+        notes 
+      });
     }
   };
 
