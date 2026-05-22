@@ -78,7 +78,7 @@ export default function AdminWithdrawalsPage() {
       const response = await fetch('/api/admin/withdrawals/approve', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ withdrawal_id: withdrawalId, action: 'approve' }),
+        body: JSON.stringify({ withdrawal_id: withdrawalId, action: 'approve', userId: 'admin' }),
       });
 
       const data = await response.json();
@@ -104,7 +104,7 @@ export default function AdminWithdrawalsPage() {
       const response = await fetch('/api/admin/withdrawals/approve', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ withdrawal_id: withdrawalId, action: 'reject' }),
+        body: JSON.stringify({ withdrawal_id: withdrawalId, action: 'reject', userId: 'admin' }),
       });
 
       const data = await response.json();
