@@ -15,7 +15,6 @@ export function CryptoForm({ type, onSubmit, autoAmount }: CryptoFormProps) {
   const [selected, setSelected] = useState<CryptoType>('BTC');
   const [amount, setAmount] = useState(autoAmount ? String(autoAmount) : '');
   const [walletAddress, setWalletAddress] = useState('');
-  const [selectedNetwork, setSelectedNetwork] = useState('');
   const [network, setNetwork] = useState('mainnet');
   const [file, setFile] = useState<File | null>(null);
   const [copied, setCopied] = useState(false);
@@ -38,7 +37,6 @@ export function CryptoForm({ type, onSubmit, autoAmount }: CryptoFormProps) {
         });
 
         if (!response.ok) {
-          const errorData = await response.json();
           setError('Unable to load payment methods');
           return;
         }
@@ -46,11 +44,10 @@ export function CryptoForm({ type, onSubmit, autoAmount }: CryptoFormProps) {
         const result = await response.json();
         if (result.success && result.data?.crypto) {
           setPaymentMethods(result.data.crypto);
-          // Set first available address as default
-          const addresses = (result.data.crypto.config as any)?.addresses || [];
-          if (addresses.length > 0) {
-            setWalletAddress(addresses[0].address);
-            setSelectedNetwork(addresses[0].network);
+          // Set first available address
+          const config = result.data.crypto.config as any;
+          if (config.btc_address) {
+            setWalletAddress(config.btc_address);
           }
         } else {
           setError('Invalid payment data format');
@@ -67,15 +64,22 @@ export function CryptoForm({ type, onSubmit, autoAmount }: CryptoFormProps) {
     }
   }, [type]);
 
-  // Get available networks for display
-  const getAvailableNetworks = () => {
-    if (!paymentMethods?.config?.addresses) return [];
-    return (paymentMethods.config as any).addresses || [];
+  // Get address and network for selected crypto
+  const getAddressAndNetwork = () => {
+    if (!paymentMethods?.config) return { address: '', network: '' };
+    
+    const config = paymentMethods.config as any;
+    if (selected === 'BTC') {
+      return { address: config.btc_address || '', network: config.btc_network || 'BTC' };
+    } else if (selected === 'ETH') {
+      return { address: config.eth_address || '', network: config.eth_network || 'ETH' };
+    } else if (selected === 'USDT') {
+      return { address: config.usdt_erc20 || '', network: config.usdt_erc20_network || 'USDT ERC-20' };
+    }
+    return { address: '', network: '' };
   };
 
-  const availableNetworks = getAvailableNetworks();
-  const displayAddress = walletAddress;
-  const displayNetwork = selectedNetwork;
+  const { address: displayAddress, network: displayNetwork } = getAddressAndNetwork();
 
   const handleCopy = () => {
     if (displayAddress) {
@@ -83,11 +87,6 @@ export function CryptoForm({ type, onSubmit, autoAmount }: CryptoFormProps) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
-  };
-
-  const handleNetworkSelect = (address: string, network: string) => {
-    setWalletAddress(address);
-    setSelectedNetwork(network);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -104,14 +103,7 @@ export function CryptoForm({ type, onSubmit, autoAmount }: CryptoFormProps) {
       alert('Please provide destination wallet address');
       return;
     }
-    onSubmit({ 
-      cryptoType: selected, 
-      amount: parseFloat(amount), 
-      walletAddress, 
-      network,
-      selectedNetwork,
-      proofImage: file 
-    });
+    onSubmit({ cryptoType: selected, amount: parseFloat(amount), walletAddress, network, proofImage: file });
   };
 
   return (
@@ -169,7 +161,6 @@ export function CryptoForm({ type, onSubmit, autoAmount }: CryptoFormProps) {
           className={`w-full px-3 py-2 bg-input border border-white/10 rounded-lg text-foreground text-xs placeholder:text-muted-foreground focus:outline-none focus:border-accent/50 ${autoAmount ? 'opacity-60 cursor-not-allowed' : ''}`}
           required
         />
-        {autoAmount && <p className="text-xs text-muted-foreground mt-1">Amount auto-filled from product price</p>}
       </div>
 
       {type === 'deposit' && (
@@ -192,31 +183,10 @@ export function CryptoForm({ type, onSubmit, autoAmount }: CryptoFormProps) {
             </div>
           )}
 
-          {/* Network Selection */}
-          {!loading && !error && availableNetworks.length > 0 && (
-            <div>
-              <label className="text-xs font-semibold text-muted-foreground mb-2 block">Select Payment Network</label>
-              <div className="grid gap-2">
-                {availableNetworks.map((net) => (
-                  <button
-                    key={net.id || net.network}
-                    type="button"
-                    onClick={() => handleNetworkSelect(net.address, net.network)}
-                    className={`p-3 rounded-lg border-2 transition-all text-left ${
-                      displayAddress === net.address
-                        ? 'border-accent bg-accent/10'
-                        : 'border-white/10 bg-white/5 hover:border-accent/50'
-                    }`}
-                  >
-                    <p className={`text-xs font-semibold ${displayAddress === net.address ? 'text-accent' : 'text-foreground'}`}>
-                      {net.network}
-                    </p>
-                    <code className={`text-xs font-mono truncate block mt-1 ${displayAddress === net.address ? 'text-accent/80' : 'text-white/60'}`}>
-                      {net.address}
-                    </code>
-                  </button>
-                ))}
-              </div>
+          {/* Network Badge */}
+          {!loading && !error && displayNetwork && (
+            <div className="mb-2 px-2 py-1 bg-accent/10 border border-accent/30 rounded inline-block">
+              <p className="text-xs text-accent font-semibold">{displayNetwork}</p>
             </div>
           )}
 
@@ -230,7 +200,7 @@ export function CryptoForm({ type, onSubmit, autoAmount }: CryptoFormProps) {
                   type="button"
                   onClick={handleCopy}
                   disabled={!displayAddress}
-                  className="p-1.5 hover:bg-accent/20 rounded transition-colors flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="p-1.5 hover:bg-accent/20 rounded transition-colors flex-shrink-0 disabled:opacity-50"
                 >
                   {copied ? (
                     <CheckCircle className="w-4 h-4 text-green-400" />

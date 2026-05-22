@@ -1,14 +1,15 @@
 // Payment configuration types and defaults
 // This will eventually be replaced with database calls
 
-export interface CryptoAddress {
-  id?: string;
-  address: string;
-  network: string;
-}
-
 export interface CryptoConfig {
-  addresses: CryptoAddress[];
+  btc_address: string;
+  btc_network?: string;
+  eth_address: string;
+  eth_network?: string;
+  usdt_trc20: string;
+  usdt_trc20_network?: string;
+  usdt_erc20: string;
+  usdt_erc20_network?: string;
 }
 
 export interface PayPalConfig {
@@ -42,12 +43,14 @@ export const DEFAULT_PAYMENT_CONFIG: PaymentMethodsData = {
     type: 'crypto',
     status: 'active',
     config: {
-      addresses: [
-        { id: '1', address: '1A1z7agoat5dVvS4VKQwVAjkPHDMxLB1xh', network: 'BTC' },
-        { id: '2', address: '0x742d35Cc6634C0532925a3b844Bc96e6E6f2d2c5', network: 'ETH' },
-        { id: '3', address: '0x742d35Cc6634C0532925a3b844Bc96e6E6f2d2c5', network: 'USDT ERC-20' },
-        { id: '4', address: 'TQn9jFiarHd1mwf3vqyJ1n7wHBYkQVcVj7', network: 'USDT TRC-20' },
-      ],
+      btc_address: '1A1z7agoat5dVvS4VKQwVAjkPHDMxLB1xh',
+      btc_network: 'BTC',
+      eth_address: '0x742d35Cc6634C0532925a3b844Bc96e6E6f2d2c5',
+      eth_network: 'ETH',
+      usdt_trc20: 'TQn9jFiarHd1mwf3vqyJ1n7wHBYkQVcVj7',
+      usdt_trc20_network: 'USDT TRC-20',
+      usdt_erc20: '0x742d35Cc6634C0532925a3b844Bc96e6E6f2d2c5',
+      usdt_erc20_network: 'USDT ERC-20',
     },
     updated_at: new Date().toISOString(),
   },
