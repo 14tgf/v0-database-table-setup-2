@@ -85,33 +85,44 @@ export interface UploadImageResult {
 export async function uploadImageToSupabase(options: UploadImageOptions): Promise<UploadImageResult> {
   const { bucket, file, userId, maxSizeMB = 5 } = options;
 
+  console.log('[v0] === SUPABASE UPLOAD FUNCTION STARTED ===');
+  console.log('[v0] SUPABASE UPLOAD - Options:', { bucket, userId, maxSizeMB });
+
   try {
     // Validate file type
+    console.log('[v0] SUPABASE UPLOAD - Validating file type:', file.type);
     if (!file.type.startsWith('image/')) {
+      console.error('[v0] SUPABASE UPLOAD - Invalid file type:', file.type);
       return {
         success: false,
         error: 'Only image files are allowed',
       };
     }
+    console.log('[v0] SUPABASE UPLOAD - File type is valid');
 
     // Validate file size
+    console.log('[v0] SUPABASE UPLOAD - Validating file size:', file.size, 'bytes');
     const MAX_SIZE = maxSizeMB * 1024 * 1024;
     if (file.size > MAX_SIZE) {
+      console.error('[v0] SUPABASE UPLOAD - File too large:', file.size, '>', MAX_SIZE);
       return {
         success: false,
         error: `File too large. Maximum size is ${maxSizeMB}MB`,
       };
     }
+    console.log('[v0] SUPABASE UPLOAD - File size is valid');
 
     // Ensure bucket exists before uploading
     console.log(`[v0] SUPABASE UPLOAD - Ensuring bucket '${bucket}' exists...`);
     const bucketReady = await ensureBucketExists(bucket);
     if (!bucketReady) {
+      console.error(`[v0] SUPABASE UPLOAD - Failed to prepare bucket '${bucket}'`);
       return {
         success: false,
         error: `Failed to prepare storage bucket: ${bucket}`,
       };
     }
+    console.log(`[v0] SUPABASE UPLOAD - Bucket '${bucket}' is ready`);
 
     // Create unique filename with timestamp
     const timestamp = Date.now();
@@ -119,30 +130,42 @@ export async function uploadImageToSupabase(options: UploadImageOptions): Promis
     const extension = file.name.split('.').pop() || 'jpg';
     const filename = `${userId}/${timestamp}-${random}.${extension}`;
 
-    console.log('[v0] SUPABASE UPLOAD - Uploading to bucket:', bucket, 'filename:', filename);
+    console.log('[v0] SUPABASE UPLOAD - Generated filename:', filename);
+    console.log('[v0] SUPABASE UPLOAD - Uploading to bucket:', bucket);
 
     // Upload file to Supabase Storage
+    console.log('[v0] SUPABASE UPLOAD - Calling supabase.storage.from().upload()...');
     const { data, error } = await supabase.storage.from(bucket).upload(filename, file, {
       cacheControl: '3600',
       upsert: false,
     });
 
+    console.log('[v0] SUPABASE UPLOAD - Upload response - data:', data, 'error:', error);
+
     if (error) {
-      console.error('[v0] SUPABASE UPLOAD - Upload error:', error);
+      console.error('[v0] SUPABASE UPLOAD - Upload error object:', error);
+      console.error('[v0] SUPABASE UPLOAD - Error message:', error.message);
+      console.error('[v0] SUPABASE UPLOAD - Error details:', error);
       return {
         success: false,
         error: `Upload failed: ${error.message}`,
       };
     }
 
+    console.log('[v0] SUPABASE UPLOAD - Upload successful, data:', data);
+
     // Generate public URL
+    console.log('[v0] SUPABASE UPLOAD - Generating public URL for path:', data.path);
     const { data: publicData } = supabase.storage.from(bucket).getPublicUrl(data.path);
 
+    console.log('[v0] SUPABASE UPLOAD - Public URL generated:', publicData.publicUrl);
     console.log('[v0] SUPABASE UPLOAD - Successfully uploaded:', {
       bucket,
       path: data.path,
       url: publicData.publicUrl,
     });
+
+    console.log('[v0] === SUPABASE UPLOAD FUNCTION COMPLETED SUCCESSFULLY ===');
 
     return {
       success: true,
@@ -150,7 +173,11 @@ export async function uploadImageToSupabase(options: UploadImageOptions): Promis
     };
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-    console.error('[v0] SUPABASE UPLOAD - Error:', errorMsg);
+    const errorStack = error instanceof Error ? error.stack : '';
+    console.error('[v0] === SUPABASE UPLOAD FUNCTION ERROR ===');
+    console.error('[v0] SUPABASE UPLOAD - Error message:', errorMsg);
+    console.error('[v0] SUPABASE UPLOAD - Error stack:', errorStack);
+    console.error('[v0] SUPABASE UPLOAD - Full error object:', error);
     return {
       success: false,
       error: `Failed to upload image: ${errorMsg}`,

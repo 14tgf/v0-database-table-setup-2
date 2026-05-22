@@ -25,38 +25,76 @@ export default function DepositPage() {
   ];
 
   const handleSubmit = async (data: any) => {
-    console.log('[v0] Deposit submission started:', data);
+    console.log('[v0] ====== DEPOSIT SUBMISSION STARTED ======');
+    console.log('[v0] Form data received:', data);
+    console.log('[v0] Selected payment method:', selectedMethod);
     setIsSubmitting(true);
     setError(null);
 
     try {
       // Validate amount
       const amount = data?.amount;
+      console.log('[v0] Validating amount:', amount);
       if (!amount || amount <= 0) {
-        throw new Error('Please enter a valid deposit amount');
+        const amountError = 'Please enter a valid deposit amount';
+        console.error('[v0] Amount validation failed:', amountError);
+        throw new Error(amountError);
       }
+      console.log('[v0] Amount validation passed');
 
       let proofUrl = null;
 
       // Upload proof file if provided
       if (data.proofImage) {
-        console.log('[v0] Uploading proof image...');
+        console.log('[v0] === STARTING PROOF IMAGE UPLOAD ===');
+        console.log('[v0] File info:', {
+          name: data.proofImage.name,
+          size: data.proofImage.size,
+          type: data.proofImage.type,
+        });
+
         const formData = new FormData();
         formData.append('file', data.proofImage);
 
+        console.log('[v0] Sending upload request to /api/upload/deposit-proof...');
         const uploadResponse = await fetch('/api/upload/deposit-proof', {
           method: 'POST',
           body: formData,
         });
 
+        console.log('[v0] Upload response status:', uploadResponse.status);
+        console.log('[v0] Upload response headers:', {
+          contentType: uploadResponse.headers.get('content-type'),
+        });
+
         if (!uploadResponse.ok) {
-          const uploadError = await uploadResponse.json();
+          console.error('[v0] Upload response not OK');
+          let uploadError;
+          try {
+            uploadError = await uploadResponse.json();
+            console.error('[v0] Upload error response:', uploadError);
+          } catch (parseError) {
+            const errorText = await uploadResponse.text();
+            console.error('[v0] Failed to parse error response:', errorText);
+            uploadError = { error: errorText || 'Unknown upload error' };
+          }
           throw new Error(`Failed to upload proof: ${uploadError.error}`);
         }
 
-        const uploadResult = await uploadResponse.json();
+        let uploadResult;
+        try {
+          uploadResult = await uploadResponse.json();
+          console.log('[v0] Upload result:', uploadResult);
+        } catch (parseError) {
+          console.error('[v0] Failed to parse upload success response:', parseError);
+          throw new Error('Failed to parse upload response');
+        }
+
         proofUrl = uploadResult.url;
         console.log('[v0] Proof uploaded successfully:', proofUrl);
+        console.log('[v0] === PROOF IMAGE UPLOAD COMPLETE ===');
+      } else {
+        console.log('[v0] No proof image provided');
       }
 
       // Determine method name and prepare payload
@@ -75,6 +113,7 @@ export default function DepositPage() {
         };
       } else if (selectedMethod === 'paypal') {
         methodName = 'paypal';
+        console.log('[v0] PayPal deposit - Amount:', amount);
         payload = {
           method_name: methodName,
           amount: amount,
@@ -84,6 +123,7 @@ export default function DepositPage() {
         };
       } else if (selectedMethod === 'giftcard') {
         methodName = 'giftcard';
+        console.log('[v0] Gift card deposit - Amount:', amount);
         payload = {
           method_name: methodName,
           amount: amount,
@@ -93,7 +133,8 @@ export default function DepositPage() {
         };
       }
 
-      console.log('[v0] Calling deposit API with payload:', payload);
+      console.log('[v0] === CALLING DEPOSIT API ===');
+      console.log('[v0] Payload:', JSON.stringify(payload, null, 2));
 
       const response = await fetch('/api/deposits/create', {
         method: 'POST',
@@ -102,7 +143,10 @@ export default function DepositPage() {
         body: JSON.stringify(payload),
       });
 
-      console.log('[v0] API response status:', response.status);
+      console.log('[v0] Deposit API response status:', response.status);
+      console.log('[v0] Response headers:', {
+        contentType: response.headers.get('content-type'),
+      });
 
       if (response.status === 401) {
         console.error('[v0] Unauthorized - redirecting to login');
@@ -111,15 +155,23 @@ export default function DepositPage() {
       }
 
       if (!response.ok) {
-        const errorData = await response.json();
-        console.error('[v0] API error response:', errorData);
-        console.error('[v0] API error details:', errorData.details);
-        
+        console.error('[v0] Deposit API response not OK');
+        let errorData;
+        try {
+          errorData = await response.json();
+          console.error('[v0] Deposit API error response:', errorData);
+          console.error('[v0] Error details:', errorData.details);
+        } catch (parseError) {
+          const errorText = await response.text();
+          console.error('[v0] Failed to parse error response:', errorText);
+          errorData = { error: errorText || 'Unknown error' };
+        }
+
         // Display detailed error if available
-        const detailedError = errorData.details 
+        const detailedError = errorData.details
           ? `${errorData.error}\n\nDetails: ${JSON.stringify(errorData.details, null, 2)}`
           : errorData.error;
-        
+
         throw new Error(detailedError || 'Failed to submit deposit');
       }
 
