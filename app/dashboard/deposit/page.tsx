@@ -36,6 +36,29 @@ export default function DepositPage() {
         throw new Error('Please enter a valid deposit amount');
       }
 
+      let proofUrl = null;
+
+      // Upload proof file if provided
+      if (data.proofImage) {
+        console.log('[v0] Uploading proof image...');
+        const formData = new FormData();
+        formData.append('file', data.proofImage);
+
+        const uploadResponse = await fetch('/api/upload/deposit-proof', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!uploadResponse.ok) {
+          const uploadError = await uploadResponse.json();
+          throw new Error(`Failed to upload proof: ${uploadError.error}`);
+        }
+
+        const uploadResult = await uploadResponse.json();
+        proofUrl = uploadResult.url;
+        console.log('[v0] Proof uploaded successfully:', proofUrl);
+      }
+
       // Determine method name and prepare payload
       let methodName = '';
       let payload: any = {};
@@ -47,7 +70,7 @@ export default function DepositPage() {
           method_name: methodName,
           amount: amount,
           tx_hash: null,
-          proof_upload: null,
+          proof_upload: proofUrl,
           note: `Deposit of $${amount} USD via ${methodName}`,
         };
       } else if (selectedMethod === 'paypal') {
@@ -56,7 +79,7 @@ export default function DepositPage() {
           method_name: methodName,
           amount: amount,
           tx_hash: null,
-          proof_upload: null,
+          proof_upload: proofUrl,
           note: `Deposit of $${amount} USD via PayPal`,
         };
       } else if (selectedMethod === 'giftcard') {
@@ -65,7 +88,7 @@ export default function DepositPage() {
           method_name: methodName,
           amount: amount,
           tx_hash: null,
-          proof_upload: null,
+          proof_upload: proofUrl,
           note: `Deposit of $${amount} USD via Gift Card`,
         };
       }
