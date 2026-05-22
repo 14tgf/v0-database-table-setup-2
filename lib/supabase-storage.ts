@@ -9,6 +9,45 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
   },
 });
 
+// Initialize buckets on module load
+async function ensureBucketsExist() {
+  const buckets = ['kyc-documents', 'payment-proofs', 'order-proofs', 'user-uploads'];
+
+  for (const bucketName of buckets) {
+    try {
+      console.log(`[v0] Checking if bucket '${bucketName}' exists...`);
+
+      // Try to list files to check if bucket exists
+      const { data, error } = await supabase.storage.from(bucketName).list('', { limit: 1 });
+
+      if (error && error.message.includes('Bucket not found')) {
+        console.log(`[v0] Bucket '${bucketName}' not found, creating it...`);
+
+        const { error: createError } = await supabase.storage.createBucket(bucketName, {
+          public: true,
+          fileSizeLimit: 5242880, // 5MB
+        });
+
+        if (createError) {
+          console.error(`[v0] Failed to create bucket '${bucketName}':`, createError.message);
+        } else {
+          console.log(`[v0] Successfully created bucket '${bucketName}'`);
+        }
+      } else if (error) {
+        console.error(`[v0] Error checking bucket '${bucketName}':`, error.message);
+      } else {
+        console.log(`[v0] Bucket '${bucketName}' already exists`);
+      }
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+      console.log(`[v0] Error with bucket '${bucketName}':`, errorMsg);
+    }
+  }
+}
+
+// Initialize on first import
+ensureBucketsExist().catch(err => console.error('[v0] Storage initialization failed:', err));
+
 export interface UploadImageOptions {
   bucket: 'kyc-documents' | 'payment-proofs' | 'order-proofs' | 'user-uploads';
   file: File;
