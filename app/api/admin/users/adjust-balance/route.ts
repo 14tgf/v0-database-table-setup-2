@@ -113,8 +113,31 @@ export async function PUT(request: NextRequest) {
       throw new Error(`DB_UPDATE_FAILED: ${updateError instanceof Error ? updateError.message : String(updateError)}`);
     }
 
-    // Step 7: Log to audit_logs (optional - don't fail if this fails)
-    console.log('[v0] STEP 7: Logging to audit_logs');
+    // Step 7: Create transaction record in wallet_transactions
+    console.log('[v0] STEP 7: Creating transaction record');
+    try {
+      const transactionType = type === 'credit' ? 'deposit' : 'withdrawal';
+      const description = reason || `Admin ${type === 'credit' ? 'deposit' : 'withdrawal'} adjustment`;
+      
+      await db`INSERT INTO wallet_transactions (
+        id, user_id, transaction_type, amount, old_balance, new_balance, description, created_at
+      ) VALUES (
+        gen_random_uuid(),
+        ${userId},
+        ${transactionType},
+        ${adjustmentAmount},
+        ${currentBalance},
+        ${newBalance},
+        ${description},
+        NOW()
+      )`;
+      console.log('[v0] STEP 7 SUCCESS: Transaction record created');
+    } catch (txError) {
+      console.warn('[v0] STEP 7 WARNING: Failed to create transaction record (non-critical):', txError);
+    }
+
+    // Step 8: Log to audit_logs (optional - don't fail if this fails)
+    console.log('[v0] STEP 8: Logging to audit_logs');
     try {
       const newValuesJson = JSON.stringify({
         new_balance: newBalance,
@@ -125,9 +148,9 @@ export async function PUT(request: NextRequest) {
       });
       await db`INSERT INTO audit_logs (id, admin_id, action, entity_type, entity_id, new_values) 
         VALUES (gen_random_uuid(), NULL, 'BALANCE_ADJUSTMENT', 'user', ${userId}, ${newValuesJson}::jsonb)`;
-      console.log('[v0] STEP 7 SUCCESS: Audit log created');
+      console.log('[v0] STEP 8 SUCCESS: Audit log created');
     } catch (auditError) {
-      console.warn('[v0] STEP 7 WARNING: Failed to log audit (non-critical):', auditError);
+      console.warn('[v0] STEP 8 WARNING: Failed to log audit (non-critical):', auditError);
     }
 
     console.log('[v0] ========== ADJUST BALANCE SUCCESS ==========');
