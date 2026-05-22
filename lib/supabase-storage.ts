@@ -9,44 +9,61 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
   },
 });
 
-// Initialize buckets on module load
-async function ensureBucketsExist() {
-  const buckets = ['kyc-documents', 'payment-proofs', 'order-proofs', 'user-uploads'];
+/**
+ * Ensure a bucket exists, create it if it doesn't
+ */
+async function ensureBucketExists(bucketName: string): Promise<boolean> {
+  try {
+    console.log(`[v0] Checking if bucket '${bucketName}' exists...`);
 
-  for (const bucketName of buckets) {
-    try {
-      console.log(`[v0] Checking if bucket '${bucketName}' exists...`);
+    // Try to list the bucket
+    const { data, error } = await supabase.storage.from(bucketName).list('', { limit: 1 });
 
-      // Try to list files to check if bucket exists
-      const { data, error } = await supabase.storage.from(bucketName).list('', { limit: 1 });
+    if (!error) {
+      console.log(`[v0] Bucket '${bucketName}' already exists`);
+      return true;
+    }
 
-      if (error && error.message.includes('Bucket not found')) {
-        console.log(`[v0] Bucket '${bucketName}' not found, creating it...`);
+    if (error.message.includes('Bucket not found')) {
+      console.log(`[v0] Bucket '${bucketName}' not found, creating it...`);
 
-        const { error: createError } = await supabase.storage.createBucket(bucketName, {
+      const { data: createdBucket, error: createError } = await supabase.storage.createBucket(
+        bucketName,
+        {
           public: true,
           fileSizeLimit: 5242880, // 5MB
-        });
-
-        if (createError) {
-          console.error(`[v0] Failed to create bucket '${bucketName}':`, createError.message);
-        } else {
-          console.log(`[v0] Successfully created bucket '${bucketName}'`);
         }
-      } else if (error) {
-        console.error(`[v0] Error checking bucket '${bucketName}':`, error.message);
-      } else {
-        console.log(`[v0] Bucket '${bucketName}' already exists`);
+      );
+
+      if (createError) {
+        console.error(`[v0] Failed to create bucket '${bucketName}':`, createError.message);
+        return false;
       }
-    } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'Unknown error';
-      console.log(`[v0] Error with bucket '${bucketName}':`, errorMsg);
+
+      console.log(`[v0] Successfully created bucket '${bucketName}'`);
+      return true;
     }
+
+    console.error(`[v0] Unexpected error checking bucket '${bucketName}':`, error.message);
+    return false;
+  } catch (err) {
+    const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+    console.error(`[v0] Exception checking bucket '${bucketName}':`, errorMsg);
+    return false;
   }
 }
 
-// Initialize on first import
-ensureBucketsExist().catch(err => console.error('[v0] Storage initialization failed:', err));
+// Initialize buckets on module load
+async function initializeBuckets() {
+  const buckets = ['kyc-documents', 'payment-proofs', 'order-proofs'];
+
+  for (const bucketName of buckets) {
+    await ensureBucketExists(bucketName);
+  }
+}
+
+// Start initialization
+initializeBuckets().catch(err => console.error('[v0] Storage initialization failed:', err));
 
 export interface UploadImageOptions {
   bucket: 'kyc-documents' | 'payment-proofs' | 'order-proofs' | 'user-uploads';
@@ -63,7 +80,7 @@ export interface UploadImageResult {
 
 /**
  * Upload image to Supabase storage
- * Ensures all images are stored in one place with public URLs for emails
+ * Ensures bucket exists before uploading
  */
 export async function uploadImageToSupabase(options: UploadImageOptions): Promise<UploadImageResult> {
   const { bucket, file, userId, maxSizeMB = 5 } = options;
@@ -86,6 +103,16 @@ export async function uploadImageToSupabase(options: UploadImageOptions): Promis
       };
     }
 
+    // Ensure bucket exists before uploading
+    console.log(`[v0] SUPABASE UPLOAD - Ensuring bucket '${bucket}' exists...`);
+    const bucketReady = await ensureBucketExists(bucket);
+    if (!bucketReady) {
+      return {
+        success: false,
+        error: `Failed to prepare storage bucket: ${bucket}`,
+      };
+    }
+
     // Create unique filename with timestamp
     const timestamp = Date.now();
     const random = Math.random().toString(36).substring(7);
@@ -95,12 +122,10 @@ export async function uploadImageToSupabase(options: UploadImageOptions): Promis
     console.log('[v0] SUPABASE UPLOAD - Uploading to bucket:', bucket, 'filename:', filename);
 
     // Upload file to Supabase Storage
-    const { data, error } = await supabase.storage
-      .from(bucket)
-      .upload(filename, file, {
-        cacheControl: '3600',
-        upsert: false,
-      });
+    const { data, error } = await supabase.storage.from(bucket).upload(filename, file, {
+      cacheControl: '3600',
+      upsert: false,
+    });
 
     if (error) {
       console.error('[v0] SUPABASE UPLOAD - Upload error:', error);
@@ -153,3 +178,4 @@ export async function deleteImageFromSupabase(bucket: string, filePath: string):
     return false;
   }
 }
+
