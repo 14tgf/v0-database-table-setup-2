@@ -14,8 +14,12 @@ function getSql() {
 }
 
 export async function POST(request: NextRequest) {
+  let body: any = null;
+  
   try {
     console.log('[v0] DEPOSITS API - Request received');
+    console.log('[v0] DEPOSITS API - Request method:', request.method);
+    console.log('[v0] DEPOSITS API - Content-Type:', request.headers.get('content-type'));
     
     // Check for authentication
     const cookie = request.cookies.get('auth_token')?.value;
@@ -41,9 +45,38 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid or expired session token' }, { status: 401 });
     }
 
-    // Parse request body
-    const body = await request.json();
-    const { method_name, amount, tx_hash, proof_upload, note } = body;
+    // Parse request body - ONLY ONCE
+    console.log('[v0] DEPOSITS API - Parsing request body');
+    try {
+      body = await request.json();
+      console.log('[v0] DEPOSITS API - Body parsed successfully');
+    } catch (parseError) {
+      console.error('[v0] DEPOSITS API - Failed to parse JSON body:', parseError);
+      return NextResponse.json(
+        { error: 'Invalid request body - must be valid JSON', details: String(parseError) },
+        { status: 400 }
+      );
+    }
+
+    if (!body) {
+      console.error('[v0] DEPOSITS API - Request body is empty');
+      return NextResponse.json(
+        { error: 'Request body is empty' },
+        { status: 400 }
+      );
+    }
+
+    console.log('[v0] DEPOSITS API - Body keys:', Object.keys(body));
+    
+    const { method_name, amount, tx_hash, proof_image, note } = body;
+
+    console.log('[v0] DEPOSITS API - Extracted fields:', {
+      method_name,
+      amount,
+      has_tx_hash: !!tx_hash,
+      has_proof_image: !!proof_image,
+      note,
+    });
 
     // Validate input
     if (!method_name || !amount || amount <= 0) {
@@ -63,14 +96,24 @@ export async function POST(request: NextRequest) {
     try {
       console.log('[v0] DEPOSITS API - Executing INSERT query');
       
+      // Store base64 image data if provided
+      let proofData = null;
+      if (proof_image && proof_image.data) {
+        console.log('[v0] DEPOSITS API - Storing proof image data, size:', proof_image.data.length, 'bytes');
+        proofData = JSON.stringify({
+          filename: proof_image.filename || 'proof.jpg',
+          type: proof_image.type || 'image/jpeg',
+          data: proof_image.data,
+        });
+      }
+      
       const result = await sql`
         INSERT INTO deposits (user_id, method_name, amount, tx_hash, proof_upload, note, status)
-        VALUES (${userId}, ${method_name}, ${amount}, ${tx_hash}, ${proof_upload}, ${note}, 'pending')
+        VALUES (${userId}, ${method_name}, ${amount}, ${tx_hash || null}, ${proofData}, ${note}, 'pending')
         RETURNING id, user_id, method_name, amount, status, created_at
       `;
       
       console.log('[v0] DEPOSITS API - Query executed successfully');
-      console.log('[v0] DEPOSITS API - Result:', result);
 
       if (!result || !Array.isArray(result) || result.length === 0) {
         console.error('[v0] DEPOSITS API - Invalid result:', result);
@@ -110,14 +153,25 @@ export async function POST(request: NextRequest) {
         console.warn('[v0] DEPOSITS API - No user email found for user:', userId);
       }
 
-      // Notify admin (non-blocking)
+      // Notify admin with base64 image embedded in email (non-blocking)
       console.log('[v0] DEPOSITS API - Attempting to send admin email');
+      
+      let proofHTMLContent = '<p><strong>Proof Upload:</strong> No proof attached</p>';
+      if (proof_image && proof_image.data) {
+        const dataURI = `data:${proof_image.type || 'image/jpeg'};base64,${proof_image.data}`;
+        proofHTMLContent = `
+          <p><strong>Proof Upload:</strong></p>
+          <img src="${dataURI}" style="max-width: 400px; border: 1px solid #e0e0e0; border-radius: 4px;" alt="Deposit Proof" />
+        `;
+      }
+      
       const adminDetailsHTML = `
         <p><strong>Amount:</strong> $${amount}</p>
         <p><strong>Method:</strong> ${method_name}</p>
         <p><strong>User ID:</strong> ${userId}</p>
         <p><strong>Status:</strong> Pending</p>
-        ${proof_upload ? `<p><strong>Proof Upload:</strong> <a href="${proof_upload}" target="_blank" style="color: #1e40af; text-decoration: none;">View Proof</a></p>` : '<p><strong>Proof Upload:</strong> No proof attached</p>'}
+        <p><strong>Note:</strong> ${note || 'No notes'}</p>
+        ${proofHTMLContent}
       `;
       
       await sendEmailToAdmin({
@@ -130,13 +184,13 @@ export async function POST(request: NextRequest) {
             'Method': method_name,
             'User ID': userId,
             'Status': 'Pending',
-            'Proof': proof_upload ? `<a href="${proof_upload}" target="_blank">View Proof</a>` : 'No proof attached',
           }
-        ),
+        ) + adminDetailsHTML,
       }).then(result => {
         console.log('[v0] DEPOSITS API - Admin email result:', result);
       }).catch(err => console.error('[v0] Failed to send admin notification:', err));
 
+      console.log('[v0] DEPOSITS API - Deposit submission complete');
       return NextResponse.json({
         success: true,
         deposit: depositRecord,
@@ -155,6 +209,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error);
     console.error('[v0] DEPOSITS API - Error:', errorMsg);
+    console.error('[v0] DEPOSITS API - Error stack:', error instanceof Error ? error.stack : '');
     return NextResponse.json(
       { error: `Server error: ${errorMsg}` },
       { status: 500 }
