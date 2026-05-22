@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Upload, X as XIcon, CheckCircle } from 'lucide-react';
+import { Upload, X as XIcon, CheckCircle, AlertCircle } from 'lucide-react';
 import { useState } from 'react';
 import { staggerContainer, staggerItem } from '@/lib/animations';
 
@@ -10,11 +10,23 @@ interface DocumentUploadProps {
   description: string;
   acceptedFormats: string[];
   documentTypes: string[];
+  onUploadComplete?: (url: string) => void;
+  uploadingTo?: string;
 }
 
-export function DocumentUpload({ title, description, acceptedFormats, documentTypes }: DocumentUploadProps) {
+export function DocumentUpload({ 
+  title, 
+  description, 
+  acceptedFormats, 
+  documentTypes,
+  onUploadComplete,
+  uploadingTo = 'id_front'
+}: DocumentUploadProps) {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [dragActive, setDragActive] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -31,14 +43,64 @@ export function DocumentUpload({ title, description, acceptedFormats, documentTy
     e.stopPropagation();
     setDragActive(false);
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      setUploadedFile(e.dataTransfer.files[0]);
+      handleFileSelect(e.dataTransfer.files[0]);
     }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setUploadedFile(e.target.files[0]);
+      handleFileSelect(e.target.files[0]);
     }
+  };
+
+  const handleFileSelect = async (file: File) => {
+    setUploadedFile(file);
+    setUploadError(null);
+    setUploadedUrl(null);
+
+    // Auto-upload the file to Supabase
+    await uploadFile(file);
+  };
+
+  const uploadFile = async (file: File) => {
+    setIsUploading(true);
+    setUploadError(null);
+
+    try {
+      console.log('[v0] KYC Document Upload - Uploading:', file.name);
+
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('fieldName', uploadingTo);
+
+      const response = await fetch('/api/upload/kyc-image', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Upload failed');
+      }
+
+      const result = await response.json();
+      console.log('[v0] KYC Document Upload - Success:', result.url);
+      
+      setUploadedUrl(result.url);
+      onUploadComplete?.(result.url);
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Upload failed';
+      console.error('[v0] KYC Document Upload - Error:', errorMsg);
+      setUploadError(errorMsg);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleRemove = () => {
+    setUploadedFile(null);
+    setUploadedUrl(null);
+    setUploadError(null);
   };
 
   return (
@@ -69,7 +131,7 @@ export function DocumentUpload({ title, description, acceptedFormats, documentTy
 
       {/* Upload Area */}
       <motion.div variants={staggerItem}>
-        {!uploadedFile ? (
+        {!uploadedUrl ? (
           <div
             onDragEnter={handleDrag}
             onDragLeave={handleDrag}
@@ -87,10 +149,13 @@ export function DocumentUpload({ title, description, acceptedFormats, documentTy
                 type="file"
                 onChange={handleChange}
                 accept={acceptedFormats.join(',')}
+                disabled={isUploading}
                 className="hidden"
               />
-              <span className="px-3 py-1.5 bg-accent text-background font-semibold rounded hover:bg-accent/90 transition-colors cursor-pointer text-xs inline-block">
-                Choose File
+              <span className={`px-3 py-1.5 bg-accent text-background font-semibold rounded hover:bg-accent/90 transition-colors cursor-pointer text-xs inline-block ${
+                isUploading ? 'opacity-50 cursor-not-allowed' : ''
+              }`}>
+                {isUploading ? 'Uploading...' : 'Choose File'}
               </span>
             </label>
           </div>
@@ -98,11 +163,13 @@ export function DocumentUpload({ title, description, acceptedFormats, documentTy
           <div className="p-3 bg-accent/10 border border-accent/30 rounded-lg flex items-start gap-2">
             <CheckCircle className="w-4 h-4 text-accent flex-shrink-0 mt-0.5" />
             <div className="flex-1">
-              <p className="text-xs font-semibold text-foreground">{uploadedFile.name}</p>
-              <p className="text-xs text-muted-foreground">{(uploadedFile.size / 1024 / 1024).toFixed(2)} MB</p>
+              <p className="text-xs font-semibold text-foreground">{uploadedFile?.name}</p>
+              <p className="text-xs text-muted-foreground">
+                {uploadedFile ? (uploadedFile.size / 1024 / 1024).toFixed(2) : '0'} MB • Successfully uploaded
+              </p>
             </div>
             <button
-              onClick={() => setUploadedFile(null)}
+              onClick={handleRemove}
               className="p-1 hover:bg-white/10 rounded transition-colors"
             >
               <XIcon className="w-3 h-3 text-muted-foreground" />
@@ -110,6 +177,15 @@ export function DocumentUpload({ title, description, acceptedFormats, documentTy
           </div>
         )}
       </motion.div>
+
+      {/* Error Message */}
+      {uploadError && (
+        <motion.div variants={staggerItem} className="mt-3 p-2 bg-red-400/10 border border-red-400/30 rounded-lg flex items-start gap-2">
+          <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
+          <p className="text-xs text-red-300">{uploadError}</p>
+        </motion.div>
+      )}
     </motion.div>
   );
 }
+
