@@ -66,6 +66,13 @@ export async function POST(request: NextRequest) {
         VALUES (${withdrawal.user_id}, 'withdrawal', ${withdrawal.amount}, ${currentBalance}, ${newBalance}, ${withdrawal_id}, 'withdrawal', 'Withdrawal approved')
       `;
 
+      // Update the pending transaction to approved status
+      await db`
+        UPDATE wallet_transactions 
+        SET status = 'approved', updated_at = NOW() 
+        WHERE related_id = ${withdrawal_id} AND related_type = 'withdrawal' AND status = 'pending'
+      `;
+
       // Send approval email to user (non-blocking)
       const userQuery = await db`SELECT email, full_name FROM users WHERE id = ${withdrawal.user_id}`;
       const userEmail = userQuery?.[0]?.email;
@@ -103,6 +110,13 @@ export async function POST(request: NextRequest) {
         UPDATE withdrawals 
         SET status = 'rejected', approved_by = ${userId || null}, approved_at = NOW(), updated_at = NOW()
         WHERE id = ${withdrawal_id}
+      `;
+
+      // Update the pending transaction to rejected status
+      await db`
+        UPDATE wallet_transactions 
+        SET status = 'rejected', updated_at = NOW() 
+        WHERE related_id = ${withdrawal_id} AND related_type = 'withdrawal' AND status = 'pending'
       `;
 
       // Send rejection email to user (non-blocking)

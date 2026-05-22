@@ -65,6 +65,20 @@ export async function POST(request: NextRequest) {
 
     console.log('[v0] Withdrawal created:', result[0]);
 
+    // Create a pending transaction record immediately so it shows in user's history
+    try {
+      console.log('[v0] Creating pending transaction record for withdrawal');
+      const currentBalance = balance;
+      
+      await db`
+        INSERT INTO wallet_transactions (id, user_id, transaction_type, amount, old_balance, new_balance, related_id, related_type, description, status)
+        VALUES (gen_random_uuid(), ${userId}, 'withdrawal', ${amount}, ${currentBalance}, ${currentBalance}, ${result[0].id}, 'withdrawal', 'Withdrawal pending approval', 'pending')
+      `;
+      console.log('[v0] Pending transaction created for withdrawal');
+    } catch (txError) {
+      console.warn('[v0] Failed to create transaction (non-critical):', txError);
+    }
+
     return NextResponse.json({
       success: true,
       withdrawal: result[0],

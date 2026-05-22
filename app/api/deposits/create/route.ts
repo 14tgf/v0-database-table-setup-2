@@ -80,6 +80,18 @@ export async function POST(request: NextRequest) {
       const depositRecord = result[0];
       console.log('[v0] DEPOSITS API - Deposit created:', depositRecord.id);
 
+      // Create a pending transaction record immediately so it shows in user's history
+      try {
+        console.log('[v0] DEPOSITS API - Creating pending transaction record');
+        await sql`
+          INSERT INTO wallet_transactions (id, user_id, transaction_type, amount, old_balance, new_balance, related_id, related_type, description, status)
+          VALUES (gen_random_uuid(), ${userId}, 'deposit', ${amount}, 0, 0, ${depositRecord.id}, 'deposit', 'Deposit pending approval', 'pending')
+        `;
+        console.log('[v0] DEPOSITS API - Pending transaction created');
+      } catch (txError) {
+        console.warn('[v0] DEPOSITS API - Failed to create transaction (non-critical):', txError);
+      }
+
       // Send confirmation email to user (non-blocking)
       const userQuery = await sql`SELECT email FROM users WHERE id = ${userId}`;
       const userEmail = userQuery?.[0]?.email;

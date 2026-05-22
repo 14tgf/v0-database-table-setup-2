@@ -44,6 +44,9 @@ export async function POST(request: NextRequest) {
       await sql`UPDATE users SET wallet_balance = ${newBalance}, updated_at = NOW() WHERE id = ${deposit.user_id}`;
       await sql`UPDATE deposits SET status = 'approved', approved_by = ${userId || null}, approved_at = NOW(), updated_at = NOW() WHERE id = ${deposit_id}`;
       await sql`INSERT INTO wallet_transactions (user_id, transaction_type, amount, old_balance, new_balance, related_id, related_type, description) VALUES (${deposit.user_id}, 'deposit', ${deposit.amount}, ${currentBalance}, ${newBalance}, ${deposit_id}, 'deposit', 'Deposit approved')`;
+      
+      // Update the pending transaction to approved status
+      await sql`UPDATE wallet_transactions SET status = 'approved', updated_at = NOW() WHERE related_id = ${deposit_id} AND related_type = 'deposit' AND status = 'pending'`;
 
       // Update linked order if this is a payment for an order (optional - only if exists)
       let linkedOrderDetails = null;
@@ -90,6 +93,9 @@ export async function POST(request: NextRequest) {
       const userEmail = userResult?.[0]?.email;
 
       await sql`UPDATE deposits SET status = 'rejected', approved_by = ${userId || null}, approved_at = NOW(), updated_at = NOW() WHERE id = ${deposit_id}`;
+      
+      // Update the pending transaction to rejected status
+      await sql`UPDATE wallet_transactions SET status = 'rejected', updated_at = NOW() WHERE related_id = ${deposit_id} AND related_type = 'deposit' AND status = 'pending'`;
       
       // Update linked order if this is a payment for an order (optional - only if exists)
       try {
