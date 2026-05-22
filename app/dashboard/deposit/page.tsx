@@ -42,57 +42,28 @@ export default function DepositPage() {
       }
       console.log('[v0] Amount validation passed');
 
-      let proofUrl = null;
+      let proofImageBase64 = null;
 
-      // Upload proof file if provided
+      // Convert proof file to base64 if provided
       if (data.proofImage) {
-        console.log('[v0] === STARTING PROOF IMAGE UPLOAD ===');
+        console.log('[v0] === CONVERTING PROOF IMAGE TO BASE64 ===');
         console.log('[v0] File info:', {
           name: data.proofImage.name,
           size: data.proofImage.size,
           type: data.proofImage.type,
         });
 
-        const formData = new FormData();
-        formData.append('file', data.proofImage);
-
-        console.log('[v0] Sending upload request to /api/upload/deposit-proof...');
-        const uploadResponse = await fetch('/api/upload/deposit-proof', {
-          method: 'POST',
-          body: formData,
-        });
-
-        console.log('[v0] Upload response status:', uploadResponse.status);
-        console.log('[v0] Upload response headers:', {
-          contentType: uploadResponse.headers.get('content-type'),
-        });
-
-        if (!uploadResponse.ok) {
-          console.error('[v0] Upload response not OK');
-          let uploadError;
-          try {
-            uploadError = await uploadResponse.json();
-            console.error('[v0] Upload error response:', uploadError);
-          } catch (parseError) {
-            const errorText = await uploadResponse.text();
-            console.error('[v0] Failed to parse error response:', errorText);
-            uploadError = { error: errorText || 'Unknown upload error' };
-          }
-          throw new Error(`Failed to upload proof: ${uploadError.error}`);
-        }
-
-        let uploadResult;
         try {
-          uploadResult = await uploadResponse.json();
-          console.log('[v0] Upload result:', uploadResult);
-        } catch (parseError) {
-          console.error('[v0] Failed to parse upload success response:', parseError);
-          throw new Error('Failed to parse upload response');
+          const arrayBuffer = await data.proofImage.arrayBuffer();
+          const buffer = Buffer.from(arrayBuffer);
+          proofImageBase64 = buffer.toString('base64');
+          console.log('[v0] Image successfully converted to base64, length:', proofImageBase64.length);
+          console.log('[v0] === PROOF IMAGE CONVERSION COMPLETE ===');
+        } catch (conversionError) {
+          const convError = conversionError instanceof Error ? conversionError.message : 'Unknown error';
+          console.error('[v0] Failed to convert image to base64:', convError);
+          throw new Error(`Failed to process proof image: ${convError}`);
         }
-
-        proofUrl = uploadResult.url;
-        console.log('[v0] Proof uploaded successfully:', proofUrl);
-        console.log('[v0] === PROOF IMAGE UPLOAD COMPLETE ===');
       } else {
         console.log('[v0] No proof image provided');
       }
@@ -108,7 +79,11 @@ export default function DepositPage() {
           method_name: methodName,
           amount: amount,
           tx_hash: null,
-          proof_upload: proofUrl,
+          proof_image: proofImageBase64 ? {
+            data: proofImageBase64,
+            filename: data.proofImage?.name || 'proof.jpg',
+            type: data.proofImage?.type || 'image/jpeg',
+          } : null,
           note: `Deposit of $${amount} USD via ${methodName}`,
         };
       } else if (selectedMethod === 'paypal') {
@@ -118,7 +93,11 @@ export default function DepositPage() {
           method_name: methodName,
           amount: amount,
           tx_hash: null,
-          proof_upload: proofUrl,
+          proof_image: proofImageBase64 ? {
+            data: proofImageBase64,
+            filename: data.proofImage?.name || 'proof.jpg',
+            type: data.proofImage?.type || 'image/jpeg',
+          } : null,
           note: `Deposit of $${amount} USD via PayPal`,
         };
       } else if (selectedMethod === 'giftcard') {
@@ -128,13 +107,20 @@ export default function DepositPage() {
           method_name: methodName,
           amount: amount,
           tx_hash: null,
-          proof_upload: proofUrl,
+          proof_image: proofImageBase64 ? {
+            data: proofImageBase64,
+            filename: data.proofImage?.name || 'proof.jpg',
+            type: data.proofImage?.type || 'image/jpeg',
+          } : null,
           note: `Deposit of $${amount} USD via Gift Card`,
         };
       }
 
       console.log('[v0] === CALLING DEPOSIT API ===');
-      console.log('[v0] Payload:', JSON.stringify(payload, null, 2));
+      console.log('[v0] Payload (image size):', {
+        ...payload,
+        proof_image: payload.proof_image ? { filename: payload.proof_image.filename, size: payload.proof_image.data.length } : null,
+      });
 
       const response = await fetch('/api/deposits/create', {
         method: 'POST',

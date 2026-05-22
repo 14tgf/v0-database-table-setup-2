@@ -10,7 +10,7 @@ interface DocumentUploadProps {
   description: string;
   acceptedFormats: string[];
   documentTypes: string[];
-  onUploadComplete?: (url: string) => void;
+  onUploadComplete?: (base64: string, filename: string) => void;
   uploadingTo?: string;
 }
 
@@ -24,9 +24,8 @@ export function DocumentUpload({
 }: DocumentUploadProps) {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [dragActive, setDragActive] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
-  const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
+  const [uploadedBase64, setUploadedBase64] = useState<string | null>(null);
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -56,50 +55,27 @@ export function DocumentUpload({
   const handleFileSelect = async (file: File) => {
     setUploadedFile(file);
     setUploadError(null);
-    setUploadedUrl(null);
+    setUploadedBase64(null);
 
-    // Auto-upload the file to Supabase
-    await uploadFile(file);
-  };
-
-  const uploadFile = async (file: File) => {
-    setIsUploading(true);
-    setUploadError(null);
-
+    // Convert to base64
     try {
-      console.log('[v0] KYC Document Upload - Uploading:', file.name);
-
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('fieldName', uploadingTo);
-
-      const response = await fetch('/api/upload/kyc-image', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Upload failed');
-      }
-
-      const result = await response.json();
-      console.log('[v0] KYC Document Upload - Success:', result.url);
+      const arrayBuffer = await file.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      const base64 = buffer.toString('base64');
       
-      setUploadedUrl(result.url);
-      onUploadComplete?.(result.url);
+      setUploadedBase64(base64);
+      onUploadComplete?.(base64, file.name);
+      console.log(`[v0] Document '${file.name}' converted to base64, size: ${base64.length}`);
     } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : 'Upload failed';
-      console.error('[v0] KYC Document Upload - Error:', errorMsg);
+      const errorMsg = error instanceof Error ? error.message : 'Conversion failed';
+      console.error('[v0] Failed to convert document to base64:', errorMsg);
       setUploadError(errorMsg);
-    } finally {
-      setIsUploading(false);
     }
   };
 
   const handleRemove = () => {
     setUploadedFile(null);
-    setUploadedUrl(null);
+    setUploadedBase64(null);
     setUploadError(null);
   };
 
@@ -131,7 +107,7 @@ export function DocumentUpload({
 
       {/* Upload Area */}
       <motion.div variants={staggerItem}>
-        {!uploadedUrl ? (
+        {!uploadedBase64 ? (
           <div
             onDragEnter={handleDrag}
             onDragLeave={handleDrag}
@@ -149,13 +125,10 @@ export function DocumentUpload({
                 type="file"
                 onChange={handleChange}
                 accept={acceptedFormats.join(',')}
-                disabled={isUploading}
                 className="hidden"
               />
-              <span className={`px-3 py-1.5 bg-accent text-background font-semibold rounded hover:bg-accent/90 transition-colors cursor-pointer text-xs inline-block ${
-                isUploading ? 'opacity-50 cursor-not-allowed' : ''
-              }`}>
-                {isUploading ? 'Uploading...' : 'Choose File'}
+              <span className="px-3 py-1.5 bg-accent text-background font-semibold rounded hover:bg-accent/90 transition-colors cursor-pointer text-xs inline-block">
+                Choose File
               </span>
             </label>
           </div>
@@ -165,7 +138,7 @@ export function DocumentUpload({
             <div className="flex-1">
               <p className="text-xs font-semibold text-foreground">{uploadedFile?.name}</p>
               <p className="text-xs text-muted-foreground">
-                {uploadedFile ? (uploadedFile.size / 1024 / 1024).toFixed(2) : '0'} MB • Successfully uploaded
+                {uploadedFile ? (uploadedFile.size / 1024 / 1024).toFixed(2) : '0'} MB • Ready to send
               </p>
             </div>
             <button
