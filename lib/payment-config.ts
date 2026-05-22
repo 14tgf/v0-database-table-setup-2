@@ -1,11 +1,25 @@
 // Payment configuration types and defaults
 // This will eventually be replaced with database calls
 
+export interface CryptoAddress {
+  address: string;
+  network: string;
+}
+
 export interface CryptoConfig {
-  btc_address: string;
-  eth_address: string;
-  usdt_trc20: string;
-  usdt_erc20: string;
+  btc: {
+    mainnet: string;
+    testnet?: string;
+  };
+  eth: {
+    mainnet: string;
+    testnet?: string;
+  };
+  usdt: {
+    erc20: string;
+    trc20: string;
+    bep20?: string;
+  };
 }
 
 export interface PayPalConfig {
@@ -39,10 +53,19 @@ export const DEFAULT_PAYMENT_CONFIG: PaymentMethodsData = {
     type: 'crypto',
     status: 'active',
     config: {
-      btc_address: '1A1z7agoat5dVvS4VKQwVAjkPHDMxLB1xh',
-      eth_address: '0x742d35Cc6634C0532925a3b844Bc96e6E6f2d2c5',
-      usdt_trc20: 'TQn9jFiarHd1mwf3vqyJ1n7wHBYkQVcVj7',
-      usdt_erc20: '0x742d35Cc6634C0532925a3b844Bc96e6E6f2d2c5',
+      btc: {
+        mainnet: '1A1z7agoat5dVvS4VKQwVAjkPHDMxLB1xh',
+        testnet: 'mipcBbFg9gMiCh81Kj8tqqdgoZub1ZJRfn',
+      },
+      eth: {
+        mainnet: '0x742d35Cc6634C0532925a3b844Bc96e6E6f2d2c5',
+        testnet: '0x742d35Cc6634C0532925a3b844Bc96e6E6f2d2c5',
+      },
+      usdt: {
+        erc20: '0x742d35Cc6634C0532925a3b844Bc96e6E6f2d2c5',
+        trc20: 'TQn9jFiarHd1mwf3vqyJ1n7wHBYkQVcVj7',
+        bep20: '0x742d35Cc6634C0532925a3b844Bc96e6E6f2d2c5',
+      },
     },
     updated_at: new Date().toISOString(),
   },

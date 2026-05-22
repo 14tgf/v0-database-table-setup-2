@@ -70,18 +70,44 @@ export function CryptoForm({ type, onSubmit, autoAmount }: CryptoFormProps) {
     }
   }, [type]);
 
-  // Get the wallet address for the selected crypto type
-  const getWalletAddress = () => {
-    if (!paymentMethods) return '';
+  // Get the wallet address and network for the selected crypto type
+  const getWalletAndNetwork = () => {
+    if (!paymentMethods) return { address: '', network: '' };
 
-    const cryptoKey = selected === 'BTC' ? 'btc_address' : 
-                      selected === 'ETH' ? 'eth_address' :
-                      selected === 'USDT' ? 'usdt_erc20' : '';
-
-    return paymentMethods[cryptoKey] || '';
+    if (selected === 'BTC') {
+      return { address: paymentMethods.btc?.mainnet || '', network: 'Bitcoin Mainnet' };
+    } else if (selected === 'ETH') {
+      return { address: paymentMethods.eth?.mainnet || '', network: 'Ethereum Mainnet' };
+    } else if (selected === 'USDT') {
+      // Default to ERC-20 for USDT, but show all available networks
+      return { address: paymentMethods.usdt?.erc20 || '', network: 'ERC-20 (Ethereum)' };
+    }
+    return { address: '', network: '' };
   };
 
-  const displayAddress = type === 'deposit' ? getWalletAddress() : walletAddress;
+  const getAvailableNetworks = () => {
+    if (selected === 'BTC') {
+      const networks = [];
+      if (paymentMethods?.btc?.mainnet) networks.push({ name: 'Bitcoin Mainnet', address: paymentMethods.btc.mainnet });
+      if (paymentMethods?.btc?.testnet) networks.push({ name: 'Bitcoin Testnet', address: paymentMethods.btc.testnet });
+      return networks;
+    } else if (selected === 'ETH') {
+      const networks = [];
+      if (paymentMethods?.eth?.mainnet) networks.push({ name: 'Ethereum Mainnet', address: paymentMethods.eth.mainnet });
+      if (paymentMethods?.eth?.testnet) networks.push({ name: 'Ethereum Testnet', address: paymentMethods.eth.testnet });
+      return networks;
+    } else if (selected === 'USDT') {
+      const networks = [];
+      if (paymentMethods?.usdt?.erc20) networks.push({ name: 'ERC-20 (Ethereum)', address: paymentMethods.usdt.erc20 });
+      if (paymentMethods?.usdt?.trc20) networks.push({ name: 'TRC-20 (TRON)', address: paymentMethods.usdt.trc20 });
+      if (paymentMethods?.usdt?.bep20) networks.push({ name: 'BEP-20 (Binance)', address: paymentMethods.usdt.bep20 });
+      return networks;
+    }
+    return [];
+  };
+
+  const { address: displayAddress, network: displayNetwork } = getWalletAndNetwork();
+  const availableNetworks = getAvailableNetworks();
 
   const handleCopy = () => {
     const addressToCopy = getWalletAddress();
@@ -187,10 +213,41 @@ export function CryptoForm({ type, onSubmit, autoAmount }: CryptoFormProps) {
             </div>
           )}
 
-          {/* Wallet Address Display for Deposit */}
+          {/* Wallet Address Display with Network Info */}
           {!loading && !error && (
             <div>
               <label className="text-xs font-semibold text-muted-foreground mb-2 block">Send To Wallet Address</label>
+              
+              {/* Network selection if multiple networks available */}
+              {availableNetworks.length > 1 && (
+                <div className="mb-3">
+                  <p className="text-xs text-white/70 mb-2">Available Networks:</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {availableNetworks.map((net) => (
+                      <button
+                        key={net.name}
+                        type="button"
+                        onClick={() => setWalletAddress(net.address)}
+                        className={`p-2 rounded-lg border text-xs transition-all ${
+                          displayAddress === net.address
+                            ? 'border-accent bg-accent/10 text-accent'
+                            : 'border-white/10 bg-white/5 text-white/70 hover:border-accent/50'
+                        }`}
+                      >
+                        {net.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Network Badge */}
+              {displayNetwork && (
+                <div className="mb-2 px-2 py-1 bg-accent/10 border border-accent/30 rounded inline-block">
+                  <p className="text-xs text-accent font-semibold">{displayNetwork}</p>
+                </div>
+              )}
+              
               <div className="p-3 bg-accent/10 border border-accent/30 rounded-lg flex items-center justify-between gap-2">
                 <code className="text-xs font-mono text-accent break-all">{displayAddress || 'Address loading...'}</code>
                 <button
