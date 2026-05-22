@@ -42,10 +42,16 @@ export async function GET() {
     // Parse the database results into a structured format
     const paymentData: any = {
       crypto: {
-        btc_address: '',
-        eth_address: '',
-        usdt_trc20: '',
-        usdt_erc20: '',
+        config: {
+          btc_address: '',
+          btc_network: 'BTC',
+          eth_address: '',
+          eth_network: 'ETH',
+          usdt_trc20: '',
+          usdt_trc20_network: 'USDT TRC-20',
+          usdt_erc20: '',
+          usdt_erc20_network: 'USDT ERC-20',
+        },
       },
       bank: {},
       paypal: { email: '' },
@@ -55,7 +61,11 @@ export async function GET() {
       console.log(`[v0] PAYMENT METHODS PUBLIC API - Processing ${record.type} payment method`);
 
       if (record.type === 'crypto' && record.config) {
-        paymentData.crypto = record.config;
+        paymentData.crypto = {
+          type: 'crypto',
+          config: record.config,
+          status: record.status,
+        };
       } else if (record.type === 'bank' && record.config) {
         paymentData.bank = record.config;
       } else if (record.type === 'paypal' && record.config) {

@@ -61,9 +61,39 @@ export async function GET(request: NextRequest) {
 
     // Build response object
     const response = {
-      crypto: null,
-      paypal: null,
-      bank: null,
+      crypto: {
+        type: 'crypto',
+        status: 'active',
+        config: {
+          btc_address: '',
+          btc_network: 'BTC',
+          eth_address: '',
+          eth_network: 'ETH',
+          usdt_trc20: '',
+          usdt_trc20_network: 'USDT TRC-20',
+          usdt_erc20: '',
+          usdt_erc20_network: 'USDT ERC-20',
+        },
+        updated_at: new Date().toISOString(),
+      },
+      paypal: {
+        type: 'paypal',
+        status: 'active',
+        config: { email: '' },
+        updated_at: new Date().toISOString(),
+      },
+      bank: {
+        type: 'bank',
+        status: 'active',
+        config: {
+          bank_name: '',
+          account_name: '',
+          account_number: '',
+          swift_code: '',
+          country: '',
+        },
+        updated_at: new Date().toISOString(),
+      },
     };
 
     for (const method of result) {
@@ -73,19 +103,27 @@ export async function GET(request: NextRequest) {
         status: method.status,
       });
 
-      const methodData = {
-        type: method.type,
-        status: method.status,
-        config: method.config,
-        updated_at: method.updated_at,
-      };
-
       if (method.type === 'crypto') {
-        response.crypto = methodData;
+        response.crypto = {
+          type: method.type,
+          status: method.status,
+          config: method.config,
+          updated_at: method.updated_at,
+        };
       } else if (method.type === 'paypal') {
-        response.paypal = methodData;
+        response.paypal = {
+          type: method.type,
+          status: method.status,
+          config: method.config,
+          updated_at: method.updated_at,
+        };
       } else if (method.type === 'bank') {
-        response.bank = methodData;
+        response.bank = {
+          type: method.type,
+          status: method.status,
+          config: method.config,
+          updated_at: method.updated_at,
+        };
       }
     }
 

@@ -52,14 +52,9 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    console.log('[v0] CRYPTO UPDATE API - Request body:', {
-      btc_address: body.btc_address ? 'provided' : 'missing',
-      eth_address: body.eth_address ? 'provided' : 'missing',
-      usdt_trc20: body.usdt_trc20 ? 'provided' : 'missing',
-      usdt_erc20: body.usdt_erc20 ? 'provided' : 'missing',
-    });
+    console.log('[v0] CRYPTO UPDATE API - Request body:', body);
 
-    const { btc_address, eth_address, usdt_trc20, usdt_erc20 } = body;
+    const { btc_address, btc_network, eth_address, eth_network, usdt_trc20, usdt_trc20_network, usdt_erc20, usdt_erc20_network } = body;
 
     // Validate input
     if (!btc_address || !eth_address || !usdt_trc20 || !usdt_erc20) {
@@ -72,7 +67,7 @@ export async function POST(request: NextRequest) {
 
     const db = sql();
 
-    // Upsert payment method configuration
+    // Upsert payment method configuration with network fields
     console.log('[v0] CRYPTO UPDATE API - Saving to database');
     const result = (await db`
       INSERT INTO payment_methods (type, config, status, updated_at)
@@ -80,9 +75,13 @@ export async function POST(request: NextRequest) {
         'crypto',
         ${JSON.stringify({
           btc_address,
+          btc_network: btc_network || 'BTC',
           eth_address,
+          eth_network: eth_network || 'ETH',
           usdt_trc20,
+          usdt_trc20_network: usdt_trc20_network || 'USDT TRC-20',
           usdt_erc20,
+          usdt_erc20_network: usdt_erc20_network || 'USDT ERC-20',
         })}::jsonb,
         'active',
         NOW()
@@ -90,9 +89,13 @@ export async function POST(request: NextRequest) {
       ON CONFLICT (type) DO UPDATE SET
         config = ${JSON.stringify({
           btc_address,
+          btc_network: btc_network || 'BTC',
           eth_address,
+          eth_network: eth_network || 'ETH',
           usdt_trc20,
+          usdt_trc20_network: usdt_trc20_network || 'USDT TRC-20',
           usdt_erc20,
+          usdt_erc20_network: usdt_erc20_network || 'USDT ERC-20',
         })}::jsonb,
         updated_at = NOW()
       RETURNING id, type, config, status, updated_at
