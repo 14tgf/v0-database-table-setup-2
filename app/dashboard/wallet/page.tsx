@@ -197,6 +197,25 @@ export default function WalletPage() {
                 const iconBg = isIncoming ? 'bg-primary/20' : 'bg-destructive/20';
                 const iconColor = isIncoming ? 'text-primary' : 'text-destructive';
                 
+                // Status colors
+                let statusBg = 'bg-gray-500/20';
+                let statusColor = 'text-gray-400';
+                let statusText = 'Completed';
+                
+                if (tx.status === 'pending') {
+                  statusBg = 'bg-yellow-500/20';
+                  statusColor = 'text-yellow-400';
+                  statusText = 'Pending';
+                } else if (tx.status === 'approved') {
+                  statusBg = 'bg-green-500/20';
+                  statusColor = 'text-green-400';
+                  statusText = 'Approved';
+                } else if (tx.status === 'rejected') {
+                  statusBg = 'bg-red-500/20';
+                  statusColor = 'text-red-400';
+                  statusText = 'Rejected';
+                }
+                
                 return (
                   <div key={tx.id} className="flex items-center justify-between p-3 sm:p-4 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 transition-colors">
                     <div className="flex items-center gap-3 min-w-0">
@@ -211,7 +230,12 @@ export default function WalletPage() {
                       </div>
                     </div>
                     <div className="text-right flex-shrink-0 ml-2">
-                      <p className={`font-semibold text-sm sm:text-base ${isIncoming ? 'text-primary' : 'text-destructive'}`}>
+                      <div className="flex items-center gap-2 justify-end">
+                        <div className={`px-2.5 py-1 rounded-full ${statusBg} text-xs font-semibold ${statusColor}`}>
+                          {statusText}
+                        </div>
+                      </div>
+                      <p className={`font-semibold text-sm sm:text-base mt-1 ${isIncoming ? 'text-primary' : 'text-destructive'}`}>
                         {isIncoming ? '+' : '-'}${Math.abs(parseFloat(tx.amount as any) || 0).toFixed(2)}
                       </p>
                       <p className="text-white/60 text-xs">
