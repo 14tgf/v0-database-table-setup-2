@@ -120,7 +120,7 @@ export async function PUT(request: NextRequest) {
       const description = reason || `Admin ${type === 'credit' ? 'deposit' : 'withdrawal'} adjustment`;
       
       await db`INSERT INTO wallet_transactions (
-        id, user_id, transaction_type, amount, old_balance, new_balance, description, created_at
+        id, user_id, transaction_type, amount, old_balance, new_balance, description, status, created_at
       ) VALUES (
         gen_random_uuid(),
         ${userId},
@@ -129,6 +129,7 @@ export async function PUT(request: NextRequest) {
         ${currentBalance},
         ${newBalance},
         ${description},
+        'completed',
         NOW()
       )`;
       console.log('[v0] STEP 7 SUCCESS: Transaction record created');
