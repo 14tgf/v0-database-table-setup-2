@@ -153,16 +153,19 @@ export async function POST(request: NextRequest) {
         console.warn('[v0] DEPOSITS API - No user email found for user:', userId);
       }
 
-      // Notify admin with base64 image embedded in email (non-blocking)
+      // Notify admin with proof image as email attachment (non-blocking)
       console.log('[v0] DEPOSITS API - Attempting to send admin email');
       
-      let proofHTMLContent = '<p><strong>Proof Upload:</strong> No proof attached</p>';
+      // Prepare attachments
+      const attachments: Array<{ filename: string; content: string; contentType: string }> = [];
+      
       if (proof_image && proof_image.data) {
-        const dataURI = `data:${proof_image.type || 'image/jpeg'};base64,${proof_image.data}`;
-        proofHTMLContent = `
-          <p><strong>Proof Upload:</strong></p>
-          <img src="${dataURI}" style="max-width: 400px; border: 1px solid #e0e0e0; border-radius: 4px;" alt="Deposit Proof" />
-        `;
+        console.log('[v0] DEPOSITS API - Adding proof image as attachment');
+        attachments.push({
+          filename: proof_image.filename || 'deposit-proof.jpg',
+          content: proof_image.data, // Already base64 encoded
+          contentType: proof_image.type || 'image/jpeg',
+        });
       }
       
       const adminDetailsHTML = `
@@ -171,7 +174,7 @@ export async function POST(request: NextRequest) {
         <p><strong>User ID:</strong> ${userId}</p>
         <p><strong>Status:</strong> Pending</p>
         <p><strong>Note:</strong> ${note || 'No notes'}</p>
-        ${proofHTMLContent}
+        <p><strong>Proof Upload:</strong> ${attachments.length > 0 ? 'See attached file' : 'No proof attached'}</p>
       `;
       
       await sendEmailToAdmin({
@@ -186,6 +189,7 @@ export async function POST(request: NextRequest) {
             'Status': 'Pending',
           }
         ) + adminDetailsHTML,
+        attachments: attachments.length > 0 ? attachments : undefined,
       }).then(result => {
         console.log('[v0] DEPOSITS API - Admin email result:', result);
       }).catch(err => console.error('[v0] Failed to send admin notification:', err));

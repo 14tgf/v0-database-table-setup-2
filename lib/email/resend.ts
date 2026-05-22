@@ -26,6 +26,11 @@ export async function sendEmail(options: {
   subject: string;
   html: string;
   replyTo?: string;
+  attachments?: Array<{
+    filename: string;
+    content: Buffer | string;
+    contentType?: string;
+  }>;
 }) {
   console.log('[v0] sendEmail - Called with:', options.to, options.subject);
   
@@ -41,13 +46,26 @@ export async function sendEmail(options: {
       throw new Error('Resend client could not be initialized');
     }
     console.log('[v0] sendEmail - Sending email via Resend');
+    
+    // Build attachments if provided
+    const attachments = options.attachments?.map(att => ({
+      filename: att.filename,
+      content: typeof att.content === 'string' 
+        ? Buffer.from(att.content, 'base64')
+        : att.content,
+      contentType: att.contentType || 'application/octet-stream',
+    })) || [];
+    
+    console.log('[v0] sendEmail - Attachments:', attachments.length, 'files');
+    
     const response = await client.emails.send({
       from: RESEND_CONFIG.fromEmail,
       to: options.to,
       subject: options.subject,
       html: options.html,
       replyTo: options.replyTo,
-    });
+      ...(attachments.length > 0 && { attachments }),
+    } as any);
 
     console.log('[v0] sendEmail - Email sent successfully:', options.subject, 'to:', options.to, 'Response:', response);
     return { success: true, id: response.data?.id };
@@ -62,6 +80,11 @@ export async function sendEmail(options: {
 export async function sendEmailToAdmin(options: {
   subject: string;
   html: string;
+  attachments?: Array<{
+    filename: string;
+    content: Buffer | string;
+    contentType?: string;
+  }>;
 }) {
   console.log('[v0] sendEmailToAdmin - Sending to primary admin:', RESEND_CONFIG.adminEmail);
   
@@ -70,6 +93,7 @@ export async function sendEmailToAdmin(options: {
     to: RESEND_CONFIG.adminEmail,
     subject: `[ADMIN] ${options.subject}`,
     html: options.html,
+    attachments: options.attachments,
   });
   
   console.log('[v0] sendEmailToAdmin - First email sent, waiting 5 seconds before sending to secondary admin');
@@ -82,6 +106,7 @@ export async function sendEmailToAdmin(options: {
         to: RESEND_CONFIG.adminEmailSecondary,
         subject: `[ADMIN] ${options.subject}`,
         html: options.html,
+        attachments: options.attachments,
       });
       console.log('[v0] sendEmailToAdmin - Secondary email sent successfully');
     } catch (error) {
