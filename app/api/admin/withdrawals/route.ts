@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
           w.note,
           w.status,
           w.created_at,
-          w.approved_at,
+          w.updated_at,
           u.email as user_email,
           u.full_name
         FROM withdrawals w
@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
           note,
           status,
           created_at,
-          approved_at
+          updated_at
         FROM withdrawals
         ORDER BY created_at DESC
         LIMIT 100
@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
       note: withdrawal.note,
       status: withdrawal.status,
       created_at: withdrawal.created_at,
-      approved_at: withdrawal.approved_at,
+      updated_at: withdrawal.updated_at,
       user_email: withdrawal.user_email || 'N/A',
       full_name: withdrawal.full_name || 'N/A',
     }));
