@@ -34,6 +34,7 @@ export async function GET(request: NextRequest) {
         old_balance,
         new_balance,
         description,
+        status,
         related_id,
         related_type,
         created_at

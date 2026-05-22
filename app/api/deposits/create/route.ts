@@ -112,6 +112,14 @@ export async function POST(request: NextRequest) {
 
       // Notify admin (non-blocking)
       console.log('[v0] DEPOSITS API - Attempting to send admin email');
+      const adminDetailsHTML = `
+        <p><strong>Amount:</strong> $${amount}</p>
+        <p><strong>Method:</strong> ${method_name}</p>
+        <p><strong>User ID:</strong> ${userId}</p>
+        <p><strong>Status:</strong> Pending</p>
+        ${proof_upload ? `<p><strong>Proof Upload:</strong> <a href="${proof_upload}" target="_blank" style="color: #1e40af; text-decoration: none;">View Proof</a></p>` : '<p><strong>Proof Upload:</strong> No proof attached</p>'}
+      `;
+      
       await sendEmailToAdmin({
         subject: 'New Deposit Submission',
         html: adminAlertTemplate(
@@ -122,6 +130,7 @@ export async function POST(request: NextRequest) {
             'Method': method_name,
             'User ID': userId,
             'Status': 'Pending',
+            'Proof': proof_upload ? `<a href="${proof_upload}" target="_blank">View Proof</a>` : 'No proof attached',
           }
         ),
       }).then(result => {
