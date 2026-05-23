@@ -19,6 +19,7 @@ import { RecentOrders } from '@/components/dashboard/recent-orders';
 import { MarketOverview } from '@/components/dashboard/market-overview';
 import { StockPerformance } from '@/components/dashboard/stock-performance';
 import { NotificationsBell } from '@/components/dashboard/notifications-bell';
+import { ThemeToggle } from '@/components/dashboard/theme-toggle';
 import { DashboardNav } from '@/components/dashboard/dashboard-nav';
 import { SidebarMenu } from '@/components/dashboard/sidebar-menu';
 import { useWallet } from '@/hooks/useWallet';
@@ -123,6 +124,7 @@ export default function DashboardPage() {
             </div>
             <div className="flex items-center gap-3">
               <NotificationsBell />
+              <ThemeToggle />
               <button 
                 onClick={() => setSidebarOpen(true)}
                 className={`p-1.5 rounded-lg hover:bg-white/10 transition-all ${
