@@ -148,7 +148,7 @@ export default function WithdrawPage() {
           >
             {selectedMethod === 'crypto' && <CryptoForm type="withdraw" onSubmit={handleSubmit} />}
             {selectedMethod === 'paypal' && <PayPalForm type="withdraw" onSubmit={handleSubmit} />}
-            {selectedMethod === 'bank' && <BankForm onSubmit={handleSubmit} />}
+            {selectedMethod === 'bank' && <BankForm type="withdraw" onSubmit={handleSubmit} />}
           </motion.div>
 
           {/* Info Box */}
