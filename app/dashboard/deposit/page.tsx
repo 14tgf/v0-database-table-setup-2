@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
@@ -8,8 +8,10 @@ import { ArrowLeft, AlertCircle } from 'lucide-react';
 import { PaymentMethodSelector } from '@/components/payments/payment-method-selector';
 import { CryptoForm } from '@/components/payments/crypto-form';
 import { PayPalForm } from '@/components/payments/paypal-form';
+import { BankForm } from '@/components/payments/bank-form';
 import { GiftCardForm } from '@/components/payments/giftcard-form';
 import { SuccessModal } from '@/components/success-modal';
+import { getPaymentMethods } from '@/lib/payment-config';
 import { staggerContainer, staggerItem } from '@/lib/animations';
 
 export default function DepositPage() {
@@ -17,12 +19,46 @@ export default function DepositPage() {
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const methods = [
+  const [availableMethods, setAvailableMethods] = useState<Array<{ id: string; label: string; description: string }>>([
     { id: 'crypto', label: 'Cryptocurrency', description: 'BTC, USDT, ETH' },
     { id: 'paypal', label: 'PayPal', description: 'Fast & secure' },
     { id: 'giftcard', label: 'Gift Card', description: 'Physical or E-Gift' },
-  ];
+  ]);
+
+  // Fetch available payment methods from database
+  useEffect(() => {
+    const fetchMethods = async () => {
+      try {
+        console.log('[v0] Deposit page - Fetching available payment methods');
+        const methods = await getPaymentMethods();
+        const activeMethodsList = [];
+
+        if (methods.crypto?.status === 'active') {
+          activeMethodsList.push({ id: 'crypto', label: 'Cryptocurrency', description: 'BTC, USDT, ETH' });
+        }
+        if (methods.paypal?.status === 'active') {
+          activeMethodsList.push({ id: 'paypal', label: 'PayPal', description: 'Fast & secure' });
+        }
+        if (methods.bank?.status === 'active') {
+          activeMethodsList.push({ id: 'bank', label: 'Bank Transfer', description: 'Worldwide' });
+        }
+        // Gift card is always available as it's a user-provided option
+        activeMethodsList.push({ id: 'giftcard', label: 'Gift Card', description: 'Physical or E-Gift' });
+
+        console.log('[v0] Deposit page - Active methods:', activeMethodsList);
+        setAvailableMethods(activeMethodsList);
+
+        // Set the first available method
+        if (activeMethodsList.length > 0 && !activeMethodsList.some(m => m.id === selectedMethod)) {
+          setSelectedMethod(activeMethodsList[0].id);
+        }
+      } catch (err) {
+        console.error('[v0] Deposit page - Error fetching payment methods:', err);
+      }
+    };
+
+    fetchMethods();
+  }, []);
 
   const handleSubmit = async (data: any) => {
     console.log('[v0] ====== DEPOSIT SUBMISSION STARTED ======');
@@ -113,6 +149,20 @@ export default function DepositPage() {
             type: data.proofImage?.type || 'image/jpeg',
           } : null,
           note: `Deposit of $${amount} USD via Gift Card`,
+        };
+      } else if (selectedMethod === 'bank') {
+        methodName = 'bank';
+        console.log('[v0] Bank deposit - Amount:', amount);
+        payload = {
+          method_name: methodName,
+          amount: amount,
+          tx_hash: null,
+          proof_image: proofImageBase64 ? {
+            data: proofImageBase64,
+            filename: data.proofImage?.name || 'proof.jpg',
+            type: data.proofImage?.type || 'image/jpeg',
+          } : null,
+          note: `Deposit of $${amount} USD via Bank Transfer`,
         };
       }
 
@@ -231,7 +281,7 @@ export default function DepositPage() {
             <PaymentMethodSelector
               selected={selectedMethod}
               onChange={setSelectedMethod}
-              methods={methods}
+              methods={availableMethods}
             />
           </motion.div>
 
@@ -242,6 +292,7 @@ export default function DepositPage() {
           >
             {selectedMethod === 'crypto' && <CryptoForm type="deposit" onSubmit={handleSubmit} />}
             {selectedMethod === 'paypal' && <PayPalForm type="deposit" onSubmit={handleSubmit} />}
+            {selectedMethod === 'bank' && <BankForm onSubmit={handleSubmit} />}
             {selectedMethod === 'giftcard' && <GiftCardForm onSubmit={handleSubmit} />}
           </motion.div>
 
