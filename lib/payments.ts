@@ -1,5 +1,5 @@
 export type PaymentMethod = 'crypto' | 'paypal' | 'giftcard' | 'bank';
-export type CryptoType = 'BTC' | 'USDT' | 'ETH';
+export type CryptoType = 'BTC' | 'ETH' | 'USDT-ERC20' | 'USDT-TRC20';
 export type GiftCardType = 'physical' | 'egiftcard';
 export type TransactionStatus = 'pending' | 'approved' | 'rejected';
 
@@ -107,7 +107,8 @@ export interface CheckoutOrder {
 
 export const CRYPTO_NETWORKS = {
   BTC: { name: 'Bitcoin', confirmTime: '10-30 mins', minDeposit: 0.001 },
-  USDT: { name: 'Tether', confirmTime: '5-15 mins', minDeposit: 10 },
+  'USDT-ERC20': { name: 'Tether (Ethereum)', confirmTime: '5-15 mins', minDeposit: 10 },
+  'USDT-TRC20': { name: 'Tether (TRON)', confirmTime: '2-5 mins', minDeposit: 10 },
   ETH: { name: 'Ethereum', confirmTime: '5-15 mins', minDeposit: 0.01 },
 };
 

@@ -73,8 +73,10 @@ export function CryptoForm({ type, onSubmit, autoAmount }: CryptoFormProps) {
       return { address: config.btc_address || '', network: config.btc_network || 'BTC' };
     } else if (selected === 'ETH') {
       return { address: config.eth_address || '', network: config.eth_network || 'ETH' };
-    } else if (selected === 'USDT') {
+    } else if (selected === 'USDT-ERC20') {
       return { address: config.usdt_erc20 || '', network: config.usdt_erc20_network || 'USDT ERC-20' };
+    } else if (selected === 'USDT-TRC20') {
+      return { address: config.usdt_trc20 || '', network: config.usdt_trc20_network || 'USDT TRC-20' };
     }
     return { address: '', network: '' };
   };
@@ -116,8 +118,8 @@ export function CryptoForm({ type, onSubmit, autoAmount }: CryptoFormProps) {
       {/* Crypto Type Selection */}
       <div>
         <label className="text-xs font-semibold text-muted-foreground mb-2 block">Cryptocurrency</label>
-        <div className="grid grid-cols-3 gap-2">
-          {(['BTC', 'USDT', 'ETH'] as CryptoType[]).map((crypto) => (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          {(['BTC', 'ETH', 'USDT-ERC20', 'USDT-TRC20'] as CryptoType[]).map((crypto) => (
             <button
               key={crypto}
               type="button"
@@ -128,7 +130,7 @@ export function CryptoForm({ type, onSubmit, autoAmount }: CryptoFormProps) {
                   : 'border-white/10 bg-white/5 text-foreground hover:border-accent/50'
               }`}
             >
-              {crypto}
+              {crypto === 'USDT-ERC20' ? 'USDT (ERC-20)' : crypto === 'USDT-TRC20' ? 'USDT (TRC-20)' : crypto}
             </button>
           ))}
         </div>
