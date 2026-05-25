@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
 import { sendEmail, sendEmailToAdmin } from '@/lib/email/resend';
 import { kycApprovedTemplate, kycRejectedTemplate, adminAlertTemplate } from '@/lib/email/templates';
+import { notifyKycApproved, notifyKycRejected } from '@/lib/notifications';
 
 export async function POST(request: NextRequest) {
   try {
@@ -35,7 +36,6 @@ export async function POST(request: NextRequest) {
       // Update user verification status
       await db`UPDATE users SET kyc_status = 'approved', verification_status = 'verified', updated_at = NOW() WHERE id = ${kycSubmission.user_id}`;
 
-      // Get user email for confirmation (non-blocking)
       const userQuery = await db`SELECT email, full_name FROM users WHERE id = ${kycSubmission.user_id}`;
       const userEmail = userQuery?.[0]?.email;
       if (userEmail) {
@@ -45,6 +45,10 @@ export async function POST(request: NextRequest) {
           html: kycApprovedTemplate(),
         }).catch(err => console.error('[v0] Failed to send KYC approval email:', err));
       }
+
+      // Create in-app notification (non-blocking)
+      notifyKycApproved(kycSubmission.user_id)
+        .catch(err => console.error('[v0] Failed to create KYC approved notification:', err));
 
       // Notify admin (non-blocking)
       sendEmailToAdmin({
@@ -78,6 +82,10 @@ export async function POST(request: NextRequest) {
           html: kycRejectedTemplate(rejection_reason || 'Your KYC submission could not be verified. Please try again with updated documents.'),
         }).catch(err => console.error('[v0] Failed to send KYC rejection email:', err));
       }
+
+      // Create in-app notification (non-blocking)
+      notifyKycRejected(kycSubmission.user_id, rejection_reason)
+        .catch(err => console.error('[v0] Failed to create KYC rejected notification:', err));
 
       // Notify admin (non-blocking)
       sendEmailToAdmin({

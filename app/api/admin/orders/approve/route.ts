@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
 import { sendEmail, sendEmailToAdmin } from '@/lib/email/resend';
 import { orderPaymentApprovedTemplate, adminAlertTemplate } from '@/lib/email/templates';
+import { notifyOrderApproved, notifyOrderRejected } from '@/lib/notifications';
 
 function getSql() {
   if (!process.env.DATABASE_URL) {
@@ -78,6 +79,10 @@ export async function POST(request: NextRequest) {
         }).catch(err => console.error('[v0] Failed to send order approval email:', err));
       }
 
+      // Create in-app notification (non-blocking)
+      notifyOrderApproved(order.user_id, order.product_name, order_id)
+        .catch(err => console.error('[v0] Failed to create order approved notification:', err));
+
       // Notify admin (non-blocking)
       sendEmailToAdmin({
         subject: 'Product Order Approved',
@@ -122,6 +127,10 @@ export async function POST(request: NextRequest) {
           `,
         }).catch(err => console.error('[v0] Failed to send rejection email:', err));
       }
+
+      // Create in-app notification (non-blocking)
+      notifyOrderRejected(order.user_id, order.product_name, order_id)
+        .catch(err => console.error('[v0] Failed to create order rejected notification:', err));
 
       // Notify admin (non-blocking)
       sendEmailToAdmin({

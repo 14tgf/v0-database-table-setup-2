@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { jwtVerify } from 'jose';
+import { sql } from '@/lib/db';
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'your-secret-key');
 
 export async function GET(request: NextRequest) {
   try {
-    console.log('[v0] NOTIFICATIONS API - GET request');
-    
     const cookie = request.cookies.get('auth_token')?.value;
     if (!cookie) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
@@ -15,38 +14,32 @@ export async function GET(request: NextRequest) {
     const { payload } = await jwtVerify(cookie, JWT_SECRET);
     const userId = payload.sub as string;
 
-    // TODO: Fetch notifications from database
-    // For now, return empty array
-    const notifications = [
-      {
-        id: '1',
-        userId,
-        title: 'Deposit Approved',
-        message: 'Your deposit of $500 USD has been approved',
-        type: 'deposit',
-        createdAt: new Date(Date.now() - 3600000).toISOString(),
-        isRead: false,
-      },
-      {
-        id: '2',
-        userId,
-        title: 'Withdrawal Processed',
-        message: 'Your withdrawal of $200 USD has been processed',
-        type: 'withdrawal',
-        createdAt: new Date(Date.now() - 86400000).toISOString(),
-        isRead: true,
-      },
-    ];
+    const db = sql();
+    const rows = await db`
+      SELECT id, user_id, title, message, type, is_read, related_id, related_type, created_at
+      FROM notifications
+      WHERE user_id = ${userId}
+      ORDER BY created_at DESC
+      LIMIT 50
+    `;
 
-    return NextResponse.json({
-      success: true,
-      notifications,
-    });
+    const notifications = rows.map((r: any) => ({
+      id: r.id,
+      userId: r.user_id,
+      title: r.title,
+      message: r.message,
+      type: r.type,
+      isRead: r.is_read,
+      relatedId: r.related_id,
+      relatedType: r.related_type,
+      createdAt: r.created_at,
+    }));
+
+    const unreadCount = notifications.filter((n: any) => !n.isRead).length;
+
+    return NextResponse.json({ success: true, notifications, unreadCount });
   } catch (error) {
-    console.error('[v0] NOTIFICATIONS API - Error:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch notifications' },
-      { status: 500 }
-    );
+    console.error('[v0] NOTIFICATIONS GET error:', error);
+    return NextResponse.json({ error: 'Failed to fetch notifications' }, { status: 500 });
   }
 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
 import { sendEmail, sendEmailToAdmin } from '@/lib/email/resend';
 import { depositApprovedTemplate, depositRejectedTemplate, orderPaymentApprovedTemplate, adminAlertTemplate } from '@/lib/email/templates';
+import { notifyDepositApproved, notifyDepositRejected } from '@/lib/notifications';
 
 function getSql() {
   if (!process.env.DATABASE_URL) {
@@ -67,7 +68,6 @@ export async function POST(request: NextRequest) {
       // Send approval email (non-blocking)
       if (userEmail) {
         if (linkedOrderDetails) {
-          // Send order-specific approval email
           sendEmail({
             to: userEmail,
             subject: 'Order Confirmed! - #' + linkedOrderDetails.id.slice(0, 8),
@@ -78,7 +78,6 @@ export async function POST(request: NextRequest) {
             ),
           }).catch(err => console.error('[v0] Failed to send order approval email:', err));
         } else {
-          // Send generic deposit approval email
           sendEmail({
             to: userEmail,
             subject: 'Deposit Approved!',
@@ -86,6 +85,10 @@ export async function POST(request: NextRequest) {
           }).catch(err => console.error('[v0] Failed to send approval email:', err));
         }
       }
+
+      // Create in-app notification (non-blocking)
+      notifyDepositApproved(deposit.user_id, String(deposit.amount), deposit_id)
+        .catch(err => console.error('[v0] Failed to create deposit approved notification:', err));
 
       return NextResponse.json({ success: true, message: 'Deposit approved', newBalance });
     } else {
@@ -112,6 +115,10 @@ export async function POST(request: NextRequest) {
           html: depositRejectedTemplate(String(deposit.amount)),
         }).catch(err => console.error('[v0] Failed to send rejection email:', err));
       }
+
+      // Create in-app notification (non-blocking)
+      notifyDepositRejected(deposit.user_id, String(deposit.amount), deposit_id)
+        .catch(err => console.error('[v0] Failed to create deposit rejected notification:', err));
       
       return NextResponse.json({ success: true, message: 'Deposit rejected' });
     }

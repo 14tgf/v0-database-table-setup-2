@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
 import { sendEmail, sendEmailToAdmin } from '@/lib/email/resend';
 import { withdrawalApprovedTemplate, withdrawalRejectedTemplate, adminAlertTemplate } from '@/lib/email/templates';
+import { notifyWithdrawalApproved, notifyWithdrawalRejected } from '@/lib/notifications';
 
 export async function POST(request: NextRequest) {
   try {
@@ -86,6 +87,10 @@ export async function POST(request: NextRequest) {
         }).catch(err => console.error('[v0] Failed to send withdrawal approval email:', err));
       }
 
+      // Create in-app notification (non-blocking)
+      notifyWithdrawalApproved(withdrawal.user_id, String(withdrawal.amount), withdrawal.method_name || 'Unknown', withdrawal_id)
+        .catch(err => console.error('[v0] Failed to create withdrawal approved notification:', err));
+
       // Notify admin of approval (non-blocking)
       sendEmailToAdmin({
         subject: 'Withdrawal Approved',
@@ -133,6 +138,10 @@ export async function POST(request: NextRequest) {
           html: withdrawalRejectedTemplate(String(withdrawal.amount), 'Your withdrawal request could not be processed. Please contact support for more information.'),
         }).catch(err => console.error('[v0] Failed to send withdrawal rejection email:', err));
       }
+
+      // Create in-app notification (non-blocking)
+      notifyWithdrawalRejected(withdrawal.user_id, String(withdrawal.amount), withdrawal_id)
+        .catch(err => console.error('[v0] Failed to create withdrawal rejected notification:', err));
 
       // Notify admin of rejection (non-blocking)
       sendEmailToAdmin({
