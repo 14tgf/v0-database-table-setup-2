@@ -15,7 +15,7 @@ interface SidebarMenuProps {
 export function SidebarMenu({ isOpen, onClose }: SidebarMenuProps) {
   const router = useRouter();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const [userData, setUserData] = useState({ fullName: '', email: '' });
+  const [userData, setUserData] = useState({ fullName: '', email: '', kycStatus: '' });
   const [isLoadingUser, setIsLoadingUser] = useState(true);
 
   useEffect(() => {
@@ -28,6 +28,7 @@ export function SidebarMenu({ isOpen, onClose }: SidebarMenuProps) {
             setUserData({
               fullName: data.user.fullName || '',
               email: data.user.email || '',
+              kycStatus: data.user.kycStatus || 'not_submitted',
             });
           }
         }
@@ -76,6 +77,25 @@ export function SidebarMenu({ isOpen, onClose }: SidebarMenuProps) {
   const displayName = isLoadingUser ? 'Loading...' : userData.fullName || 'User';
   const displayEmail = isLoadingUser ? 'Loading...' : userData.email || 'user@example.com';
 
+  // Get KYC status display info
+  const getKycStatusDisplay = () => {
+    const status = userData.kycStatus?.toLowerCase() || 'not_submitted';
+    switch (status) {
+      case 'approved':
+      case 'verified':
+        return { text: 'KYC Verified', color: 'bg-green-500', textColor: 'text-green-400' };
+      case 'pending':
+      case 'submitted':
+        return { text: 'KYC Pending', color: 'bg-yellow-500', textColor: 'text-yellow-400' };
+      case 'rejected':
+        return { text: 'KYC Rejected', color: 'bg-red-500', textColor: 'text-red-400' };
+      default:
+        return { text: 'KYC Not Submitted', color: 'bg-primary', textColor: 'text-white/60' };
+    }
+  };
+
+  const kycDisplay = getKycStatusDisplay();
+
   return (
     <>
       {/* Overlay */}
@@ -112,8 +132,8 @@ export function SidebarMenu({ isOpen, onClose }: SidebarMenuProps) {
               <p className="font-semibold text-white">{displayName}</p>
               <p className="text-sm text-white/70">{displayEmail}</p>
               <div className="mt-2 inline-flex items-center gap-1.5 bg-white/10 px-2.5 py-1 rounded-full border border-white/20">
-                <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
-                <span className="text-xs text-white/60">KYC Not Submitted</span>
+                <div className={`w-1.5 h-1.5 ${kycDisplay.color} rounded-full`}></div>
+                <span className={`text-xs ${kycDisplay.textColor}`}>{kycDisplay.text}</span>
               </div>
             </div>
           </div>
