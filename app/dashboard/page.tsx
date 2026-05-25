@@ -11,6 +11,7 @@ import {
   Car,
   Wallet as WalletIcon,
   ArrowUpRight,
+  ArrowRight,
 } from 'lucide-react';
 import { BalanceCard } from '@/components/dashboard/balance-card';
 import { StatCard } from '@/components/dashboard/stat-card';
@@ -169,6 +170,51 @@ export default function DashboardPage() {
             {quickActions.map((action, index) => (
               <QuickActionCard key={action.title} {...action} index={index} />
             ))}
+          </div>
+        </div>
+
+        {/* Book Appointment with Elon Musk */}
+        <div className="mb-6 relative rounded-2xl overflow-hidden border border-accent/20">
+          <div
+            className="absolute inset-0 -z-10"
+            style={{
+              backgroundImage: 'url(/mars-starship.jpg)',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center 30%',
+            }}
+          />
+          <div className="absolute inset-0 -z-10 bg-gradient-to-r from-background/97 via-background/80 to-background/60" />
+          <div className="px-6 py-8 md:px-10 md:py-12">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-accent/10 border border-accent/30 rounded-full mb-4">
+              <span className="w-1.5 h-1.5 bg-accent rounded-full animate-pulse" />
+              <span className="text-xs font-bold text-accent tracking-widest">LIMITED APPOINTMENTS</span>
+            </div>
+            <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-3 text-balance">
+              Book a Private Session<br />
+              <span className="text-accent">with Elon Musk</span>
+            </h2>
+            <p className="text-muted-foreground text-xs leading-relaxed max-w-md mb-5">
+              An unprecedented opportunity to sit down with Elon Musk — visionary behind Tesla, SpaceX, and X. Discuss investment opportunities, business ventures, or interplanetary ambitions.
+            </p>
+            <div className="flex flex-wrap gap-3 mb-6">
+              {[
+                { label: 'Appointment Fee', value: '$50,000' },
+                { label: 'Session Length', value: '30 Minutes' },
+                { label: 'Format', value: 'In-Person / Virtual' },
+              ].map((stat) => (
+                <div key={stat.label} className="bg-background/60 border border-white/10 rounded-xl px-4 py-2.5">
+                  <p className="text-xs text-muted-foreground">{stat.label}</p>
+                  <p className="text-sm font-bold text-accent">{stat.value}</p>
+                </div>
+              ))}
+            </div>
+            <Link
+              href="/book-appointment"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-accent text-background font-bold rounded-xl hover:bg-accent/90 hover:shadow-lg hover:shadow-accent/30 transition-all text-sm"
+            >
+              Apply for an Appointment
+              <ArrowRight className="w-4 h-4" />
+            </Link>
           </div>
         </div>
 
