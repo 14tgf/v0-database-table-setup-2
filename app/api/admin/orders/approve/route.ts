@@ -42,11 +42,10 @@ export async function POST(request: NextRequest) {
     console.log('[v0] Processing order action:', { order_id, action, status: order.status });
 
     if (action === 'approve') {
-      // Update order status to Approved
-      // DO NOT credit wallet - product purchases are never funded from wallet
+      // Update order status to Completed
       await sql`
         UPDATE orders 
-        SET status = 'Approved', updated_at = NOW()
+        SET status = 'Completed', updated_at = NOW()
         WHERE id = ${order_id}
       `;
 

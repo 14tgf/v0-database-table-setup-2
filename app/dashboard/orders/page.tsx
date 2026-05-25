@@ -54,8 +54,14 @@ export default function OrdersPage() {
   }
 
   const totalPurchases = orders.length
-  const completedPurchases = orders.filter(o => o.status === 'Completed').length
-  const pendingPurchases = orders.filter(o => o.status.includes('Pending') || o.status.includes('Submitted')).length
+  const completedPurchases = orders.filter(o => {
+    const s = o.status?.toLowerCase()
+    return s === 'completed' || s === 'approved' || s === 'delivered'
+  }).length
+  const pendingPurchases = orders.filter(o => {
+    const s = o.status?.toLowerCase()
+    return s === 'pending' || s === 'submitted' || s === 'processing'
+  }).length
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -215,13 +221,20 @@ export default function OrdersPage() {
                         </div>
                         <div className="text-right flex-shrink-0">
                           <p className="font-bold text-white">{format(parseFloat(order.total_amount as any) || 0)}</p>
-                          <p className={`text-xs font-semibold mt-1 ${
-                            order.status === 'Completed' ? 'text-green-300' : 
-                            order.status === 'Rejected' ? 'text-red-300' :
-                            'text-yellow-300'
-                          }`}>
-                            {order.status}
-                          </p>
+                          {(() => {
+                            const s = order.status?.toLowerCase()
+                            const isCompleted = s === 'completed' || s === 'approved' || s === 'delivered'
+                            const isRejected = s === 'rejected' || s === 'cancelled' || s === 'failed'
+                            return (
+                              <span className={`text-xs font-semibold mt-1 inline-block px-2 py-0.5 rounded-full ${
+                                isCompleted ? 'text-green-300 bg-green-400/20' :
+                                isRejected  ? 'text-red-300 bg-red-400/20' :
+                                              'text-yellow-300 bg-yellow-400/20'
+                              }`}>
+                                {isCompleted ? 'Completed' : order.status}
+                              </span>
+                            )
+                          })()}
                         </div>
                       </div>
                     </motion.div>
