@@ -53,23 +53,25 @@ export async function POST(request: NextRequest) {
         WHERE id = ${withdrawal.user_id}
       `;
 
-      // Update withdrawal status
+      // Update withdrawal status (approved_by is nullable UUID - only set if valid UUID provided)
+      const isValidUUID = userId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId);
+      
       await db`
         UPDATE withdrawals 
-        SET status = 'approved', approved_by = ${userId || null}, approved_at = NOW(), updated_at = NOW()
+        SET status = 'approved', approved_by = ${isValidUUID ? userId : null}, approved_at = NOW(), updated_at = NOW()
         WHERE id = ${withdrawal_id}
       `;
 
       // Create wallet transaction log
       await db`
-        INSERT INTO wallet_transactions (user_id, transaction_type, amount, old_balance, new_balance, related_id, related_type, description)
-        VALUES (${withdrawal.user_id}, 'withdrawal', ${withdrawal.amount}, ${currentBalance}, ${newBalance}, ${withdrawal_id}, 'withdrawal', 'Withdrawal approved')
+        INSERT INTO wallet_transactions (user_id, transaction_type, amount, old_balance, new_balance, related_id, related_type, description, status)
+        VALUES (${withdrawal.user_id}, 'withdrawal', ${withdrawal.amount}, ${currentBalance}, ${newBalance}, ${withdrawal_id}, 'withdrawal', 'Withdrawal approved', 'approved')
       `;
 
-      // Update the pending transaction to approved status
+      // Update any existing pending transaction to approved status (without updated_at since column doesn't exist)
       await db`
         UPDATE wallet_transactions 
-        SET status = 'approved', updated_at = NOW() 
+        SET status = 'approved' 
         WHERE related_id = ${withdrawal_id} AND related_type = 'withdrawal' AND status = 'pending'
       `;
 
@@ -105,17 +107,19 @@ export async function POST(request: NextRequest) {
         newBalance,
       });
     } else {
-      // Reject withdrawal
+      // Reject withdrawal - validate UUID for approved_by
+      const isValidUUID = userId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId);
+      
       await db`
         UPDATE withdrawals 
-        SET status = 'rejected', approved_by = ${userId || null}, approved_at = NOW(), updated_at = NOW()
+        SET status = 'rejected', approved_by = ${isValidUUID ? userId : null}, approved_at = NOW(), updated_at = NOW()
         WHERE id = ${withdrawal_id}
       `;
 
-      // Update the pending transaction to rejected status
+      // Update any existing pending transaction to rejected status (without updated_at since column doesn't exist)
       await db`
         UPDATE wallet_transactions 
-        SET status = 'rejected', updated_at = NOW() 
+        SET status = 'rejected' 
         WHERE related_id = ${withdrawal_id} AND related_type = 'withdrawal' AND status = 'pending'
       `;
 
