@@ -48,11 +48,11 @@ export function RecentOrders() {
 
   const getStatusIcon = (status: string) => {
     const lowerStatus = status?.toLowerCase() || '';
-    if (lowerStatus.includes('completed') || lowerStatus.includes('delivered')) {
+    if (lowerStatus.includes('completed') || lowerStatus.includes('delivered') || lowerStatus.includes('approved')) {
       return <CheckCircle className="w-4 h-4 text-green-400" />;
     } else if (lowerStatus.includes('pending') || lowerStatus.includes('processing')) {
       return <Clock className="w-4 h-4 text-yellow-400" />;
-    } else if (lowerStatus.includes('failed') || lowerStatus.includes('cancelled')) {
+    } else if (lowerStatus.includes('failed') || lowerStatus.includes('cancelled') || lowerStatus.includes('rejected')) {
       return <AlertCircle className="w-4 h-4 text-red-400" />;
     }
     return <ShoppingBag className="w-4 h-4 text-accent" />;
@@ -60,11 +60,11 @@ export function RecentOrders() {
 
   const getStatusColor = (status: string) => {
     const lowerStatus = status?.toLowerCase() || '';
-    if (lowerStatus.includes('completed') || lowerStatus.includes('delivered')) {
+    if (lowerStatus.includes('completed') || lowerStatus.includes('delivered') || lowerStatus.includes('approved')) {
       return 'text-green-400 bg-green-400/10';
     } else if (lowerStatus.includes('pending') || lowerStatus.includes('processing')) {
       return 'text-yellow-400 bg-yellow-400/10';
-    } else if (lowerStatus.includes('failed') || lowerStatus.includes('cancelled')) {
+    } else if (lowerStatus.includes('failed') || lowerStatus.includes('cancelled') || lowerStatus.includes('rejected')) {
       return 'text-red-400 bg-red-400/10';
     }
     return 'text-accent bg-accent/10';

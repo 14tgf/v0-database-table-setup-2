@@ -42,11 +42,11 @@ export async function POST(request: NextRequest) {
     console.log('[v0] Processing order action:', { order_id, action, status: order.status });
 
     if (action === 'approve') {
-      // Update order status to Processing
+      // Update order status to Approved
       // DO NOT credit wallet - product purchases are never funded from wallet
       await sql`
         UPDATE orders 
-        SET status = 'Processing', updated_at = NOW()
+        SET status = 'Approved', updated_at = NOW()
         WHERE id = ${order_id}
       `;
 
@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json({
         success: true,
-        message: 'Order approved successfully and is now processing',
+        message: 'Order approved successfully',
       });
     } else if (action === 'reject') {
       // Update order status to Rejected
