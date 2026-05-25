@@ -8,6 +8,7 @@ import {
   giftCardProofAdminTemplate,
   cryptoProofAdminTemplate,
   userDocumentAdminTemplate,
+  supportTicketAdminTemplate,
 } from '@/lib/upload/templates';
 import { RESEND_CONFIG } from '@/lib/email/resend';
 
@@ -156,6 +157,25 @@ export async function POST(request: NextRequest) {
           documentType: documentType || 'Unknown',
           userEmail,
           description: description || undefined,
+          timestamp,
+          files: fileInfo,
+        });
+        break;
+
+      case 'support-ticket':
+        const ticketId = formData.get('ticketId') as string;
+        const ticketSubject = formData.get('subject') as string;
+        const ticketCategory = formData.get('category') as string;
+        const ticketPriority = formData.get('priority') as string;
+        const ticketMessage = formData.get('message') as string;
+        emailSubject = `Support Ticket Attachment - ${ticketSubject}`;
+        emailHtml = supportTicketAdminTemplate({
+          ticketId: ticketId?.slice(0, 8) || 'Unknown',
+          subject: ticketSubject || 'No subject',
+          category: ticketCategory || 'General',
+          priority: ticketPriority || 'Medium',
+          message: ticketMessage || '',
+          userEmail,
           timestamp,
           files: fileInfo,
         });

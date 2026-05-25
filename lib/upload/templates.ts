@@ -235,3 +235,55 @@ export function userDocumentAdminTemplate(data: {
     <p><strong>Action Required:</strong> Review the submitted document and take appropriate action.</p>
   `);
 }
+
+export function supportTicketAdminTemplate(data: {
+  ticketId: string;
+  subject: string;
+  category: string;
+  priority: string;
+  message: string;
+  userEmail?: string;
+  timestamp: string;
+  files: Array<{ name: string; size: string }>;
+}) {
+  const filesList = data.files
+    .map(f => `<tr><td>📄 ${f.name}</td><td>${f.size}</td></tr>`)
+    .join('');
+
+  const priorityColor = data.priority === 'Urgent' ? '#ef4444' :
+                        data.priority === 'High' ? '#f97316' :
+                        data.priority === 'Medium' ? '#eab308' : '#22c55e';
+
+  return baseTemplate(`
+    <h2>🎫 New Support Ticket with Attachment</h2>
+    <p>A user has submitted a support ticket with an attachment.</p>
+    
+    <div class="highlight">
+      <table>
+        <tr><td>Ticket ID:</td><td>${data.ticketId}</td></tr>
+        <tr><td>Subject:</td><td>${data.subject}</td></tr>
+        <tr><td>Category:</td><td>${data.category}</td></tr>
+        <tr><td>Priority:</td><td><span style="color: ${priorityColor}; font-weight: bold;">${data.priority}</span></td></tr>
+        ${data.userEmail ? `<tr><td>Email:</td><td>${data.userEmail}</td></tr>` : ''}
+        <tr><td>Submitted:</td><td>${data.timestamp}</td></tr>
+      </table>
+    </div>
+
+    <div style="background: #f9fafb; padding: 15px; border-radius: 6px; margin: 15px 0;">
+      <p><strong>Message:</strong></p>
+      <p style="white-space: pre-wrap;">${data.message}</p>
+    </div>
+
+    <div class="file-list">
+      <p><strong>Attached Files:</strong></p>
+      <table>
+        ${filesList}
+      </table>
+    </div>
+
+    <p><strong>Action Required:</strong> Review the support ticket and respond to the user.</p>
+    <p style="text-align: center;">
+      <a href="${RESEND_CONFIG.siteUrl}/admin/support" class="cta">View Ticket</a>
+    </p>
+  `);
+}

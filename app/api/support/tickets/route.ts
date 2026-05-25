@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { user_id, subject, category, priority, message } = body;
+    const { user_id, subject, category, priority, message, attachment_name } = body;
 
     if (!user_id || !subject || !category || !priority || !message) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -50,11 +50,11 @@ export async function POST(request: NextRequest) {
 
     const db = sql();
 
-    // Create ticket
+    // Create ticket with attachment name (URL not stored since files are emailed directly)
     const ticketResult = await db`
-      INSERT INTO support_tickets (user_id, subject, category, priority, status)
-      VALUES (${user_id}, ${subject}, ${category}, ${priority}, 'open')
-      RETURNING id, user_id, subject, category, priority, status, created_at, updated_at
+      INSERT INTO support_tickets (user_id, subject, category, priority, status, attachment_name)
+      VALUES (${user_id}, ${subject}, ${category}, ${priority}, 'open', ${attachment_name || null})
+      RETURNING id, user_id, subject, category, priority, status, attachment_name, created_at, updated_at
     `;
 
     const ticketArray = Array.isArray(ticketResult) ? ticketResult : (ticketResult?.rows || []);
@@ -70,9 +70,12 @@ export async function POST(request: NextRequest) {
       VALUES (${ticket.id}, 'user', ${user_id}, ${message})
     `;
 
-    // Send confirmation email to user (non-blocking)
-    const userQuery = await db`SELECT email FROM users WHERE id = ${user_id}`;
+    // Get user email and name for notifications
+    const userQuery = await db`SELECT email, full_name FROM users WHERE id = ${user_id}`;
     const userEmail = userQuery?.[0]?.email;
+    const userName = userQuery?.[0]?.full_name || 'Unknown User';
+
+    // Send confirmation email to user (non-blocking)
     if (userEmail) {
       sendEmail({
         to: userEmail,
@@ -81,17 +84,25 @@ export async function POST(request: NextRequest) {
       }).catch(err => console.error('[v0] Failed to send ticket email:', err));
     }
 
-    // Notify admin (non-blocking)
+    // Build attachment info for admin email
+    const attachmentInfo = attachment_name 
+      ? `<br><strong>Attachment:</strong> ${attachment_name} (sent separately via email)`
+      : '';
+
+    // Notify admin with full details including attachment (non-blocking)
     sendEmailToAdmin({
-      subject: 'New Support Ticket',
+      subject: `New Support Ticket: ${subject}`,
       html: adminAlertTemplate(
         'New Support Ticket',
-        'A new support ticket has been submitted.',
+        `A new support ticket has been submitted by ${userName} (${userEmail || 'No email'}).${attachmentInfo}`,
         {
-          'Ticket ID': ticket.id,
+          'Ticket ID': ticket.id.slice(0, 8),
           'Subject': subject,
           'Category': category,
           'Priority': priority,
+          'User': userName,
+          'Email': userEmail || 'N/A',
+          'Message': message.length > 200 ? message.substring(0, 200) + '...' : message,
         }
       ),
     }).catch(err => console.error('[v0] Failed to send admin notification:', err));

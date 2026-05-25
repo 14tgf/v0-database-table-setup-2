@@ -13,10 +13,13 @@ export async function GET(request: NextRequest) {
         st.category,
         st.priority,
         st.status,
+        st.attachment_url,
+        st.attachment_name,
         st.created_at,
         st.updated_at,
         u.email as user_email,
         u.full_name as user_name,
+        (SELECT message FROM support_messages WHERE ticket_id = st.id ORDER BY created_at ASC LIMIT 1) as initial_message,
         (SELECT message FROM support_messages WHERE ticket_id = st.id ORDER BY created_at DESC LIMIT 1) as latest_message
       FROM support_tickets st
       LEFT JOIN users u ON st.user_id = u.id

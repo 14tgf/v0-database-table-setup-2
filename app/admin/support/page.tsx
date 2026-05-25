@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { CheckCircle, XCircle, Clock } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, Paperclip, ExternalLink } from 'lucide-react';
 
 interface SupportTicket {
   id: string;
@@ -13,7 +13,10 @@ interface SupportTicket {
   category: string;
   priority: string;
   status: string;
+  initial_message: string;
   latest_message: string;
+  attachment_url: string | null;
+  attachment_name: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -213,11 +216,26 @@ export default function AdminSupportPage() {
                 <div className="mb-3 pb-3 border-b border-white/10">
                   <p className="text-xs font-semibold text-muted-foreground mb-1">Subject</p>
                   <p className="text-sm text-foreground">{ticket.subject}</p>
-                  {ticket.latest_message && (
+                  {ticket.initial_message && (
                     <>
-                      <p className="text-xs font-semibold text-muted-foreground mt-2 mb-1">Latest Message</p>
-                      <p className="text-sm text-muted-foreground line-clamp-2">{ticket.latest_message}</p>
+                      <p className="text-xs font-semibold text-muted-foreground mt-2 mb-1">Message</p>
+                      <p className="text-sm text-muted-foreground whitespace-pre-wrap">{ticket.initial_message}</p>
                     </>
+                  )}
+                  {ticket.attachment_url && (
+                    <div className="mt-3">
+                      <p className="text-xs font-semibold text-muted-foreground mb-1">Attachment</p>
+                      <a
+                        href={ticket.attachment_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 px-3 py-1.5 bg-accent/10 border border-accent/30 rounded-lg text-xs text-accent hover:bg-accent/20 transition-colors"
+                      >
+                        <Paperclip className="w-3 h-3" />
+                        {ticket.attachment_name || 'View Attachment'}
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    </div>
                   )}
                 </div>
 

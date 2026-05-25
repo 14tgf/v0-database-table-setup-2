@@ -82,6 +82,7 @@ export function CreateTicketForm({ onTicketCreated }: CreateTicketFormProps) {
         return;
       }
 
+      // Create ticket first (without attachment URL since we email it directly)
       const response = await fetch('/api/support/tickets', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -91,6 +92,7 @@ export function CreateTicketForm({ onTicketCreated }: CreateTicketFormProps) {
           category: formData.category,
           priority: formData.priority,
           message: formData.message,
+          attachment_name: uploadedFile?.name || null,
         }),
       });
 
@@ -99,6 +101,23 @@ export function CreateTicketForm({ onTicketCreated }: CreateTicketFormProps) {
       if (!response.ok) {
         setError(data.error || 'Failed to create ticket');
         return;
+      }
+
+      // If there's an attachment, upload it and email to admin
+      if (uploadedFile) {
+        const uploadFormData = new FormData();
+        uploadFormData.append('files', uploadedFile);
+        uploadFormData.append('uploadType', 'support-ticket');
+        uploadFormData.append('ticketId', data.ticket.id);
+        uploadFormData.append('subject', formData.subject);
+        uploadFormData.append('category', formData.category);
+        uploadFormData.append('priority', formData.priority);
+        uploadFormData.append('message', formData.message);
+
+        await fetch('/api/upload/files', {
+          method: 'POST',
+          body: uploadFormData,
+        }).catch(err => console.error('[v0] Failed to upload attachment:', err));
       }
 
       console.log('[v0] Ticket created successfully:', data.ticket.id);
