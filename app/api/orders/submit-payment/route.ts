@@ -3,6 +3,7 @@ import { neon } from '@neondatabase/serverless';
 import { jwtVerify } from 'jose';
 import { sendEmail } from '@/lib/email/resend';
 import { orderPaymentSubmittedTemplate } from '@/lib/email/templates';
+import { notifyOrderSubmitted } from '@/lib/notifications';
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'default-secret-key-change-in-production');
 
@@ -78,6 +79,10 @@ export async function POST(request: NextRequest) {
       subject: 'Payment Submitted - Order #' + order_id.slice(0, 8),
       html: orderPaymentSubmittedTemplate(order_id.slice(0, 8), amount.toFixed(2), method_name, productImage),
     }).catch(err => console.error('[v0] Failed to send order payment email:', err));
+
+    // Create in-app notification
+    notifyOrderSubmitted(userId, order.product_name, order_id)
+      .catch(err => console.error('[v0] Failed to create order notification:', err));
 
     return NextResponse.json({
       success: true,

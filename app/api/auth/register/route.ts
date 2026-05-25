@@ -5,6 +5,7 @@ import bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
 import { sendEmail, sendEmailToAdmin } from '@/lib/email/resend';
 import { welcomeEmailTemplate, adminAlertTemplate } from '@/lib/email/templates';
+import { notifyWelcome } from '@/lib/notifications';
 
 const JWT_SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || 'default-secret-key-change-in-production'
@@ -120,6 +121,10 @@ export async function POST(request: NextRequest) {
       }).then(result => {
         console.log('[v0] REGISTER: Admin email result:', result);
       }).catch(err => console.error('[v0] Failed to send admin notification:', err));
+
+      // Create in-app welcome notification
+      notifyWelcome(user.id, user.full_name)
+        .catch(err => console.error('[v0] Failed to create welcome notification:', err));
 
       return response;
     } catch (dbError) {

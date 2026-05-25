@@ -3,14 +3,24 @@ import { sql } from '@/lib/db';
 export type NotificationType =
   | 'deposit_approved'
   | 'deposit_rejected'
+  | 'deposit_submitted'
   | 'withdrawal_approved'
   | 'withdrawal_rejected'
+  | 'withdrawal_submitted'
   | 'kyc_approved'
   | 'kyc_rejected'
+  | 'kyc_submitted'
   | 'order_approved'
   | 'order_rejected'
+  | 'order_submitted'
   | 'appointment_approved'
   | 'appointment_rejected'
+  | 'appointment_submitted'
+  | 'support_ticket_created'
+  | 'support_ticket_reply'
+  | 'giveaway_entry'
+  | 'password_changed'
+  | 'welcome'
   | 'general';
 
 interface CreateNotificationParams {
@@ -141,4 +151,86 @@ export const notifyAppointmentRejected = (userId: string) =>
     title: 'Appointment Not Approved',
     message: 'Your appointment request was not approved. Please contact support for more details.',
     type: 'appointment_rejected',
+  });
+
+// ─── Submission / User-initiated action notifications ─────────────────────────
+
+export const notifyDepositSubmitted = (userId: string, amount: string, method: string, relatedId?: string) =>
+  createNotification({
+    userId,
+    title: 'Deposit Submitted',
+    message: `Your deposit of $${amount} USD via ${method} has been submitted and is pending review.`,
+    type: 'deposit_submitted',
+    relatedId,
+    relatedType: 'deposit',
+  });
+
+export const notifyWithdrawalSubmitted = (userId: string, amount: string, method: string, relatedId?: string) =>
+  createNotification({
+    userId,
+    title: 'Withdrawal Requested',
+    message: `Your withdrawal request for $${amount} USD via ${method} has been submitted and is pending approval.`,
+    type: 'withdrawal_submitted',
+    relatedId,
+    relatedType: 'withdrawal',
+  });
+
+export const notifyKycSubmitted = (userId: string) =>
+  createNotification({
+    userId,
+    title: 'KYC Submitted',
+    message: 'Your identity verification documents have been submitted and are under review.',
+    type: 'kyc_submitted',
+  });
+
+export const notifyOrderSubmitted = (userId: string, productName: string, orderId: string) =>
+  createNotification({
+    userId,
+    title: 'Order Payment Submitted',
+    message: `Your payment for ${productName} (#${orderId.slice(0, 8)}) has been submitted and is awaiting confirmation.`,
+    type: 'order_submitted',
+    relatedId: orderId,
+    relatedType: 'order',
+  });
+
+export const notifyAppointmentSubmitted = (userId: string, ticketNumber: string) =>
+  createNotification({
+    userId,
+    title: 'Appointment Request Submitted',
+    message: `Your appointment request (Ticket: ${ticketNumber}) has been submitted and is under review.`,
+    type: 'appointment_submitted',
+  });
+
+export const notifySupportTicketCreated = (userId: string, ticketId: string, subject: string) =>
+  createNotification({
+    userId,
+    title: 'Support Ticket Created',
+    message: `Your support ticket "${subject}" (#${ticketId.slice(0, 8)}) has been created. We will respond shortly.`,
+    type: 'support_ticket_created',
+    relatedId: ticketId,
+    relatedType: 'support_ticket',
+  });
+
+export const notifyGiveawayEntry = (userId: string, giveawayName: string) =>
+  createNotification({
+    userId,
+    title: 'Giveaway Entry Confirmed',
+    message: `You have been entered into the ${giveawayName} giveaway. Good luck!`,
+    type: 'giveaway_entry',
+  });
+
+export const notifyPasswordChanged = (userId: string) =>
+  createNotification({
+    userId,
+    title: 'Password Changed',
+    message: 'Your account password has been changed successfully. If you did not make this change, contact support immediately.',
+    type: 'password_changed',
+  });
+
+export const notifyWelcome = (userId: string, fullName: string) =>
+  createNotification({
+    userId,
+    title: 'Welcome to X Holding!',
+    message: `Hi ${fullName}, welcome to X Holding. Your account is now active. Start exploring investment opportunities today!`,
+    type: 'welcome',
   });

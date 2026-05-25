@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
 import { sendEmail, sendEmailToAdmin } from '@/lib/email/resend';
 import { kycSubmittedTemplate, adminAlertTemplate } from '@/lib/email/templates';
+import { notifyKycSubmitted } from '@/lib/notifications';
 
 export async function POST(request: NextRequest) {
   try {
@@ -120,6 +121,10 @@ export async function POST(request: NextRequest) {
         }
       ),
     }).catch(err => console.error('[v0] Failed to send admin notification:', err));
+
+    // Create in-app notification for user
+    notifyKycSubmitted(user_id)
+      .catch(err => console.error('[v0] Failed to create KYC notification:', err));
 
     return NextResponse.json({
       success: true,

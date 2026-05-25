@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
 import { sendEmail, sendEmailToAdmin } from '@/lib/email/resend';
 import { supportTicketOpenedTemplate, adminAlertTemplate } from '@/lib/email/templates';
+import { notifySupportTicketCreated } from '@/lib/notifications';
 
 export async function GET(request: NextRequest) {
   try {
@@ -106,6 +107,10 @@ export async function POST(request: NextRequest) {
         }
       ),
     }).catch(err => console.error('[v0] Failed to send admin notification:', err));
+
+    // Create in-app notification for user
+    notifySupportTicketCreated(user_id, ticket.id, subject)
+      .catch(err => console.error('[v0] Failed to create support ticket notification:', err));
 
     console.log('[v0] Support ticket created:', ticket.id);
     return NextResponse.json({ success: true, ticket });

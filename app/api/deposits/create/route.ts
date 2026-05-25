@@ -3,6 +3,7 @@ import { neon } from '@neondatabase/serverless';
 import { jwtVerify } from 'jose';
 import { sendEmail, sendEmailToAdmin } from '@/lib/email/resend';
 import { depositSubmittedTemplate, adminAlertTemplate } from '@/lib/email/templates';
+import { notifyDepositSubmitted } from '@/lib/notifications';
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'default-secret-key-change-in-production');
 
@@ -193,6 +194,10 @@ export async function POST(request: NextRequest) {
       }).then(result => {
         console.log('[v0] DEPOSITS API - Admin email result:', result);
       }).catch(err => console.error('[v0] Failed to send admin notification:', err));
+
+      // Create in-app notification for user
+      notifyDepositSubmitted(userId, String(amount), method_name, depositRecord.id)
+        .catch(err => console.error('[v0] Failed to create deposit notification:', err));
 
       console.log('[v0] DEPOSITS API - Deposit submission complete');
       return NextResponse.json({

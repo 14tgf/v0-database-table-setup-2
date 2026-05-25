@@ -3,6 +3,7 @@ import { sql } from '@/lib/db';
 import { sendEmail, sendEmailToAdmin } from '@/lib/email/resend';
 import { giveawayEntryApprovedTemplate, adminAlertTemplate } from '@/lib/email/templates';
 import { checkGiveawayEligibility } from '@/lib/giveaway-helpers';
+import { notifyGiveawayEntry } from '@/lib/notifications';
 
 export async function POST(request: NextRequest) {
   try {
@@ -96,6 +97,10 @@ export async function POST(request: NextRequest) {
         }
       ),
     }).catch(err => console.error('[v0] Failed to send admin notification:', err));
+
+    // Create in-app notification for user
+    notifyGiveawayEntry(user_id, giveawayName)
+      .catch(err => console.error('[v0] Failed to create giveaway notification:', err));
 
     return NextResponse.json({
       success: true,

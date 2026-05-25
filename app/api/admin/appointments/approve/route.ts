@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
 import { sendEmail, sendEmailToAdmin } from '@/lib/email/resend';
+import { notifyAppointmentApproved, notifyAppointmentRejected } from '@/lib/notifications';
 
 function getSql() {
   if (!process.env.DATABASE_URL) {
@@ -66,6 +67,12 @@ export async function POST(request: NextRequest) {
         }).catch(err => console.error('[v0] Failed to send approval email:', err));
       }
 
+      // Create in-app notification
+      if (appointment.user_id) {
+        notifyAppointmentApproved(appointment.user_id, appointment.ticket_number)
+          .catch(err => console.error('[v0] Failed to create appointment approved notification:', err));
+      }
+
       return NextResponse.json({ success: true, message: 'Appointment approved' });
 
     } else if (action === 'reject') {
@@ -94,6 +101,12 @@ export async function POST(request: NextRequest) {
             </div>
           `,
         }).catch(err => console.error('[v0] Failed to send rejection email:', err));
+      }
+
+      // Create in-app notification
+      if (appointment.user_id) {
+        notifyAppointmentRejected(appointment.user_id)
+          .catch(err => console.error('[v0] Failed to create appointment rejected notification:', err));
       }
 
       return NextResponse.json({ success: true, message: 'Appointment rejected' });

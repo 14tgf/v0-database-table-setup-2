@@ -3,6 +3,7 @@ import { jwtVerify } from 'jose';
 import { sql } from '@/lib/db';
 import { sendEmail } from '@/lib/email/resend';
 import { passwordChangedTemplate } from '@/lib/email/templates';
+import { notifyPasswordChanged } from '@/lib/notifications';
 import bcrypt from 'bcryptjs';
 
 const JWT_SECRET = new TextEncoder().encode(
@@ -84,6 +85,10 @@ export async function POST(request: NextRequest) {
         html: passwordChangedTemplate(fullName || 'User'),
       }).catch(err => console.error('[v0] Failed to send password change email:', err));
     }
+
+    // Create in-app notification
+    notifyPasswordChanged(userId)
+      .catch(err => console.error('[v0] Failed to create password change notification:', err));
 
     return NextResponse.json({
       success: true,
