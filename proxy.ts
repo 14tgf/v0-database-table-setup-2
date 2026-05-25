@@ -16,8 +16,6 @@ const PROTECTED_USER_ROUTES = [
   '/account',
   '/kyc',
   '/support',
-  '/deposit',
-  '/withdraw',
   '/checkout-history',
 ];
 
@@ -27,10 +25,13 @@ const PROTECTED_ADMIN_ROUTES = ['/admin/users', '/admin/reports', '/admin/settin
 // Public auth routes
 const PUBLIC_AUTH_ROUTES = ['/auth', '/login', '/register', '/admin/login'];
 
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const authToken = request.cookies.get('auth_token')?.value;
   const adminToken = request.cookies.get('admin_session')?.value;
+
+  // Debug logging
+  console.log('[v0] Middleware - pathname:', pathname, '| hasAuthToken:', !!authToken);
 
   // Check if route is a protected user route
   const isProtectedUserRoute = PROTECTED_USER_ROUTES.some((route) =>
@@ -71,7 +72,9 @@ export async function proxy(request: NextRequest) {
 
   // Protect user dashboard routes
   if (isProtectedUserRoute) {
+    console.log('[v0] Middleware - Protected route check | userValid:', userValid);
     if (!userValid) {
+      console.log('[v0] Middleware - Redirecting to login (no valid token)');
       return NextResponse.redirect(new URL('/login', request.url));
     }
     return NextResponse.next();

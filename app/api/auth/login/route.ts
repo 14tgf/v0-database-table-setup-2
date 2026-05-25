@@ -88,9 +88,10 @@ export async function POST(request: NextRequest) {
 
     // Set secure cookie with the JWT token
     console.log('[v0] LOGIN: Setting auth_token cookie');
+    const isProduction = process.env.NODE_ENV === 'production';
     response.cookies.set('auth_token', jwtToken, {
       httpOnly: true,
-      secure: false, // Allow in development
+      secure: isProduction,
       sameSite: 'lax',
       maxAge: 24 * 60 * 60, // 24 hours
       path: '/',
