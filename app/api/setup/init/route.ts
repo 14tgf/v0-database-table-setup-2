@@ -9,6 +9,83 @@ const DEFAULT_ADMIN_EMAIL = 'admin@xholding.com';
 const DEFAULT_ADMIN_PASSWORD = 'AdminPassword123!';
 const DEFAULT_ADMIN_NAME = 'X Admin';
 
+// Split a SQL file into individual statements. A naive split on ";" breaks
+// PL/pgSQL function/trigger bodies, whose ";" characters live inside a
+// dollar-quoted string ($$ ... $$). This splitter only treats a ";" as a
+// statement boundary when it is not inside a single-quoted string or a
+// dollar-quoted block.
+function splitSqlStatements(sql: string): string[] {
+  const statements: string[] = [];
+  let current = '';
+  let inSingleQuote = false;
+  let dollarTag: string | null = null;
+
+  for (let i = 0; i < sql.length; i++) {
+    const char = sql[i];
+    const rest = sql.slice(i);
+
+    // Inside a dollar-quoted block, everything is literal until the matching tag.
+    if (dollarTag) {
+      if (rest.startsWith(dollarTag)) {
+        current += dollarTag;
+        i += dollarTag.length - 1;
+        dollarTag = null;
+        continue;
+      }
+      current += char;
+      continue;
+    }
+
+    // Inside a single-quoted string, only another quote can end it.
+    if (inSingleQuote) {
+      current += char;
+      if (char === "'") inSingleQuote = false;
+      continue;
+    }
+
+    // Line comment: skip to end of line so its ; ' $ characters are ignored.
+    if (char === '-' && sql[i + 1] === '-') {
+      const newline = sql.indexOf('\n', i);
+      i = newline === -1 ? sql.length : newline;
+      continue;
+    }
+
+    // Block comment: skip to the closing */.
+    if (char === '/' && sql[i + 1] === '*') {
+      const end = sql.indexOf('*/', i + 2);
+      i = end === -1 ? sql.length : end + 1;
+      continue;
+    }
+
+    if (char === "'") {
+      inSingleQuote = true;
+      current += char;
+      continue;
+    }
+
+    const dollarMatch = rest.match(/^\$[A-Za-z0-9_]*\$/);
+    if (dollarMatch) {
+      dollarTag = dollarMatch[0];
+      current += dollarTag;
+      i += dollarTag.length - 1;
+      continue;
+    }
+
+    if (char === ';') {
+      const trimmed = current.trim();
+      if (trimmed.length > 0) statements.push(trimmed);
+      current = '';
+      continue;
+    }
+
+    current += char;
+  }
+
+  const tail = current.trim();
+  if (tail.length > 0) statements.push(tail);
+  return statements;
+}
+
 export async function POST() {
   try {
     if (!process.env.DATABASE_URL) {
@@ -30,14 +107,25 @@ export async function POST() {
 
     for (const file of migrationFiles) {
       const migrationSQL = fs.readFileSync(path.join(migrationsDir, file), 'utf-8');
-      const statements = migrationSQL
-        .split(';')
-        .map((stmt) => stmt.trim())
-        .filter((stmt) => stmt.length > 0);
+      const statements = splitSqlStatements(migrationSQL);
 
       try {
         for (const statement of statements) {
-          await sql.unsafe(statement);
+          // Use sql.query() (not sql.unsafe(), which returns an unexecuted
+          // query object) so the DDL actually runs against the database.
+          try {
+            await sql.query(statement);
+          } catch (statementError) {
+            // Keep setup idempotent: some migrations issue bare CREATE TRIGGER
+            // statements (Postgres has no reliable CREATE TRIGGER IF NOT EXISTS),
+            // so a re-run would otherwise fail with "already exists". Those are
+            // safe to ignore; any other error is a real failure.
+            const message =
+              statementError instanceof Error ? statementError.message : String(statementError);
+            if (!/already exists/i.test(message)) {
+              throw statementError;
+            }
+          }
         }
         migrationResults.push({ file, status: 'completed' });
       } catch (migrationError) {

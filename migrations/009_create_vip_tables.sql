@@ -24,9 +24,15 @@ CREATE TABLE IF NOT EXISTS user_vip_memberships (
   started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   expires_at TIMESTAMP NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE(user_id, status) WHERE status = 'active'
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Ensure a user can only have one active VIP membership at a time.
+-- A partial UNIQUE index is required here; a table-level UNIQUE constraint
+-- cannot carry a WHERE clause.
+CREATE UNIQUE INDEX IF NOT EXISTS idx_user_vip_memberships_one_active
+  ON user_vip_memberships(user_id)
+  WHERE status = 'active';
 
 -- Create indexes for better query performance
 CREATE INDEX IF NOT EXISTS idx_vip_plans_active ON vip_plans(active);
