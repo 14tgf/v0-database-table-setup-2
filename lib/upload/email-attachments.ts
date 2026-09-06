@@ -5,7 +5,14 @@
 import { Resend } from 'resend';
 import { RESEND_CONFIG } from '@/lib/email/resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+let resend: Resend | null = null;
+
+function getResend() {
+  if (!resend && process.env.RESEND_API_KEY) {
+    resend = new Resend(process.env.RESEND_API_KEY);
+  }
+  return resend;
+}
 
 export interface EmailAttachment {
   filename: string;
@@ -40,7 +47,11 @@ export async function sendEmailWithAttachments(
   }
 
   try {
-    const response = await resend.emails.send({
+    const client = getResend();
+    if (!client) {
+      return { success: false, error: 'Email service not configured' };
+    }
+    const response = await client.emails.send({
       from: RESEND_CONFIG.fromEmail,
       to: options.to,
       subject: options.subject,
