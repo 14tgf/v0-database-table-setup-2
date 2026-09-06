@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { X, LogOut, LayoutGrid, Users, FileText, CreditCard, Settings, Crown, MessageSquare, ShoppingCart, CalendarCheck } from 'lucide-react';
+import { X, LogOut, LayoutGrid, Users, FileText, CreditCard, Settings, Crown, MessageSquare, ShoppingCart, CalendarCheck, DatabaseZap } from 'lucide-react';
 
 interface AdminSidebarProps {
   isOpen: boolean;
@@ -25,6 +25,7 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
     { icon: CalendarCheck, label: 'Elon Appointments', href: '/admin/appointments' },
     { icon: CreditCard, label: 'Payment Methods', href: '/admin/payments' },
     { icon: Crown, label: 'VIP Setup', href: '/admin/vip-setup' },
+    { icon: DatabaseZap, label: 'Import Database', href: '/admin/import' },
     { icon: Settings, label: 'Settings', href: '/admin/settings' },
   ];
 
