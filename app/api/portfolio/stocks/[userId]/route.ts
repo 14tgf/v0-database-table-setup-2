@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { neon } from '@neondatabase/serverless';
 
-const sql = neon(process.env.DATABASE_URL!);
-
 export async function GET(
   req: NextRequest,
   { params }: { params: { userId: string } }
 ) {
   try {
+    const sql = neon(process.env.DATABASE_URL!);
     const userId = params.userId;
 
     const stocks = await sql`
